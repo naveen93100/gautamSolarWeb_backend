@@ -50,6 +50,7 @@ GaloRouter.get('/get_blog_comment/:UUID',getBlogComment);
 GaloRouter.post('/comment/:UUID',addBlogComment);
 // 
 
+
 // to get all news
 GaloRouter.get('/news',getGaloNews);
 
