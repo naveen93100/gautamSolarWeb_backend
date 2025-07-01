@@ -7,8 +7,6 @@ const { default: mongoose } = require("mongoose");
 const unlinkAsync = promisify(fs.unlink);
 require("dotenv").config();
 
-// sitemap
-
 const deleteBlogComment=async(req,res)=>{
   try {
     
