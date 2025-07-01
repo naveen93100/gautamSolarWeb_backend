@@ -42,11 +42,13 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({ storage: storage, fileFilter: fileFilter,limits: { fileSize: 1024  * 1024 * 50,  fieldSize: 10 * 1024 * 1024, }  });
 
+// new 
 GaloRouter.patch('/like/:id/:isLiked',likeBlog);
 
 GaloRouter.delete('/delete_blog_comment/:cid/:UUID',deleteBlogComment);
 GaloRouter.get('/get_blog_comment/:UUID',getBlogComment);
 GaloRouter.post('/comment/:UUID',addBlogComment);
+// 
 
 // to get all news
 GaloRouter.get('/news',getGaloNews);
