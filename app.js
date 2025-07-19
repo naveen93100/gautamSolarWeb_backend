@@ -5,14 +5,13 @@ const nodemailer = require("nodemailer");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const url = require("url");
-const cookieParser=require('cookie-parser');
+const cookieParser = require("cookie-parser");
 const app = express();
 app.use(express.json());
 app.use(cors());
 require("dotenv").config();
 app.use(bodyParser.json());
 app.use(cookieParser());
-
 
 function extractWebsiteName(domain) {
   const domainParts = domain.split(".");
@@ -26,15 +25,14 @@ const path = require("path");
 const { GaloRouter } = require("./Routes/galo.routes");
 
 app.use((req, res, next) => {
- 
-  let reqUrl=req.query.utm_source||null;
-  if(reqUrl!==null){
-     res.cookie('utm_source',reqUrl,{
-      httpOnly:true,
-      secure:true,
-      sameSite:'lax',
-      maxAge:2*60*1000
-     })
+  let reqUrl = req.query.utm_source || null;
+  if (reqUrl !== null) {
+    res.cookie("utm_source", reqUrl, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      maxAge: 2 * 60 * 1000,
+    });
   }
   next();
 });
@@ -42,11 +40,20 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
 
-app.use("/admin/blogImage",express.static(path.join(__dirname, "Blog_Images")));
+app.use(
+  "/admin/blogImage",
+  express.static(path.join(__dirname, "Blog_Images"))
+);
 app.use("/admin/blogVideo", express.static(path.join(__dirname, "Blog_Video")));
 
-app.use('/galo_admin/blogImage',express.static(path.join(__dirname,'Galo_Blog_Images')))
-app.use('/galo_admin/blogVideo',express.static(path.join(__dirname,'Galo_Blog_Video')))
+app.use(
+  "/galo_admin/blogImage",
+  express.static(path.join(__dirname, "Galo_Blog_Images"))
+);
+app.use(
+  "/galo_admin/blogVideo",
+  express.static(path.join(__dirname, "Galo_Blog_Video"))
+);
 
 // Nodemailer configuration for SMTP
 const transporter = nodemailer.createTransport({
@@ -79,11 +86,12 @@ app.post("/submit-contactus", async (req, res) => {
     const referrerUrl = req.headers.referer || "Unknown"; // Get the referrer URL
     const referrerDomain = url.parse(referrerUrl).hostname; // Extract the domain name from the URL
     const referrerWebsite = extractWebsiteName(referrerDomain); // Extract the website name from the domain name
-    
-    let utm;
-    if(formData.utm!==null){
-      utm=JSON.parse(formData.utm)
-    }
+
+    let utm = JSON.parse(formData.utm);
+    let showUtmData =
+      utm?.utm_source && utm?.utm_medium
+        ? `${utm?.utm_source}-${utm?.utm_medium}`
+        : "Direct";
 
     const checkboxValues = Object.keys(formData).filter(
       (key) => formData[key] === "Yes"
@@ -110,7 +118,7 @@ app.post("/submit-contactus", async (req, res) => {
         ${checkboxList}
       </ul>
       <p style="margin-bottom: 10px;"><strong>Source:</strong> ${referrerWebsite}</p>
-      <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${utm?.utm_source||'Direct'}</p>
+      <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${showUtmData}</p>
     </div>
       `,
     };
@@ -131,10 +139,15 @@ app.post("/submit-contactbox", async (req, res) => {
     const formData = req.body;
     const referrerUrl = req.headers.referer || "Unknown"; // Get the referrer URL
     const referrerDomain = url.parse(referrerUrl).hostname; // Extract the domain name from the URL
-    const referrerWebsite = extractWebsiteName(referrerDomain); // Extract the website 
+    const referrerWebsite = extractWebsiteName(referrerDomain); // Extract the website
 
-    let utm=JSON.parse(formData.utm);
-    
+    let utm = JSON.parse(formData.utm);
+
+    let showUtmData =
+      utm?.utm_source && utm?.utm_medium
+        ? `${utm?.utm_source}-${utm?.utm_medium}`
+        : "Direct";
+
     const mailOptions = {
       from: "gautamsolar.vidoes01@gmail.com", // sender email
       to: "info@gautamsolar.com", // another destination email
@@ -149,7 +162,7 @@ app.post("/submit-contactbox", async (req, res) => {
       <p style="margin-bottom: 10px;"><strong>Willing to invest:</strong> ${formData.option}</p>
       <p style="margin-bottom: 10px;"><strong>Remarks:</strong> ${formData.message}</p>
       <p style="margin-bottom: 10px;"><strong>Source:</strong> ${referrerWebsite}</p>
-        <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${utm?.utm_source||'Direct'}</p>
+        <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${showUtmData}</p>
     </div>
       `,
     };
@@ -172,9 +185,11 @@ app.post("/submit-solarplant", async (req, res) => {
     const referrerDomain = url.parse(referrerUrl).hostname; // Extract the domain name from the URL
     const referrerWebsite = extractWebsiteName(referrerDomain); // Extract the website name from the domain name
 
-    
-    let utm=JSON.parse(formData.utm);
-   
+    let utm = JSON.parse(formData.utm);
+    let showUtmData =
+      utm?.utm_source && utm?.utm_medium
+        ? `${utm?.utm_source}-${utm?.utm_medium}`
+        : "Direct";
 
     const mailOptions = {
       from: "gautamsolar.vidoes01@gmail.com", // sender email
@@ -190,7 +205,7 @@ app.post("/submit-solarplant", async (req, res) => {
       <p style="margin-bottom: 10px;"><strong>Wants to put up:</strong> ${formData.option}</p>
       <p style="margin-bottom: 10px;"><strong>Project Size:</strong> ${formData.sizeoption}</p>
       <p style="margin-bottom: 10px;"><strong>Source:</strong> ${referrerWebsite}</p>
-        <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${utm?.utm_source}</p>
+        <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${showUtmData}</p>
     </div>
       `,
     };
@@ -205,6 +220,7 @@ app.post("/submit-solarplant", async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
+
 app.post("/submit-pmkusum", async (req, res) => {
   try {
     const formData = req.body;
@@ -212,8 +228,11 @@ app.post("/submit-pmkusum", async (req, res) => {
     const referrerDomain = url.parse(referrerUrl).hostname; // Extract the domain name from the URL
     const referrerWebsite = extractWebsiteName(referrerDomain); // Extract the website name from the domain name
 
-    // ... (Any additional validation or processing for Contact Box form data)
-    // const utmSource = req.body.utm_source || req.query.utm_source || "Not provided";
+    let utm = JSON.parse(formData.utm);
+    let showUtmData =
+      utm?.utm_source && utm?.utm_medium
+        ? `${utm?.utm_source}-${utm?.utm_medium}`
+        : "Direct";
 
     const mailOptions = {
       from: "gautamsolar.vidoes01@gmail.com", // sender email
@@ -228,7 +247,7 @@ app.post("/submit-pmkusum", async (req, res) => {
       <p style="margin-bottom: 10px;"><strong>Wants to put up:</strong> ${formData.projectSize}</p>
       <p style="margin-bottom: 10px;"><strong>Project Size:</strong> ${formData.selectedOption}</p>
       <p style="margin-bottom: 10px;"><strong>Source:</strong> ${referrerWebsite}</p>
-        <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${req.cookies.utm_source?req.cookies.utm_source:'Direct'}</p>
+        <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${showUtmData}</p>
     </div>
       `,
     };
@@ -243,6 +262,8 @@ app.post("/submit-pmkusum", async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
+
+// Endpoint for submitting  galo
 app.post("/submit-delhi", async (req, res) => {
   try {
     const formData = req.body;
@@ -260,17 +281,35 @@ app.post("/submit-delhi", async (req, res) => {
       html: `
       <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
       <h2 style="color: #a20000;"> Galo Solar Form Submission</h2>
-      <p style="margin-bottom: 10px;"><strong>Name:</strong> ${formData.Name}</p>
-      <p style="margin-bottom: 10px;"><strong>Mobile No:</strong> ${formData.Phone}</p>
-      <p style="margin-bottom: 10px;"><strong>Pin Code:</strong> ${formData.Pincode}</p>
-      <p style="margin-bottom: 10px;"><strong>City:</strong> ${formData.City}</p>
-      <p style="margin-bottom: 10px;"><strong>Solar For:</strong> ${formData.SolarFor}</p>
-      <p style="margin-bottom: 10px;"><strong>State:</strong> ${formData.State}</p>
-           <p style="margin-bottom: 10px;"><strong>Country:</strong> ${formData.Country}</p>
-      <p style="margin-bottom: 10px;"><strong>Remark:</strong> ${formData.Remark}</p>
+      <p style="margin-bottom: 10px;"><strong>Name:</strong> ${
+        formData.Name
+      }</p>
+      <p style="margin-bottom: 10px;"><strong>Mobile No:</strong> ${
+        formData.Phone
+      }</p>
+      <p style="margin-bottom: 10px;"><strong>Pin Code:</strong> ${
+        formData.Pincode
+      }</p>
+      <p style="margin-bottom: 10px;"><strong>City:</strong> ${
+        formData.City
+      }</p>
+      <p style="margin-bottom: 10px;"><strong>Solar For:</strong> ${
+        formData.SolarFor
+      }</p>
+      <p style="margin-bottom: 10px;"><strong>State:</strong> ${
+        formData.State
+      }</p>
+           <p style="margin-bottom: 10px;"><strong>Country:</strong> ${
+             formData.Country
+           }</p>
+      <p style="margin-bottom: 10px;"><strong>Remark:</strong> ${
+        formData.Remark
+      }</p>
      
       <p style="margin-bottom: 10px;"><strong>Source:</strong> ${referrerWebsite}</p>
-        <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${req.cookies.utm_source?req.cookies.utm_source:'Not Provided'}</p>
+        <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${
+          req.cookies.utm_source ? req.cookies.utm_source : "Not Provided"
+        }</p>
     </div>
       `,
     };
@@ -287,14 +326,12 @@ app.post("/submit-delhi", async (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  console.log(req.cookies.utm_source?req.cookies.utm_source:'Not provided');
   res.send({ msg: "Welcome Solar News App" });
 });
 
 app.use("/admin", UserRouter);
 
-app.use('/galo_admin',GaloRouter);
-
+app.use("/galo_admin", GaloRouter);
 
 app.listen(process.env.PORT, async () => {
   try {
