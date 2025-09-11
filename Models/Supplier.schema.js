@@ -1,5 +1,6 @@
 
 const mongoose=require('mongoose');
+
 const supplierSchema = new mongoose.Schema(
   {
     supplierName: {
@@ -41,4 +42,4 @@ const supplierSchema = new mongoose.Schema(
 );
 
 const Supplier = mongoose.model("Supplier", supplierSchema);
-export default Supplier;
+module.exports=Supplier
