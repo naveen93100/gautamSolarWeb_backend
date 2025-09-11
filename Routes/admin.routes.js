@@ -41,7 +41,7 @@ const fileFilter = (req, file, cb) => {
     const allowedVideoTypes = ['video/mp4', 'video/mpeg', 'video/avi', 'video/webm', 'video/quicktime'];
 
     if (allowedImageTypes.includes(file.mimetype) || allowedVideoTypes.includes(file.mimetype)) {
-        req.body.FileFormat = file.mimetype; // Store the file format in the request body
+        req.body.FileFormat = file.mimetype;
         cb(null, true); // Accept the file
     } else {
         cb(new Error('Invalid file type. Only images and videos are allowed.'), false); // Reject the file

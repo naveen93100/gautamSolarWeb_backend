@@ -23,6 +23,7 @@ function extractWebsiteName(domain) {
 }
 const path = require("path");
 const { GaloRouter } = require("./Routes/galo.routes");
+const { default: Supplier } = require("./Models/Supplier.schema");
 
 app.use((req, res, next) => {
   let reqUrl = req.query.utm_source || null;
@@ -77,6 +78,88 @@ const transporter1 = nodemailer.createTransport({
   tls: {
     rejectUnauthorized: false,
   },
+});
+
+app.post("/submit-supplier", async (req, res) => {
+  try {
+    let {
+      supplierName,
+      email,
+      phoneNo,
+      companyName,
+      businessType,
+      remark,
+      utm,
+    } = req.body;
+
+    let findSupplier = await Supplier.findOne({
+      $or: [{ email }, { phoneNo }],
+    });
+
+    if (findSupplier)
+      return res.status(400).json({
+        success: false,
+        message: "Email or PhoneNumber exist! Please use different One",
+      });
+
+    await Supplier.create({
+      supplierName,
+      phoneNo,
+      companyName,
+      email,
+      businessType,
+      remark,
+    });
+
+    let Utms = JSON.parse(utm);
+    let showUtmData =
+      Utms?.utm_source && Utms?.utm_medium
+        ? `${Utms?.utm_source}-${Utms?.utm_medium}`
+        : "Direct";
+
+
+    // Construct the email content
+    const mailOptions = {
+      from: "gautamsolar.vidoes01@gmail.com",
+      to: "info@gautamsolar.com",
+      subject: "Supplier Form Submission",
+      html: `
+      <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+      <h2 style="color: #a20000;">Supplier Form Submission</h2>
+      <p style="margin-bottom: 10px;"><strong>Name:</strong> ${supplierName}</p>
+      <p style="margin-bottom: 10px;"><strong>Email:</strong> ${email}</p>
+      <p style="margin-bottom: 10px;"><strong>Phone:</strong> ${phoneNo}</p>
+      <p style="margin-bottom: 10px;"><strong>BusinessType:</strong> ${businessType}</p>
+      <p style="margin-bottom: 10px;"><strong>Remarks:</strong> ${remark}</p>
+      <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${showUtmData}</p>
+    </div>
+      `,
+    };
+    await transporter.sendMail(mailOptions);
+
+    return res.status(200).json({
+      success: true,
+      message: "Your Info has reached us we will connect you soon ",
+    });
+  } catch (err) {
+    if (err.name === "ValidationError") {
+      const firstError = Object.values(err.errors)[0].message;
+
+      return res.status(400).json({
+        success: false,
+        message: firstError,
+      });
+    }
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyPattern)[0];
+      return res.status(400).json({
+        success: false,
+        message: `${field} already exists, please use a different one.`,
+      });
+    }
+
+    return res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 // Route to handle form submission

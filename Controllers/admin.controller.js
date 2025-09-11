@@ -204,28 +204,25 @@ const getNews = async (req, res) => {
       { $group: { _id: null, total: { $sum: 1 } } },
       {
         $project: {
-          _id: 0,
+          _id: 0, 
           total: 1,
           totalPages: { $ceil: { $divide: ["$total", Number(NoOfNews)] } },
         },
       },
     ]);
 
-    // Send the retrieved news items as a response
-
     if (total.length>0&&total[0]["totalPages"] < Number(Page)) {
-      res.status(404).send({ msg: `there is no ${Page} Page` });
+     return res.status(404).send({ msg: `there is no ${Page} Page` });
     } else {
       let data = await News.aggregate([
         { $sort: { CreatedOn: -1 } },
         { $skip: (Number(Page) - 1) * Number(NoOfNews) },
         { $limit: Number(NoOfNews) },
       ]);
-      console.log(data.length);
-      res.send({ data });
+     return res.send({ data});
     }
   } catch (error) {
-    // If an error occurs during the database operation, send an error response
+    
     res
       .status(500)
       .send({ message: "Error fetching news items from the database" });
