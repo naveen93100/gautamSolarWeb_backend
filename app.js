@@ -1,7 +1,6 @@
 const express = require("express");
 const { connect } = require("./db.config");
 const { UserRouter } = require("./Routes/admin.routes");
-const Supplier =require('./Models/Supplier.schema');
 const nodemailer = require("nodemailer");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -117,7 +116,6 @@ app.post("/submit-supplier", async (req, res) => {
       Utms?.utm_source && Utms?.utm_medium
         ? `${Utms?.utm_source}-${Utms?.utm_medium}`
         : "Direct";
-
 
     // Construct the email content
     const mailOptions = {
