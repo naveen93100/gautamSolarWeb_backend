@@ -23,7 +23,7 @@ function extractWebsiteName(domain) {
 }
 const path = require("path");
 const { GaloRouter } = require("./Routes/galo.routes");
-const Supplier = require("./Models/Supplier.Schema");
+const Supplier = require("./Models/Supplier.Schema.js");
 
 app.use((req, res, next) => {
   let reqUrl = req.query.utm_source || null;
