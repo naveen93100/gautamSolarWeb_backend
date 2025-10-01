@@ -16,14 +16,14 @@ app.use(cookieParser());
 function extractWebsiteName(domain) {
   const domainParts = domain.split(".");
   if (domainParts.length > 2) {
-    // Remove the TLD and subdomain, if any
+  
     domainParts.splice(0, domainParts.length - 2);
   }
   return domainParts.join(".");
 }
 const path = require("path");
 const { GaloRouter } = require("./Routes/galo.routes");
-const Supplier = require("./Models/Supplier.Schema.js");
+const Supplier = require("./Models/Supplier.schema.js");
 
 app.use((req, res, next) => {
   let reqUrl = req.query.utm_source || null;
