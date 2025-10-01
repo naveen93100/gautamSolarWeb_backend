@@ -23,7 +23,7 @@ function extractWebsiteName(domain) {
 }
 const path = require("path");
 const { GaloRouter } = require("./Routes/galo.routes");
-const { default: Supplier } = require("./Models/Supplier.schema");
+const Supplier = require("./Models/Supplier.Schema");
 
 app.use((req, res, next) => {
   let reqUrl = req.query.utm_source || null;
@@ -80,121 +80,90 @@ const transporter1 = nodemailer.createTransport({
   },
 });
 
-app.post("/submit-supplier", async (req, res) => {
+app.post("/submit-contactus", async (req, res) => {
   try {
-    let {
-      supplierName,
+    const {
+      name,
       email,
-      phoneNo,
+      phone,
       companyName,
       businessType,
       remark,
       utm,
+      city,
+      isSupplier,
     } = req.body;
 
-    let findSupplier = await Supplier.findOne({
-      $or: [{ email }, { phoneNo }],
-    });
+    const referrerUrl = req.headers.referer || "Unknown";
+    const referrerDomain = url.parse(referrerUrl).hostname;
+    const referrerWebsite = extractWebsiteName(referrerDomain);
 
-    if (findSupplier)
-      return res.status(400).json({
-        success: false,
-        message: "Email or PhoneNumber exist! Please use different One",
-      });
-
-    await Supplier.create({
-      supplierName,
-      phoneNo,
-      companyName,
-      email,
-      businessType,
-      remark,
-    });
-
-    let Utms = JSON.parse(utm);
+    let Utm = JSON.parse(utm);
     let showUtmData =
-      Utms?.utm_source && Utms?.utm_medium
-        ? `${Utms?.utm_source}-${Utms?.utm_medium}`
+      Utm?.utm_source && Utm?.utm_medium
+        ? `${Utm?.utm_source}-${Utm?.utm_medium}`
         : "Direct";
 
-    // Construct the email content
-    const mailOptions = {
-      from: "gautamsolar.vidoes01@gmail.com",
-      to: "info@gautamsolar.com",
-      subject: "Supplier Form Submission",
-      html: `
-      <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-      <h2 style="color: #a20000;">Supplier Form Submission</h2>
-      <p style="margin-bottom: 10px;"><strong>Name:</strong> ${supplierName}</p>
-      <p style="margin-bottom: 10px;"><strong>Email:</strong> ${email}</p>
-      <p style="margin-bottom: 10px;"><strong>Phone:</strong> ${phoneNo}</p>
-      <p style="margin-bottom: 10px;"><strong>BusinessType:</strong> ${businessType}</p>
-      <p style="margin-bottom: 10px;"><strong>Remarks:</strong> ${remark}</p>
-      <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${showUtmData}</p>
-    </div>
-      `,
-    };
-    await transporter.sendMail(mailOptions);
-
-    return res.status(200).json({
-      success: true,
-      message: "Your Info has reached us we will connect you soon ",
-    });
-  } catch (err) {
-    if (err.name === "ValidationError") {
-      const firstError = Object.values(err.errors)[0].message;
-
-      return res.status(400).json({
-        success: false,
-        message: firstError,
-      });
-    }
-    if (err.code === 11000) {
-      const field = Object.keys(err.keyPattern)[0];
-      return res.status(400).json({
-        success: false,
-        message: `${field} already exists, please use a different one.`,
-      });
-    }
-
-    return res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-// Route to handle form submission
-app.post("/submit-contactus", async (req, res) => {
-  try {
-    const formData = req.body;
-    const referrerUrl = req.headers.referer || "Unknown"; // Get the referrer URL
-    const referrerDomain = url.parse(referrerUrl).hostname; // Extract the domain name from the URL
-    const referrerWebsite = extractWebsiteName(referrerDomain); // Extract the website name from the domain name
-
-    let utm = JSON.parse(formData.utm);
-    let showUtmData =
-      utm?.utm_source && utm?.utm_medium
-        ? `${utm?.utm_source}-${utm?.utm_medium}`
-        : "Direct";
-
-    const checkboxValues = Object.keys(formData).filter(
-      (key) => formData[key] === "Yes"
+    const checkboxValues = Object.keys(req.body).filter(
+      (key) => req.body[key] === "Yes"
     );
     const checkboxList = checkboxValues
       .map((key) => `<li>${key}: Yes</li>`)
       .join("");
 
-    // Construct the email content
-    const mailOptions = {
-      from: "gautamsolar.vidoes01@gmail.com",
-      to: "info@gautamsolar.com",
-      subject: "New Contact Us Form Submission",
-      html: `
+    let mail;
+
+    if (isSupplier === "true") {
+      let findSupplier = await Supplier.findOne({
+        $or: [{ email }, { phoneNo: phone }],
+      });
+
+      if (findSupplier)
+        return res.status(400).json({
+          success: false,
+          message: "Email or PhoneNumber exist! Please use different One",
+        });
+
+      await Supplier.create({
+        supplierName: name,
+        phoneNo: phone,
+        companyName,
+        email,
+        businessType,
+        remark,
+      });
+
+      mail = {
+        from: "gautamsolar.vidoes01@gmail.com",
+        to: "info@gautamsolar.com",
+        subject: "Supplier Form Submission",
+        html: `
+          <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+          <h2 style="color: #a20000;">Supplier Form Submission</h2>
+          <p style="margin-bottom: 10px;"><strong>Name:</strong> ${name}</p>
+          <p style="margin-bottom: 10px;"><strong>Email:</strong> ${email}</p>
+          <p style="margin-bottom: 10px;"><strong>Phone:</strong> ${phone}</p>
+          <p style="margin-bottom: 10px;"><strong>City:</strong> ${city}</p>
+          <p style="margin-bottom: 10px;"><strong>Company:</strong> ${companyName}</p>
+          <p style="margin-bottom: 10px;"><strong>BusinessType:</strong> ${businessType}</p>
+          <p style="margin-bottom: 10px;"><strong>Remarks:</strong> ${remark}</p>
+          <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${showUtmData}</p>
+        </div>
+      `,
+      };
+    } else {
+      mail = {
+        from: "gautamsolar.vidoes01@gmail.com",
+        to: "info@gautamsolar.com",
+        subject: "New Contact Us Form Submission",
+        html: `
       <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
       <h2 style="color: #a20000;">New Contact Us Form Submission</h2>
-      <p style="margin-bottom: 10px;"><strong>Name:</strong> ${formData.name}</p>
-      <p style="margin-bottom: 10px;"><strong>Email:</strong> ${formData.email}</p>
-      <p style="margin-bottom: 10px;"><strong>Phone:</strong> ${formData.phone}</p>
-      <p style="margin-bottom: 10px;"><strong>City:</strong> ${formData.city}</p>
-      <p style="margin-bottom: 10px;"><strong>Remarks:</strong> ${formData.remark}</p>
+      <p style="margin-bottom: 10px;"><strong>Name:</strong> ${name}</p>
+      <p style="margin-bottom: 10px;"><strong>Email:</strong> ${email}</p>
+      <p style="margin-bottom: 10px;"><strong>Phone:</strong> ${phone}</p>
+      <p style="margin-bottom: 10px;"><strong>City:</strong> ${city}</p>
+      <p style="margin-bottom: 10px;"><strong>Remarks:</strong> ${remark}</p>
       <p style="margin-bottom: 10px;"><strong>MWp Requird:</strong></p>
       <ul style="list-style-type: none; padding: 0;">
         ${checkboxList}
@@ -203,14 +172,16 @@ app.post("/submit-contactus", async (req, res) => {
       <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${showUtmData}</p>
     </div>
       `,
-    };
-    await transporter.sendMail(mailOptions);
+      };
+    }
+
+    await transporter.sendMail(mail);
 
     res
       .status(200)
       .json({ success: true, message: "Form submitted successfully" });
   } catch (error) {
-    console.error("Error submitting Contact Us form:", error);
+    console.error("Error submitting Contact Us form:", error.message);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
