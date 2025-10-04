@@ -1,6 +1,7 @@
 const express = require("express");
 const { connect } = require("./db.config");
 const { UserRouter } = require("./Routes/admin.routes");
+const MediaRouter=require('./Routes/media.routes.js');
 const nodemailer = require("nodemailer");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -40,6 +41,8 @@ app.use((req, res, next) => {
 
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
+
+app.use('/media_image',express.static(path.join(__dirname,'Media')));
 
 app.use(
   "/admin/blogImage",
@@ -383,6 +386,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/admin", UserRouter);
+app.use('/media',MediaRouter)
 
 app.use("/galo_admin", GaloRouter);
 
