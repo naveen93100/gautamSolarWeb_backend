@@ -101,7 +101,7 @@ app.post(
 
       mail = {
         from: "gautamsolar.vidoes01@gmail.com",
-        to: "jackmic018@gmail.com",
+        to: "info@gautamsolar.com",
         subject: "Supplier Form Submission REI",
         html: `
           <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
@@ -165,7 +165,7 @@ app.post(
 
       mail = {
         from: "gautamsolar.vidoes01@gmail.com",
-        to: "jackmic018@gmail.com",
+        to: "info@gautamsolar.com",
         subject: "Job Form Submission REI",
         html: `
           <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
