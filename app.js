@@ -1,7 +1,7 @@
 const express = require("express");
 const { connect } = require("./db.config");
 const { UserRouter } = require("./Routes/admin.routes");
-const MediaRouter=require('./Routes/media.routes.js');
+const MediaRouter = require("./Routes/media.routes.js");
 const nodemailer = require("nodemailer");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -17,7 +17,6 @@ app.use(cookieParser());
 function extractWebsiteName(domain) {
   const domainParts = domain.split(".");
   if (domainParts.length > 2) {
-  
     domainParts.splice(0, domainParts.length - 2);
   }
   return domainParts.join(".");
@@ -25,6 +24,11 @@ function extractWebsiteName(domain) {
 const path = require("path");
 const { GaloRouter } = require("./Routes/galo.routes");
 const Supplier = require("./Models/Supplier.schema.js");
+const multer = require("multer");
+const { rejects } = require("assert");
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 app.use((req, res, next) => {
   let reqUrl = req.query.utm_source || null;
@@ -42,7 +46,7 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
 
-app.use('/media_image',express.static(path.join(__dirname,'Media')));
+app.use("/media_image", express.static(path.join(__dirname, "Media")));
 
 app.use(
   "/admin/blogImage",
@@ -82,6 +86,134 @@ const transporter1 = nodemailer.createTransport({
     rejectUnauthorized: false,
   },
 });
+
+//  re
+
+// rei supplier
+app.post(
+  "/submit-supplier",
+  upload.fields([{ name: "visitingcard" }, { name: "catalogue" }]),
+  (req, res) => {
+    try {
+      let { name, email, phone, remarks, productservice,city,companyname } = req.body;
+
+      let mail;
+
+      mail = {
+        from: "gautamsolar.vidoes01@gmail.com",
+        to: "jackmic018@gmail.com",
+        subject: "Supplier Form Submission REI",
+        html: `
+          <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+          <h2 style="color: #a20000;">Supplier Form Submission REI</h2>
+          <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Email:${email}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Phone:${phone}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Company:${companyname}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>BusinessType:${productservice}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Remarks:${remarks}</strong> </p>
+        </div>
+      `,
+
+        attachments: [
+          {
+            filename: req.files?.visitingcard[0].originalname,
+            content: req.files?.visitingcard[0].buffer,
+          },
+          {
+            filename: req.files?.catalogue[0].originalname,
+            content: req.files?.catalogue[0].buffer,
+          },
+        ],
+      };
+
+
+      function sendMail() {
+        mail=mail;
+        (async function c(entries) {
+          try {
+            await transporter.sendMail(mail);
+          } catch (er) {
+            if(entries===0) return;
+            await new Promise((resolve)=>setTimeout(()=>resolve(),2000));
+            c(--entries);
+            
+          }
+        })(3);
+      }
+      sendMail();
+
+      return res.status(200).json({
+        success: true,
+        message: "Submission received. We’ll be in touch soon!",
+      });
+    } catch (er) {
+      return res.status(500).json({ success: false, message: er?.message });
+    }
+  }
+);
+
+// rei jobseeker
+app.post(
+  "/submit-job",
+  upload.single('resume'),
+  (req, res) => {
+    try {
+      let { name, email,phone,desiredrole,city } = req.body;
+      let mail;
+
+      mail = {
+        from: "gautamsolar.vidoes01@gmail.com",
+        to: "jackmic018@gmail.com",
+        subject: "Job Form Submission REI",
+        html: `
+          <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+          <h2 style="color: #a20000;">Job Form Submission REI</h2>
+          <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Email:${email}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Phone:${phone}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Role:${desiredrole}</strong> </p>
+        </div>
+      `,
+        attachments: [
+          {
+            filename: req.file?.originalname,
+            content: req.file?.buffer,
+          },
+        ],
+      };
+
+
+      function sendMail() {
+        mail=mail;
+        (async function c(entries) {
+          try {
+            await transporter.sendMail(mail);
+          } catch (er) {
+            if(entries===0) return;
+            await new Promise((resolve)=>setTimeout(()=>resolve(),2000));
+            c(--entries);
+            
+          }
+        })(3);
+      }
+      sendMail();
+
+      return res.status(200).json({
+        success: true,
+        message: "Submission received. We’ll be in touch soon!",
+      });
+    } catch (er) {
+      return res.status(500).json({ success: false, message: er?.message });
+    }
+  }
+);
+
+
+
+//
 
 app.post("/submit-contactus", async (req, res) => {
   try {
@@ -386,7 +518,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/admin", UserRouter);
-app.use('/media',MediaRouter)
+app.use("/media", MediaRouter);
 
 app.use("/galo_admin", GaloRouter);
 
