@@ -87,18 +87,63 @@ const transporter1 = nodemailer.createTransport({
   },
 });
 
-//  re
 
 // rei supplier
-app.post(
-  "/submit-supplier",
-  upload.fields([{ name: "visitingcard" }, { name: "catalogue" }]),
-  (req, res) => {
-    try {
-      let { name, email, phone, remarks, productservice,city,companyname } = req.body;
+app.post("/submit-rei-form", upload.single("resume"), (req, res) => {
+  try {
+    let {
+      name,
+      email,
+      mobile,
+      mwp,
+      category,
+      initialInvestment,
+      minimumPurchase,
+      supplierType,
+      city,
+      companyName,
+      remark,
+    } = req.body;
 
-      let mail;
-
+    let mail;
+    if (category === "developer") {
+      mail = {
+        from: "gautamsolar.vidoes01@gmail.com",
+        to: "info@gautamsolar.com",
+        subject: "Developer/EPC Form Submission REI",
+        html: `
+          <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+          <h2 style="color: #a20000;">Developer/EPC Form Submission REI</h2>
+          <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Email:${email}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>How Many MWp Required:${mwp}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Remarks:${remark}</strong> </p>
+        </div>
+      `,
+      };
+    
+    } else if (category === "dealer") {
+      mail = {
+        from: "gautamsolar.vidoes01@gmail.com",
+        to: "info@gautamsolar.com",
+        subject: "Dealer/Distributor Form Submission REI",
+        html: `
+          <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+          <h2 style="color: #a20000;">Dealer/Distributor Form Submission REI</h2>
+          <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Email:${email}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Category:${category}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Initial Investment:${initialInvestment}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Minimum Purchase:${minimumPurchase}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Remarks:${remark}</strong> </p>
+        </div>
+      `,
+      };
+    } else if (category === "supplier") {
       mail = {
         from: "gautamsolar.vidoes01@gmail.com",
         to: "info@gautamsolar.com",
@@ -108,73 +153,29 @@ app.post(
           <h2 style="color: #a20000;">Supplier Form Submission REI</h2>
           <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>Email:${email}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Phone:${phone}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Company:${companyname}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>BusinessType:${productservice}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Remarks:${remarks}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Category:${category}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>CompanyName:${companyName}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Type:${supplierType}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Remarks:${remark}</strong> </p>
         </div>
       `,
-
-        attachments: [
-          {
-            filename: req.files?.visitingcard[0].originalname,
-            content: req.files?.visitingcard[0].buffer,
-          },
-          {
-            filename: req.files?.catalogue[0].originalname,
-            content: req.files?.catalogue[0].buffer,
-          },
-        ],
       };
-
-
-      function sendMail() {
-        mail=mail;
-        (async function c(entries) {
-          try {
-            await transporter.sendMail(mail);
-          } catch (er) {
-            if(entries===0) return;
-            await new Promise((resolve)=>setTimeout(()=>resolve(),2000));
-            c(--entries);
-            
-          }
-        })(3);
-      }
-      sendMail();
-
-      return res.status(200).json({
-        success: true,
-        message: "Submission received. We’ll be in touch soon!",
-      });
-    } catch (er) {
-      return res.status(500).json({ success: false, message: er?.message });
-    }
-  }
-);
-
-// rei jobseeker
-app.post(
-  "/submit-job",
-  upload.single('resume'),
-  (req, res) => {
-    try {
-      let { name, email,phone,desiredrole,city } = req.body;
-      let mail;
-
+    } else if (category === "employee") {
       mail = {
         from: "gautamsolar.vidoes01@gmail.com",
         to: "info@gautamsolar.com",
-        subject: "Job Form Submission REI",
+        subject: "Prospective Employee Form Submission REI",
         html: `
           <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-          <h2 style="color: #a20000;">Job Form Submission REI</h2>
+          <h2 style="color: #a20000;">Prospective Employee Form Submission REI</h2>
           <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>Email:${email}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Phone:${phone}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Role:${desiredrole}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Category:${category}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Remarks:${remark}</strong> </p>
         </div>
       `,
         attachments: [
@@ -184,34 +185,47 @@ app.post(
           },
         ],
       };
-
-
-      function sendMail() {
-        mail=mail;
-        (async function c(entries) {
-          try {
-            await transporter.sendMail(mail);
-          } catch (er) {
-            if(entries===0) return;
-            await new Promise((resolve)=>setTimeout(()=>resolve(),2000));
-            c(--entries);
-            
-          }
-        })(3);
-      }
-      sendMail();
-
-      return res.status(200).json({
-        success: true,
-        message: "Submission received. We’ll be in touch soon!",
-      });
-    } catch (er) {
-      return res.status(500).json({ success: false, message: er?.message });
+    } else {
+      mail = {
+        from: "gautamsolar.vidoes01@gmail.com",
+        to: "info@gautamsolar.com",
+        subject: "Other Form Submission REI",
+        html: `
+          <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+          <h2 style="color: #a20000;">Other Form Submission REI</h2>
+          <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Email:${email}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Category:${category}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Remarks:${remark}</strong> </p>
+        </div>
+      `,
+      };
     }
+
+    function sendMail() {
+      mail = mail;
+      (async function c(entries) {
+        try {
+          await transporter.sendMail(mail);
+        } catch (er) {
+          if (entries === 0) return;
+          await new Promise((resolve) => setTimeout(() => resolve(), 2000));
+          c(--entries);
+        }
+      })(3);
+    }
+    sendMail();
+
+    return res.status(200).json({
+      success: true,
+      message: "Submission received. We’ll be in touch soon!",
+    });
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
   }
-);
-
-
+});
 
 //
 
