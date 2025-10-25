@@ -93,7 +93,6 @@ app.post("/submit-rei-form", upload.single("resume"), (req, res) => {
   try {
     let {
       name,
-      email,
       mobile,
       mwp,
       category,
@@ -103,6 +102,7 @@ app.post("/submit-rei-form", upload.single("resume"), (req, res) => {
       city,
       companyName,
       remark,
+      role
     } = req.body;
 
     let mail;
@@ -115,7 +115,6 @@ app.post("/submit-rei-form", upload.single("resume"), (req, res) => {
           <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
           <h2 style="color: #a20000;">Developer/EPC Form Submission REI</h2>
           <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Email:${email}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>How Many MWp Required:${mwp}</strong> </p>
@@ -127,13 +126,14 @@ app.post("/submit-rei-form", upload.single("resume"), (req, res) => {
     } else if (category === "dealer") {
       mail = {
         from: "gautamsolar.vidoes01@gmail.com",
+
         to: "info@gautamsolar.com",
+
         subject: "Dealer/Distributor Form Submission REI",
         html: `
           <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
           <h2 style="color: #a20000;">Dealer/Distributor Form Submission REI</h2>
           <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Email:${email}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>Category:${category}</strong> </p>
@@ -147,12 +147,12 @@ app.post("/submit-rei-form", upload.single("resume"), (req, res) => {
       mail = {
         from: "gautamsolar.vidoes01@gmail.com",
         to: "info@gautamsolar.com",
+
         subject: "Supplier Form Submission REI",
         html: `
           <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
           <h2 style="color: #a20000;">Supplier Form Submission REI</h2>
           <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Email:${email}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>Category:${category}</strong> </p>
@@ -166,14 +166,15 @@ app.post("/submit-rei-form", upload.single("resume"), (req, res) => {
       mail = {
         from: "gautamsolar.vidoes01@gmail.com",
         to: "info@gautamsolar.com",
+
         subject: "Prospective Employee Form Submission REI",
         html: `
           <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
           <h2 style="color: #a20000;">Prospective Employee Form Submission REI</h2>
           <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Email:${email}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Role:${role}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>Category:${category}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>Remarks:${remark}</strong> </p>
         </div>
