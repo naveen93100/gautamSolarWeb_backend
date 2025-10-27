@@ -97,11 +97,11 @@ app.post("/submit-rei-form", upload.single("file"), (req, res) => {
       category,
       initialInvestment,
       minimumPurchase,
-      supplierType,
+      // supplierType,
       city,
-      companyName,
+      // companyName,
       remark,
-      role,
+      // role,
     } = req.body;
 
     let mail;
@@ -109,6 +109,7 @@ app.post("/submit-rei-form", upload.single("file"), (req, res) => {
       mail = {
         from: "gautamsolar.vidoes01@gmail.com",
         to: "info@gautamsolar.com",
+
         subject: "Developer Form Submission REI",
         html: `
           <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
@@ -126,10 +127,11 @@ app.post("/submit-rei-form", upload.single("file"), (req, res) => {
         from: "gautamsolar.vidoes01@gmail.com",
         to: "info@gautamsolar.com",
 
-        subject: "EPC/System Integrator Form Submission REI",
+
+        subject: "Dealer/Distributor Form Submission REI",
         html: `
           <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-          <h2 style="color: #a20000;">EPC/System Integrator Form Submission REI</h2>
+          <h2 style="color: #a20000;">Dealer/Distributor Form Submission REI</h2>
           <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
@@ -140,54 +142,22 @@ app.post("/submit-rei-form", upload.single("file"), (req, res) => {
         </div>
       `,
       };
-    } else if (category === "supplier") {
+    } else if (category === "epc") {
       mail = {
         from: "gautamsolar.vidoes01@gmail.com",
         to: "info@gautamsolar.com",
 
-        subject: "Supplier Form Submission REI",
+        subject: "EPC/System Integrator Submission REI",
         html: `
           <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-          <h2 style="color: #a20000;">Supplier Form Submission REI</h2>
+          <h2 style="color: #a20000;">EPC/System Integrator Form Submission REI</h2>
           <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>Category:${category}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>CompanyName:${companyName}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Type:${supplierType}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>Remarks:${remark}</strong> </p>
         </div>
       `,
-        attachments: [
-          {
-            filename: req.file?.originalname,
-            content: req.file?.buffer,
-          },
-        ],
-      };
-    } else if (category === "employee") {
-      mail = {
-        from: "gautamsolar.vidoes01@gmail.com",
-        to: "info@gautamsolar.com",
-
-        subject: "Prospective Employee Form Submission REI",
-        html: `
-          <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-          <h2 style="color: #a20000;">Prospective Employee Form Submission REI</h2>
-          <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Role:${role}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Category:${category}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Remarks:${remark}</strong> </p>
-        </div>
-      `,
-        attachments: [
-          {
-            filename: req.file?.originalname,
-            content: req.file?.buffer,
-          },
-        ],
       };
     } else {
       mail = {
