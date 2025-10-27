@@ -124,13 +124,12 @@ app.post("/submit-rei-form", upload.single("file"), (req, res) => {
     } else if (category === "dealer") {
       mail = {
         from: "gautamsolar.vidoes01@gmail.com",
-
         to: "info@gautamsolar.com",
 
-        subject: "EPC/System Integrated Form Submission REI",
+        subject: "EPC/System Integrator Form Submission REI",
         html: `
           <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-          <h2 style="color: #a20000;">EPC/System Integrated Form Submission REI</h2>
+          <h2 style="color: #a20000;">EPC/System Integrator Form Submission REI</h2>
           <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
@@ -185,7 +184,7 @@ app.post("/submit-rei-form", upload.single("file"), (req, res) => {
       `,
         attachments: [
           {
-            filename: req.files?.originalname,
+            filename: req.file?.originalname,
             content: req.file?.buffer,
           },
         ],
@@ -199,7 +198,6 @@ app.post("/submit-rei-form", upload.single("file"), (req, res) => {
           <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
           <h2 style="color: #a20000;">Other Form Submission REI</h2>
           <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Email:${email}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>Category:${category}</strong> </p>
