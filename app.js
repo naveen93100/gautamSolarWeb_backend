@@ -102,6 +102,7 @@ app.post("/submit-rei-form", upload.single("file"), (req, res) => {
       // companyName,
       remark,
       // role,
+      dealerInvest
     } = req.body;
 
     let mail;
@@ -109,7 +110,6 @@ app.post("/submit-rei-form", upload.single("file"), (req, res) => {
       mail = {
         from: "gautamsolar.vidoes01@gmail.com",
         to: "info@gautamsolar.com",
-
         subject: "Developer Form Submission REI",
         html: `
           <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
@@ -127,7 +127,6 @@ app.post("/submit-rei-form", upload.single("file"), (req, res) => {
         from: "gautamsolar.vidoes01@gmail.com",
         to: "info@gautamsolar.com",
 
-
         subject: "Dealer/Distributor Form Submission REI",
         html: `
           <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
@@ -136,8 +135,9 @@ app.post("/submit-rei-form", upload.single("file"), (req, res) => {
           <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>Category:${category}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Initial Investment:${initialInvestment}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Minimum Purchase:${minimumPurchase}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Investment Timeline:${dealerInvest}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Initial Investment (Lacs):${initialInvestment}</strong> </p>
+          <p style="margin-bottom: 10px;"><strong>Minimum Purchase (Lacs):${minimumPurchase}</strong> </p>
           <p style="margin-bottom: 10px;"><strong>Remarks:${remark}</strong> </p>
         </div>
       `,
