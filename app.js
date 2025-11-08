@@ -68,14 +68,16 @@ const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: "gautamsolar.vidoes01@gmail.com",
+    pass:'uyej onej uabb sxva'
     // pass: "cxmxypwbaupolgqo",
-    pass: "nwwghwyxmfmtwtlb",
+    // pass: "nwwghwyxmfmtwtlb",
   },
   tls: {
     rejectUnauthorized: false,
   },
 });
 
+// galo solar transporter
 const transporter1 = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -88,117 +90,117 @@ const transporter1 = nodemailer.createTransport({
 });
 
 // rei supplier
-app.post("/submit-rei-form", upload.single("file"), (req, res) => {
-  try {
-    let {
-      name,
-      mobile,
-      mwp,
-      category,
-      initialInvestment,
-      minimumPurchase,
-      // supplierType,
-      city,
-      // companyName,
-      remark,
-      // role,
-      dealerInvest
-    } = req.body;
+// app.post("/submit-rei-form", upload.single("file"), (req, res) => {
+//   try {
+//     let {
+//       name,
+//       mobile,
+//       mwp,
+//       category,
+//       initialInvestment,
+//       minimumPurchase,
+//       // supplierType,
+//       city,
+//       // companyName,
+//       remark,
+//       // role,
+//       dealerInvest
+//     } = req.body;
 
-    let mail;
-    if (category === "developer") {
-      mail = {
-        from: "gautamsolar.vidoes01@gmail.com",
-        to: "info@gautamsolar.com",
-        subject: "Developer Form Submission REI",
-        html: `
-          <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-          <h2 style="color: #a20000;">Developer Form Submission REI</h2>
-          <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>How Many MWp Required:${mwp}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Remarks:${remark}</strong> </p>
-        </div>
-      `,
-      };
-    } else if (category === "dealer") {
-      mail = {
-        from: "gautamsolar.vidoes01@gmail.com",
-        to: "info@gautamsolar.com",
+//     let mail;
+//     if (category === "developer") {
+//       mail = {
+//         from: "gautamsolar.vidoes01@gmail.com",
+//         to: "info@gautamsolar.com",
+//         subject: "Developer Form Submission REI",
+//         html: `
+//           <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+//           <h2 style="color: #a20000;">Developer Form Submission REI</h2>
+//           <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
+//           <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
+//           <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
+//           <p style="margin-bottom: 10px;"><strong>How Many MWp Required:${mwp}</strong> </p>
+//           <p style="margin-bottom: 10px;"><strong>Remarks:${remark}</strong> </p>
+//         </div>
+//       `,
+//       };
+//     } else if (category === "dealer") {
+//       mail = {
+//         from: "gautamsolar.vidoes01@gmail.com",
+//         to: "info@gautamsolar.com",
 
-        subject: "Dealer/Distributor Form Submission REI",
-        html: `
-          <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-          <h2 style="color: #a20000;">Dealer/Distributor Form Submission REI</h2>
-          <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Category:${category}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Investment Timeline:${dealerInvest}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Initial Investment (Lacs):${initialInvestment}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Minimum Purchase (Lacs):${minimumPurchase}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Remarks:${remark}</strong> </p>
-        </div>
-      `,
-      };
-    } else if (category === "epc") {
-      mail = {
-        from: "gautamsolar.vidoes01@gmail.com",
-        to: "info@gautamsolar.com",
+//         subject: "Dealer/Distributor Form Submission REI",
+//         html: `
+//           <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+//           <h2 style="color: #a20000;">Dealer/Distributor Form Submission REI</h2>
+//           <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
+//           <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
+//           <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
+//           <p style="margin-bottom: 10px;"><strong>Category:${category}</strong> </p>
+//           <p style="margin-bottom: 10px;"><strong>Investment Timeline:${dealerInvest}</strong> </p>
+//           <p style="margin-bottom: 10px;"><strong>Initial Investment (Lacs):${initialInvestment}</strong> </p>
+//           <p style="margin-bottom: 10px;"><strong>Minimum Purchase (Lacs):${minimumPurchase}</strong> </p>
+//           <p style="margin-bottom: 10px;"><strong>Remarks:${remark}</strong> </p>
+//         </div>
+//       `,
+//       };
+//     } else if (category === "epc") {
+//       mail = {
+//         from: "gautamsolar.vidoes01@gmail.com",
+//         to: "info@gautamsolar.com",
 
-        subject: "EPC/System Integrator Submission REI",
-        html: `
-          <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-          <h2 style="color: #a20000;">EPC/System Integrator Form Submission REI</h2>
-          <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Category:${category}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Remarks:${remark}</strong> </p>
-        </div>
-      `,
-      };
-    } else {
-      mail = {
-        from: "gautamsolar.vidoes01@gmail.com",
-        to: "info@gautamsolar.com",
-        subject: "Other Form Submission REI",
-        html: `
-          <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-          <h2 style="color: #a20000;">Other Form Submission REI</h2>
-          <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Category:${category}</strong> </p>
-          <p style="margin-bottom: 10px;"><strong>Remarks:${remark}</strong> </p>
-        </div>
-      `,
-      };
-    }
+//         subject: "EPC/System Integrator Submission REI",
+//         html: `
+//           <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+//           <h2 style="color: #a20000;">EPC/System Integrator Form Submission REI</h2>
+//           <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
+//           <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
+//           <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
+//           <p style="margin-bottom: 10px;"><strong>Category:${category}</strong> </p>
+//           <p style="margin-bottom: 10px;"><strong>Remarks:${remark}</strong> </p>
+//         </div>
+//       `,
+//       };
+//     } else {
+//       mail = {
+//         from: "gautamsolar.vidoes01@gmail.com",
+//         to: "info@gautamsolar.com",
+//         subject: "Other Form Submission REI",
+//         html: `
+//           <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+//           <h2 style="color: #a20000;">Other Form Submission REI</h2>
+//           <p style="margin-bottom: 10px;"><strong>Name:${name}</strong> </p>
+//           <p style="margin-bottom: 10px;"><strong>Phone:${mobile}</strong> </p>
+//           <p style="margin-bottom: 10px;"><strong>City:${city}</strong> </p>
+//           <p style="margin-bottom: 10px;"><strong>Category:${category}</strong> </p>
+//           <p style="margin-bottom: 10px;"><strong>Remarks:${remark}</strong> </p>
+//         </div>
+//       `,
+//       };
+//     }
 
-    function sendMail() {
-      mail = mail;
-      (async function c(entries) {
-        try {
-          await transporter.sendMail(mail);
-        } catch (er) {
-          if (entries === 0) return;
-          await new Promise((resolve) => setTimeout(() => resolve(), 2000));
-          c(--entries);
-        }
-      })(3);
-    }
-    sendMail();
+//     function sendMail() {
+//       mail = mail;
+//       (async function c(entries) {
+//         try {
+//           await transporter.sendMail(mail);
+//         } catch (er) {
+//           if (entries === 0) return;
+//           await new Promise((resolve) => setTimeout(() => resolve(), 2000));
+//           c(--entries);
+//         }
+//       })(3);
+//     }
+//     sendMail();
 
-    return res.status(200).json({
-      success: true,
-      message: "Submission received. We’ll be in touch soon!",
-    });
-  } catch (er) {
-    return res.status(500).json({ success: false, message: er?.message });
-  }
-});
+//     return res.status(200).json({
+//       success: true,
+//       message: "Submission received. We’ll be in touch soon!",
+//     });
+//   } catch (er) {
+//     return res.status(500).json({ success: false, message: er?.message });
+//   }
+// });
 
 //
 
