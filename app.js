@@ -2,6 +2,7 @@ const express = require("express");
 const { connect } = require("./db.config");
 const { UserRouter } = require("./Routes/admin.routes");
 const MediaRouter = require("./Routes/media.routes.js");
+const DealerRouter=require('./Routes/dealer.routes.js');
 const nodemailer = require("nodemailer");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -46,6 +47,8 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
 
+app.use('/dealer_logo',express.static(path.join(__dirname,'Dealer_Logo')));
+
 app.use("/media_image", express.static(path.join(__dirname, "Media")));
 
 app.use(
@@ -62,6 +65,7 @@ app.use(
   "/galo_admin/blogVideo",
   express.static(path.join(__dirname, "Galo_Blog_Video"))
 );
+
 
 // Nodemailer configuration for SMTP
 const transporter = nodemailer.createTransport({
@@ -482,11 +486,6 @@ app.post("/submit-delhi", async (req, res) => {
       <p style="margin-bottom: 10px;"><strong>Remark:</strong> ${
         formData.Remark
       }</p>
-     
-      <p style="margin-bottom: 10px;"><strong>Source:</strong> ${referrerWebsite}</p>
-        <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${
-          req.cookies.utm_source ? req.cookies.utm_source : "Not Provided"
-        }</p>
     </div>
       `,
     };
@@ -505,6 +504,9 @@ app.post("/submit-delhi", async (req, res) => {
 app.get("/", (req, res) => {
   res.send({ msg: "Welcome Solar News App" });
 });
+
+
+app.use('/api/dealer',DealerRouter)
 
 app.use("/admin", UserRouter);
 app.use("/media", MediaRouter);
