@@ -17,7 +17,6 @@ const { drawCustomerInfo } = require("../utils/employeeInfo.js");
 const { drawTable } = require("../utils/drawTable.js");
 const { wrapText } = require("../utils/wraptext.js");
 const { getFonts } = require("../cache/fontCache.js");
-const { logoBytes } = require("../cache/logoCache.js");
 const { templatePdfBytes } = require("../cache/templateChache.js");
 
 const loginDealer = async (req, res) => {
@@ -30,8 +29,6 @@ const loginDealer = async (req, res) => {
     let { email, password } = req.body;
 
     let findDealer = await DealerModel.findOne({ email }).select("+password");
-
-    console.log(findDealer);
 
     if (!findDealer)
       return res
@@ -429,38 +426,40 @@ const getProposal = async (req, res) => {
 
 const generateProposal = async (req, res) => {
   try {
+    let { propId } = req.params;
+
+    let Proposal = await ProposalModel.findOne({ _id: propId }).populate(
+      "dealerId customerId"
+    );
+
     // const apiData = req.body;
     const apiData = {
       company: {
-        name: "Aman Solar",
-        address:
-          "Ahmedabad, GujaratAhmedabad, GujaratAhmedabad, GujaratAhmedabad, GujaratAhmedabad, GujaratAhmedabad, GujaratAhmedabad, GujaratAhmedabad, Gujarat",
-        phone: "9876543210",
-        email: "info@amansolar.com",
-        logo: "logo.png",
+        name: Proposal?.dealerId?.companyName,
+        address: Proposal?.dealerId?.address,
+        phone: Proposal?.dealerId?.contactNumber.toString(),
+        email: Proposal?.dealerId?.email,
+        logo: Proposal?.dealerId?.companyLogo,
       },
       customer: {
-        name: "Rahul Sharma",
-        mobile: "9999999999",
-        email: "rahul@gmail.com",
-        capacity: "50 KWp",
+        name: Proposal?.customerId?.name,
+        mobile: Proposal?.customerId?.phone.toString(),
+        email: Proposal?.customerId?.email,
+        capacity: Proposal?.orderCapacity.toString() + "kwp",
       },
-      termCondition: [
-        "Payment terms: 50% advance and balance upon completion of installation.",
-        "Installation timeline is subject to site readiness and timely payment.",
-        "Warranty will be provided as per manufacturer’s standard terms.",
-      ],
+      termCondition: [Proposal?.termsAndConditions],
     };
 
     const rows = [
       [
         "1.",
         "Supplycommissioning of 30 kw Solar Supplycommissioning of 30 kw Solar Supplycommissioning of 30 kw Solar Supply, Installation and Commissioning of 30 kw Solar Power Plant at (Customer’s Address)",
-        "13.5 / watt",
-        "4,05,000",
+        `${(Proposal?.rate).toString()}/watts`,
+        `${(Proposal?.price).toString()}/Rs`,
+        // Proposal?.price+"rs",
       ],
-      ["", "", "Tax (5%)", "20,250"],
-      ["", "", "Total Amount", "4,25,520"],
+      ["", "", "Tax (5%)", `${(Proposal?.gstAmt).toString()}/Rs`],
+      ["", "", "Total Amount", `${(Proposal?.finalPrice).toString()}/Rs`],
     ];
 
     const pdfDoc = await PDFDocument.load(templatePdfBytes);
@@ -488,7 +487,8 @@ const generateProposal = async (req, res) => {
       apiData,
       font: bold,
       normalFont: normal,
-      logoBytes,
+      logo: Proposal?.dealerId?.companyLogo,
+      // logoBytes,
     });
 
     // employee details
@@ -506,7 +506,7 @@ const generateProposal = async (req, res) => {
       apiData,
       font: bold,
       normalFont: normal,
-      logoBytes,
+      logo: Proposal?.dealerId?.companyLogo,
     });
 
     // draw table
@@ -566,13 +566,27 @@ const generateProposal = async (req, res) => {
     endY -= 25;
 
     const terms = apiData?.termCondition;
+    //  console.log("Term data : ",terms)
     terms.forEach((term, i) => {
-      const lines = wrapText(`${i + 1}. ${term}`, normal, 12, width - 100);
-      lines.forEach((line) => {
-        page6.drawText(line, { x: 50, y: endY, size: 12, font: bold });
-        endY -= 16;
+      const paragraphs = term.split(/\n+/); // split on 1 or more newlines
+
+      paragraphs.forEach((para, pIndex) => {
+        const prefix = pIndex === 0 ? `${i + 1}. ` : ""; 
+
+        const lines = wrapText(prefix + para.trim(), normal, 12, width - 100);
+
+        lines.forEach((line) => {
+          page6.drawText(line, {
+            x: 50,
+            y: endY,
+            size: 12,
+            font: bold,
+          });
+          endY -= 16;
+        });
+
+        endY -= 10; // space between paragraphs
       });
-      endY -= 6;
     });
 
     const pdfBytes = await pdfDoc.save();
@@ -581,7 +595,8 @@ const generateProposal = async (req, res) => {
     res.setHeader("Content-Disposition", "attachment; filename=proposal.pdf");
     res.setHeader("Content-Length", buffer.length);
     // res.send(Buffer.from(pdfBytes));
-    res.end(buffer); 
+    res.end(buffer);
+    // return res.status(200).json({success:true,message:"working"});
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "PDF generation failed" });

@@ -29,9 +29,10 @@ router.get("/get-proposal/:dealerId", getProposal);
 
 // router.get("/generate-proposal/:proId", generateProposal);
 
-router.patch("/:id", upload.single("image"), updateDealerProfile);
+router.get("/downloadPropsoal/:propId", generateProposal);
 
-router.get("/downloadPropsoal", generateProposal);
+
+router.patch("/:id", upload.single("image"), updateDealerProfile);
 
 // router.get("/image", upload.single("image"), async (req, res) => {
 //   let folder = path.join("Dealer_Logo");

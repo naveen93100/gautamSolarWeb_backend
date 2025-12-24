@@ -4,33 +4,73 @@
 
 const { wrapText } = require("./wraptext");
 const { rgb } = require("pdf-lib");
+const path = require("path");
+const sharp = require("sharp");
+const fs = require("fs");
+const { toCaps } = require("../cache/cap");
 
- async function drawCompanyInfo({
+async function drawCompanyInfo({
   pdfDoc,
   page,
-  apiData,
+  apiData = {},
   font,
   normalFont,
-  logoBytes,
+  logo,
   fontSize = 12,
   maxWidth = 260,
 }) {
-  let y = 870;
-  const x = 350;
+  let imgUrl = logo;
 
-  const logoImage = await pdfDoc.embedPng(logoBytes);
+  let y = 850;
+  const x = 390;
+
+  sharp.cache(false);
+
+  const imagePath = path.join(
+    process.cwd(),
+    imgUrl.replace("http://localhost:1008", "")
+  );
+
+  // read + convert
+  const pngBytes = await sharp(fs.readFileSync(imagePath)).png().toBuffer();
+
+  const logoImage = await pdfDoc.embedPng(pngBytes);
+
+  const logoDims = logoImage.scale(1); // original width & height
+  const MAX_LOGO_WIDTH = 200;
+  const MAX_LOGO_HEIGHT = 90;
+  const scale = Math.min(
+    MAX_LOGO_WIDTH / logoDims.width,
+    MAX_LOGO_HEIGHT / logoDims.height
+  );
+
+  const logoWidth = logoDims.width * scale;
+  const logoHeight = logoDims.height * scale;
+  const pageHeight = page.getHeight();
+
+const logoX = 40;
+const logoY = pageHeight - logoHeight - 40;
+
+
+  // page.drawImage(logoImage, {
+  //   x: 40,
+  //   y: 780,
+  //   width: 200,
+  //   height: 60,
+  // });
 
   page.drawImage(logoImage, {
-    x: 40,
-    y: 780,
-    width: 200,
-    height: 60,
-  });
+  x: logoX,
+  y: logoY,
+  width: logoWidth,
+  height: logoHeight,
+});
 
-  page.drawText(apiData.company.name, {
+
+  page.drawText(toCaps(apiData.company.name), {
     x,
     y,
-    size: 18,
+    size: 16,
     font,
     color: rgb(0, 0, 0),
   });
@@ -38,7 +78,7 @@ const { rgb } = require("pdf-lib");
   y -= 22;
 
   const addressLines = wrapText(
-    apiData.company.address,
+    toCaps(apiData.company.address),
     normalFont,
     fontSize,
     maxWidth
@@ -50,7 +90,7 @@ const { rgb } = require("pdf-lib");
   }
 
   if (apiData.company.phone) {
-    page.drawText(apiData.company.phone, {
+    page.drawText(toCaps(apiData.company.phone), {
       x,
       y,
       size: fontSize,
@@ -69,5 +109,4 @@ const { rgb } = require("pdf-lib");
   }
 }
 
-
- module.exports ={drawCompanyInfo};
+module.exports = { drawCompanyInfo };

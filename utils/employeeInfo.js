@@ -3,6 +3,7 @@
 
 const { rgb } = require("pdf-lib");
 const { rounded } = require("./rounded");
+const { toCaps } = require("../cache/cap");
 
  function drawCustomerInfo({
   page,
@@ -39,7 +40,7 @@ const { rounded } = require("./rounded");
   fields.forEach(([label, value]) => {
     if (!value) return;
 
-    page.drawText(`${label}: ${value}`, {
+    page.drawText(`${label}: ${toCaps(value)}`, {
       x: textX,
       y: textY,
       size: fontSize,
