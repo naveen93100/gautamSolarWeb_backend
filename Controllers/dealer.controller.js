@@ -21,12 +21,12 @@ const { templatePdfBytes } = require("../cache/templateChache.js");
 
 const loginDealer = async (req, res) => {
   try {
-    let error = validate(req.body);
+    let error = validate(req?.body);
 
     if (error.length >= 1)
       return res.status(400).json({ success: false, message: error[0].er });
 
-    let { email, password } = req.body;
+    let { email, password } = req?.body || {};
 
     let findDealer = await DealerModel.findOne({ email }).select("+password");
 
@@ -50,7 +50,8 @@ const loginDealer = async (req, res) => {
         .json({ success: false, message: "Invalid Email or Password" });
 
     let generatedToken = crypto.randomBytes(20).toString("hex");
-    let tokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    // let tokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    let tokenExpiry = new Date(Date.now() + 1* 60 * 1000);
 
     findDealer.token = generatedToken;
     findDealer.tokenExpiry = tokenExpiry;
