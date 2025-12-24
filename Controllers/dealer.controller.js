@@ -50,8 +50,7 @@ const loginDealer = async (req, res) => {
         .json({ success: false, message: "Invalid Email or Password" });
 
     let generatedToken = crypto.randomBytes(20).toString("hex");
-    // let tokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-    let tokenExpiry = new Date(Date.now() + 1* 60 * 1000);
+    let tokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     findDealer.token = generatedToken;
     findDealer.tokenExpiry = tokenExpiry;
