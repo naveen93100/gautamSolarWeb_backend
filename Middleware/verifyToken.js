@@ -15,7 +15,7 @@ const verifyToken = async (req, res, next) => {
 
     let tokenData = await DealerModel.findOne({ token });
 
-    if (tokenData.tokenExpiry < new Date()) {
+    if (tokenData?.tokenExpiry < new Date()) {
       tokenData.token = null;
       tokenData.tokenExpiry = null;
       await tokenData.save();
