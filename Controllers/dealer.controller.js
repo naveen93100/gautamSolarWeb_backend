@@ -291,9 +291,8 @@ const updateDealerProfile = async (req, res) => {
         req.file.fieldname + "-" + Date.now() + ".webp"
       );
 
-      let companyLogo = `http://localhost:1008/dealer_logo/${
-        req.file.fieldname + "-" + Date.now() + ".webp"
-      }`;
+      let companyLogo = `http://localhost:1008/dealer_logo/${req.file.fieldname + "-" + Date.now() + ".webp"
+        }`;
 
       let buf = req.file.buffer;
       await sharp(buf)
@@ -446,7 +445,7 @@ const generateProposal = async (req, res) => {
         name: Proposal?.customerId?.name,
         mobile: Proposal?.customerId?.phone.toString(),
         email: Proposal?.customerId?.email,
-        capacity: Proposal?.orderCapacity.toString() + "kwp",
+        capacity: Proposal?.orderCapacity.toString() + " watts",
       },
       termCondition: [Proposal?.termsAndConditions],
     };
@@ -454,13 +453,13 @@ const generateProposal = async (req, res) => {
     const rows = [
       [
         "1.",
-        "Supplycommissioning of 30 kw Solar Supplycommissioning of 30 kw Solar Supplycommissioning of 30 kw Solar Supply, Installation and Commissioning of 30 kw Solar Power Plant at (Customer’s Address)",
-        `${(Proposal?.rate).toString()}/watts`,
-        `${(Proposal?.price).toString()}/Rs`,
+        `${Proposal?.customerId?.address} !!!! and the order capacity  is ${apiData?.customer?.capacity}`,
+        `${(Proposal?.rate).toString()} Rs/watts`,
+        `${(Proposal?.price).toString()} Rs`,
         // Proposal?.price+"rs",
       ],
-      ["", "", "Tax (5%)", `${(Proposal?.gstAmt).toString()}/Rs`],
-      ["", "", "Total Amount", `${(Proposal?.finalPrice).toString()}/Rs`],
+      ["", "", "Tax (5%)", `${(Proposal?.gstAmt).toString()} Rs`],
+      ["", "", "Total Amount", `${(Proposal?.finalPrice).toString()} Rs`],
     ];
 
     const pdfDoc = await PDFDocument.load(templatePdfBytes);
@@ -513,7 +512,7 @@ const generateProposal = async (req, res) => {
     // draw table
     const columns = [
       { title: "S.No", width: 50 },
-      { title: "ITEM", width: 260 },
+      { title: "Customer Address and order Capacity", width: 260 },
       { title: "Unit Price", width: 120 },
       { title: "Total Price", width: 120 },
     ];
@@ -572,7 +571,7 @@ const generateProposal = async (req, res) => {
       const paragraphs = term.split(/\n+/); // split on 1 or more newlines
 
       paragraphs.forEach((para, pIndex) => {
-        const prefix = pIndex === 0 ? `${i + 1}. ` : ""; 
+        const prefix = pIndex === 0 ? `${i + 1}. ` : "";
 
         const lines = wrapText(prefix + para.trim(), normal, 12, width - 100);
 
