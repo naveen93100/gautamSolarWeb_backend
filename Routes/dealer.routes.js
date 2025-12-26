@@ -24,9 +24,9 @@ router.post("/create-password/:token", createPassword);
 
 router.post("/create-propsal", verifyToken, createPropsal);
 
-router.get("/get-proposal/:dealerId", getProposal);
+router.get("/get-proposal/:dealerId", verifyToken, getProposal);
 
-router.get("/downloadPropsoal/:propId", generateProposal);
+router.get("/downloadPropsoal/:propId", verifyToken, generateProposal);
 
 router.patch("/:id", verifyToken, upload.single("image"), updateDealerProfile);
 
