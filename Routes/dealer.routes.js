@@ -7,6 +7,7 @@ const {
   getProposal,
   generateProposal,
 } = require("../Controllers/dealer.controller.js");
+const path=require('path');
 
 const upload = require("../Middleware/multer.js");
 
@@ -29,5 +30,12 @@ router.get("/get-proposal/:dealerId", verifyToken, getProposal);
 router.get("/downloadPropsoal/:propId", verifyToken, generateProposal);
 
 router.patch("/:id", verifyToken, upload.single("image"), updateDealerProfile);
+
+router.get('/',(req,res)=>{
+  const folder = path.join(__dirname,"Dealer_Logo");
+  console.log(folder);
+  return res.send("asdf");
+   
+})
 
 module.exports = router;

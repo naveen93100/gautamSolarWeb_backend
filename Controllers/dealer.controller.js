@@ -137,8 +137,17 @@ const registerDealer = async (req, res) => {
       let imgPath = path.join(folder, img);
 
       let buf = req.file.buffer;
+      
+      await sharp(buf)
+      .resize(600, 600, {
+          fit: "inside",
+          withoutEnlargement: true,
+        })
+        .webp({ quality: 80 })
+        .toFile(imgPath);
+      }
+      
       let companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
-
       //
       await DealerModel.create({
         firstName,
@@ -153,14 +162,6 @@ const registerDealer = async (req, res) => {
         tokenExpiry: new Date(Date.now() + 15 * 60000),
       });
 
-      await sharp(buf)
-        .resize(600, 600, {
-          fit: "inside",
-          withoutEnlargement: true,
-        })
-        .webp({ quality: 80 })
-        .toFile(imgPath);
-    }
 
     const link = `http://dealer.gautamsolar.com/create-password/${token}`;
 
