@@ -506,6 +506,7 @@ app.get("/", (req, res) => {
 });
 
 
+
 app.use('/api/dealer',DealerRouter)
 
 app.use("/admin", UserRouter);
@@ -519,6 +520,7 @@ app.listen(process.env.PORT, async () => {
     console.log(
       `App is running on PORT ${process.env.PORT}, ${process.env.MONGO_URI}`
     );
+    console.log(process.env.DEALER_MAIL);
   } catch (err) {
     console.log(err);
   }
