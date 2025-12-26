@@ -7,7 +7,7 @@ const {
   getProposal,
   generateProposal,
 } = require("../Controllers/dealer.controller.js");
-const path=require('path');
+const path = require("path");
 
 const upload = require("../Middleware/multer.js");
 
@@ -31,11 +31,16 @@ router.get("/downloadPropsoal/:propId", verifyToken, generateProposal);
 
 router.patch("/:id", verifyToken, upload.single("image"), updateDealerProfile);
 
-router.get('/',(req,res)=>{
-  const folder = path.join(__dirname,"Dealer_Logo");
-  console.log(folder);
+router.get("/", (req, res) => {
+  let imgUrl = "https://gautamsolar.us/dealer_logo/image-1766730840830.webp";
+  imgUrl=imgUrl.replace('dealer_logo','Dealer_Logo');
+
+  let img = path.join(
+    process.cwd(),
+    imgUrl.replace("https://gautamsolar.us", "")
+  );
+ 
   return res.send("asdf");
-   
-})
+});
 
 module.exports = router;
