@@ -167,7 +167,7 @@ const registerDealer = async (req, res) => {
     // send create passsword link to dealer email to activate account
 
     await dealerTransporter.sendMail({
-      from: process.env.DEALER_MAIL,
+      from:`Gautam Solar Account Activation ${ process.env.DEALER_MAIL}`,
       to: email,
       subject: "Create Your Password to Activate Your Account",
       html: `
