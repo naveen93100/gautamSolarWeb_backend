@@ -1,6 +1,3 @@
-// import { rgb } from "pdf-lib";
-// import { rgb } from "pdf-lib";
-// import { wrapText } from "./wraptext.js";
 
 const { wrapText } = require("./wraptext");
 const { rgb } = require("pdf-lib");
@@ -28,7 +25,7 @@ async function drawCompanyInfo({
 
   const imagePath = path.join(
     process.cwd(),
-    imgUrl.replace("http://localhost:1008", "")
+    imgUrl.replace("https://gautamsolar.us", "")
   );
 
   // read + convert

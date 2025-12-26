@@ -10,22 +10,20 @@ const { toCaps } = require("../cache/cap");
   customer,
   font,
   startX = 60,
-  startY = 310,
-  boxWidth = 300,
+  startY = 255,
   boxHeight = 110,
-  radius = 12,
   fontSize = 15,
   lineGap = 20,
 }) {
-  rounded(
-    page,
-    startX,
-    startY,
-    boxWidth,
-    boxHeight,
-    radius,
-    rgb(0.95, 0.95, 0.95)
-  );
+  // rounded(
+  //   page,
+  //   startX,
+  //   startY,
+  //   boxWidth,
+  //   boxHeight,
+  //   radius,
+  //   rgb(0.95, 0.95, 0.95)
+  // );
 
   let textX = startX + 10;
   let textY = startY + boxHeight - 25;

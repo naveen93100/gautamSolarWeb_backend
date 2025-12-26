@@ -18,6 +18,7 @@ const { drawTable } = require("../utils/drawTable.js");
 const { wrapText } = require("../utils/wraptext.js");
 const { getFonts } = require("../cache/fontCache.js");
 const { templatePdfBytes } = require("../cache/templateChache.js");
+const dealerTransporter = require("../utils/mailer.js");
 
 const loginDealer = async (req, res) => {
   try {
@@ -136,7 +137,7 @@ const registerDealer = async (req, res) => {
       let imgPath = path.join(folder, img);
 
       let buf = req.file.buffer;
-      let companyLogo = `http://localhost:1008/dealer_logo/${img}`;
+      let companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
 
       //
       await DealerModel.create({
@@ -161,39 +162,45 @@ const registerDealer = async (req, res) => {
         .toFile(imgPath);
     }
 
-    const link = `http://localhost:5173/create-password/${token}`;
+    const link = `http://dealer.gautamsolar.com/create-password/${token}`;
 
     // send create passsword link to dealer email to activate account
 
-    await transporter.sendMail({
-      from: "gautamsolar.vidoes01@gmail.com",
-      to: "udamandi82@gmail.com",
-      subject: "Create Your Password",
+    await dealerTransporter.sendMail({
+      from: process.env.DEALER_MAIL,
+      to: email,
+      subject: "Create Your Password to Activate Your Account",
       html: `
-      <!DOCTYPE html>
-      <html>
-      <body style="margin:0; padding:0; background-color:#f4f4f4; font-family:Arial, sans-serif;">
+        <!DOCTYPE html>
+      <html lang="en">
+      <body style="margin:0; padding:0; background:#fafafa; font-family:Arial, sans-serif;">
 
-        <div style="max-width:500px; margin:40px auto; background-color:#ffffff;
-                    padding:30px; border-radius:8px; text-align:center;">
+        <div style="max-width:480px; margin:40px auto; background:#ffffff; border-radius:8px; padding:28px;">
 
-          <h2 style="color:#111827; margin-bottom:10px;">
-            Welcome to Your App 👋
+          <h2 style="margin:0 0 10px; color:#111; font-size:20px; text-align:center;">
+            Activate Your Account
           </h2>
 
-          <p style="color:#4b5563; font-size:14px; line-height:1.6;">
-            Click the button below to create your password and activate your account.
+          <p style="margin:0 0 20px; font-size:14px; color:#444; line-height:1.6;">
+            You have been registered on the <strong>Gautam Solar Dealer Portal</strong>.  
+            Please create your password to activate your account.
           </p>
 
-          <a href="${link}"
-             style="display:inline-block; margin-top:20px; padding:12px 24px;
-                    background-color:#4f46e5; color:#ffffff; text-decoration:none;
-                    border-radius:6px; font-weight:bold; font-size:14px;">
-            Create Password
-          </a>
+          <div style="text-align:center; margin:25px 0;">
+            <a href="${link}" target="_blank"
+              style="background:#a20000; color:#fff; font-weight:bold; text-decoration:none;
+                    padding:12px 26px; border-radius:6px; font-size:14px; display:inline-block;">
+              Activate Account
+            </a>
+          </div>
 
-          <p style="margin-top:30px; font-size:12px; color:#6b7280;">
-            If you did not request this, please ignore this email.
+          <p style="font-size:12px; color:#666; margin-top:20px; line-height:1.5;text-align:center">
+            This link will expire in <strong>15 minutes</strong> for security purposes.
+          </p>
+
+          <hr style="border:none; border-top:1px solid #eee; margin:25px 0;" />
+          <p style="text-align:center; font-size:11px; color:#999; margin:0;">
+            © ${new Date().getFullYear()} Gautam Solar. All rights reserved.
           </p>
 
         </div>
@@ -290,8 +297,9 @@ const updateDealerProfile = async (req, res) => {
         req.file.fieldname + "-" + Date.now() + ".webp"
       );
 
-      let companyLogo = `http://localhost:1008/dealer_logo/${req.file.fieldname + "-" + Date.now() + ".webp"
-        }`;
+      let companyLogo = `https://gautamsolar.us/dealer_logo/${
+        req.file.fieldname + "-" + Date.now() + ".webp"
+      }`;
 
       let buf = req.file.buffer;
       await sharp(buf)
@@ -464,20 +472,21 @@ const generateProposal = async (req, res) => {
     const pdfDoc = await PDFDocument.load(templatePdfBytes);
     const { normal, bold } = await getFonts(pdfDoc);
     const margin = 15;
+    
     const page1 = pdfDoc.getPages()[0];
-
     const page7 = pdfDoc.getPages()[6];
+    
 
     //// if we are remove a page and add this page as place of old page use this
-    const pages = pdfDoc.getPages();
-    const oldPage5 = pages[5];
-    const { width, height } = oldPage5.getSize();
-    pdfDoc.removePage(5);
-    const page6 = pdfDoc.insertPage(5, [width, height]);
+    // const pages = pdfDoc.getPages();
+    // const oldPage5 = pages[6];
+    // const { width, height } = oldPage5.getSize();
+    // pdfDoc.removePage(5);
+    // const page6 = pdfDoc.insertPage(5, [width, height]);
 
     //// if we are insert a page in any index of pdf use this
-    // const { width, height } = page1.getSize();
-    // const page6 = pdfDoc.insertPage(7, [width, height]);
+    const { width, height } = page1.getSize();
+    const page6 = pdfDoc.insertPage(6, [width, height]);
 
     // draw company info in page 1
     await drawCompanyInfo({
