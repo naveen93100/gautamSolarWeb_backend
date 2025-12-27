@@ -30,7 +30,7 @@ const validate = (data) => {
           }
         }
         
-        if (obj === "contactNumber") {
+        if (obj === "contactNumber"||obj==='phone') {
         let mobileRegexp = /^[0-9]{10}$/;
         
         let check = mobileRegexp.test(val);

@@ -137,38 +137,39 @@ const registerDealer = async (req, res) => {
       let imgPath = path.join(folder, img);
 
       let buf = req.file.buffer;
-      
+
       await sharp(buf)
-      .resize(600, 600, {
+        .resize(600, 600, {
           fit: "inside",
           withoutEnlargement: true,
         })
         .webp({ quality: 80 })
         .toFile(imgPath);
-      }
-      
-      let companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
-      //
-      await DealerModel.create({
-        firstName,
-        lastName,
-        email,
-        gstin,
-        companyName,
-        companyLogo,
-        contactNumber,
-        address,
-        token,
-        tokenExpiry: new Date(Date.now() + 15 * 60000),
-      });
+    }
 
+    let companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
+    // let companyLogo = `http://localhost:1008/dealer_logo/${img}`;
+    //
+    await DealerModel.create({
+      firstName,
+      lastName,
+      email,
+      gstin,
+      companyName,
+      companyLogo,
+      contactNumber,
+      address,
+      token,
+      tokenExpiry: new Date(Date.now() + 15 * 60000),
+    });
 
-    const link = `http://dealer.gautamsolar.com/create-password/${token}`;
+    const link = `https://dealer.gautamsolar.com/create-password/${token}`;
+    // const link = `http://localhost:5173/create-password/${token}`;
 
     // send create passsword link to dealer email to activate account
 
     await dealerTransporter.sendMail({
-      from:`Gautam Solar Account Activation ${ process.env.DEALER_MAIL}`,
+      from: `Gautam Solar Account Activation ${process.env.DEALER_MAIL}`,
       to: email,
       subject: "Create Your Password to Activate Your Account",
       html: `
@@ -298,6 +299,7 @@ const updateDealerProfile = async (req, res) => {
         req.file.fieldname + "-" + Date.now() + ".webp"
       );
 
+      // let companyLogo = `http://localhost:1008/dealer_logo/${
       let companyLogo = `https://gautamsolar.us/dealer_logo/${
         req.file.fieldname + "-" + Date.now() + ".webp"
       }`;
@@ -402,6 +404,98 @@ const createPropsal = async (req, res) => {
   }
 };
 
+const editProposal = async (req, res) => {
+  try {
+    // let { propId } = req.params;
+
+    let {
+      propId,
+      name,
+      email,
+      phone,
+      address,
+      rate,
+      orderCapacity,
+      termsAndConditions,
+    } = req.body;
+
+
+    console.log(propId);
+    if (!propId)
+      return res.status(400).json({ success: false, message: "Id not found" });
+
+    let Prop = await ProposalModel.findOne({ _id: propId }).populate(
+      "customerId"
+    );
+
+    let customer = await CustomerModel.findOne({ _id: Prop?.customerId?._id });
+
+    let customerUpdates = {};
+    let propUpdates = {};
+
+    if (name) {
+      customerUpdates.name = name;
+    }
+    if (email) {
+      let emailRegexp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      let check = emailRegexp.test(email);
+      if (!check)
+        return res
+          .status(400)
+          .json({ success: false, message: "Email is not valid." });
+      let findEmail = await CustomerModel.findOne({ email });
+      if (findEmail)
+        return res
+          .status(409)
+          .json({ success: false, message: "Email already exist" });
+      customerUpdates.email = email;
+    }
+    if (phone) {
+      let mobileRegexp = /^[0-9]{10}$/;
+      let check = mobileRegexp.test(phone);
+      if (!check)
+        return res
+          .status(400)
+          .json({ success: false, message: "Phone no. is not valid" });
+      let findPhone = await CustomerModel.findOne({ phone });
+      if (findPhone)
+        return res
+          .status(409)
+          .json({ success: false, message: "Phone no. already exist" });
+      customerUpdates.phone = phone;
+    }
+    if (address) {
+      customerUpdates.address = address;
+    }
+
+    if (rate) {
+      propUpdates.rate = rate;
+    }
+    if (orderCapacity) {
+      propUpdates.orderCapacity = orderCapacity*1000;
+    }
+    if (termsAndConditions) {
+      propUpdates.termsAndConditions = termsAndConditions;
+    }
+
+    if (Object.keys(customerUpdates).length >= 1) {
+      customer.set(customerUpdates);
+      await customer.save();
+    }
+
+    if (Object.keys(propUpdates).length >= 1) {
+      Prop.set(propUpdates);
+      await Prop.save();
+    }
+
+    return res.status(200).json({ success: true, message:"Proposal Updated" });
+  } catch (er) {
+    return res
+      .status(500)
+      .json({ success: false, message: er?.message || "Internal Error" });
+  }
+};
+
 const getProposal = async (req, res) => {
   try {
     let { dealerId } = req.params;
@@ -461,7 +555,7 @@ const generateProposal = async (req, res) => {
     const rows = [
       [
         "1.",
-        `${Proposal?.customerId?.address} !!!! and the order capacity  is ${apiData?.customer?.capacity}`,
+        `${Proposal?.customerId?.address} (order capacity-${apiData?.customer?.capacity})`,
         `${(Proposal?.rate).toString()} Rs/watts`,
         `${(Proposal?.price).toString()} Rs`,
         // Proposal?.price+"rs",
@@ -473,10 +567,10 @@ const generateProposal = async (req, res) => {
     const pdfDoc = await PDFDocument.load(templatePdfBytes);
     const { normal, bold } = await getFonts(pdfDoc);
     const margin = 15;
-    
+
     const page1 = pdfDoc.getPages()[0];
+    // const page7 = pdfDoc.getPages()[6];
     const page7 = pdfDoc.getPages()[6];
-    
 
     //// if we are remove a page and add this page as place of old page use this
     // const pages = pdfDoc.getPages();
@@ -507,7 +601,7 @@ const generateProposal = async (req, res) => {
       font: normal,
     });
 
-    // draw company info in page 7
+    // // draw company info in page 7
 
     await drawCompanyInfo({
       pdfDoc,
@@ -553,8 +647,8 @@ const generateProposal = async (req, res) => {
 
     let endY = drawTable({
       page: page6,
-      startX: 50,
-      startY: height - 120,
+      startX: 44,
+      startY: height - 100,
       columns,
       rows,
       font: normal,
@@ -565,14 +659,25 @@ const generateProposal = async (req, res) => {
 
     // term and condtion
     page6.drawText("Terms & Conditions", {
-      x: 50,
-      y: endY,
+      x: 30,
+      y: 640,
       size: 16,
       font: bold,
       color: rgb(0.5, 0, 0),
     });
 
+    page6.drawRectangle({
+      x: 33,
+      y: 655 - 16 - 4,
+      width: 530,
+      height: 1.5,
+      color: rgb(0.5, 0, 0),
+    });
+
     endY -= 25;
+    let currentY = endY;
+    const btMg = 50;
+    let currentPage = page6;
 
     const terms = apiData?.termCondition;
     //  console.log("Term data : ",terms)
@@ -580,23 +685,50 @@ const generateProposal = async (req, res) => {
       const paragraphs = term.split(/\n+/); // split on 1 or more newlines
 
       paragraphs.forEach((para, pIndex) => {
-        const prefix = pIndex === 0 ? `${i + 1}. ` : "";
+        // const prefix = pIndex === 0 ? `${i + 1}. ` : "";
 
-        const lines = wrapText(prefix + para.trim(), normal, 12, width - 100);
+        const lines = wrapText(para.trim(), normal, 12, width - 100);
 
         lines.forEach((line) => {
-          page6.drawText(line, {
-            x: 50,
-            y: endY,
+          if (currentY < btMg) {
+            // currentPage = pdfDoc.addPage([width, height]);
+            currentPage = pdfDoc.insertPage(7, [width, height]);
+            currentY = height - 50;
+          }
+
+          currentPage.drawText(line, {
+            x: 30,
+            y: currentY - 20,
             size: 12,
             font: bold,
           });
-          endY -= 16;
-        });
 
-        endY -= 10; // space between paragraphs
+          currentPage.drawRectangle({
+            x: margin,
+            y: margin,
+            width: width - margin * 2,
+            height: height - margin * 2,
+            borderWidth: 1,
+            borderColor: rgb(0.3, 0.3, 0.3),
+          });
+
+          currentY -= 16;
+
+          // page6.drawText(line, {
+          //   x: 50,
+          //   y: endY,
+          //   size: 12,
+          //   font: bold,
+          // });
+          // endY -= 16;
+        });
+        currentY -= 10;
+
+        // endY -= 10; // space between paragraphs
       });
     });
+
+    // draw company info in page 7
 
     const pdfBytes = await pdfDoc.save();
     const buffer = Buffer.from(pdfBytes);
@@ -620,4 +752,5 @@ module.exports = {
   createPropsal,
   getProposal,
   generateProposal,
+  editProposal,
 };

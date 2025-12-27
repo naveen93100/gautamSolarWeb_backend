@@ -12,18 +12,10 @@ const { toCaps } = require("../cache/cap");
   startX = 60,
   startY = 255,
   boxHeight = 110,
-  fontSize = 15,
+  fontSize = 12,
   lineGap = 20,
 }) {
-  // rounded(
-  //   page,
-  //   startX,
-  //   startY,
-  //   boxWidth,
-  //   boxHeight,
-  //   radius,
-  //   rgb(0.95, 0.95, 0.95)
-  // );
+ 
 
   let textX = startX + 10;
   let textY = startY + boxHeight - 25;
