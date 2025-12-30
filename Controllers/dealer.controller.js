@@ -147,8 +147,8 @@ const registerDealer = async (req, res) => {
         .toFile(imgPath);
     }
 
-    let companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
-    // let companyLogo = `http://localhost:1008/dealer_logo/${img}`;
+    // let companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
+    let companyLogo = `http://localhost:1008/dealer_logo/${img}`;
     //
     await DealerModel.create({
       firstName,
@@ -163,8 +163,8 @@ const registerDealer = async (req, res) => {
       tokenExpiry: new Date(Date.now() + 15 * 60000),
     });
 
-    const link = `https://dealer.gautamsolar.com/create-password/${token}`;
-    // const link = `http://localhost:5173/create-password/${token}`;
+    // const link = `https://dealer.gautamsolar.com/create-password/${token}`;
+    const link = `http://localhost:5173/create-password/${token}`;
 
     // send create passsword link to dealer email to activate account
 
@@ -555,7 +555,8 @@ const generateProposal = async (req, res) => {
     const rows = [
       [
         "1.",
-        `${Proposal?.customerId?.address} (order capacity-${apiData?.customer?.capacity})`,
+        // `${Proposal?.customerId?.address} (order capacity-${apiData?.customer?.capacity})`,
+        `Supply,Installation and Commissioning of ${apiData?.customer?.capacity?.split('watts')[0]/1000} kw Solar Power Plant at (${Proposal?.customerId?.address})`,
         `${(Proposal?.rate).toString()} Rs/watts`,
         `${(Proposal?.price).toString()} Rs`,
         // Proposal?.price+"rs",
