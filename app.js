@@ -2,7 +2,7 @@ const express = require("express");
 const { connect } = require("./db.config");
 const { UserRouter } = require("./Routes/admin.routes");
 const MediaRouter = require("./Routes/media.routes.js");
-const DealerRouter=require('./Routes/dealer.routes.js');
+const DealerRouter = require("./Routes/dealer.routes.js");
 const nodemailer = require("nodemailer");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -32,6 +32,15 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 app.use((req, res, next) => {
+  const now = new Date();
+  const istTime = new Date(now.getTime() + 5.5 * 60 * 60 * 1000) // Convert to IST
+    .toISOString()
+    .replace("T", " ") // Replace "T" with space for readability
+    .replace("Z", " IST"); // Add "IST" at the end
+
+  console.log(`[${istTime}] ${req.method} ${req.url}`);
+
+  // -----------
   let reqUrl = req.query.utm_source || null;
   if (reqUrl !== null) {
     res.cookie("utm_source", reqUrl, {
@@ -47,7 +56,7 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
 
-app.use('/dealer_logo',express.static(path.join(__dirname,'Dealer_Logo')));
+app.use("/dealer_logo", express.static(path.join(__dirname, "Dealer_Logo")));
 
 app.use("/media_image", express.static(path.join(__dirname, "Media")));
 
@@ -66,13 +75,12 @@ app.use(
   express.static(path.join(__dirname, "Galo_Blog_Video"))
 );
 
-
 // Nodemailer configuration for SMTP
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: "gautamsolar.vidoes01@gmail.com",
-    pass:'uyej onej uabb sxva'
+    pass: "uyej onej uabb sxva",
     // pass: "cxmxypwbaupolgqo",
     // pass: "nwwghwyxmfmtwtlb",
   },
@@ -462,30 +470,14 @@ app.post("/submit-delhi", async (req, res) => {
       html: `
       <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
       <h2 style="color: #a20000;"> Galo Solar Form Submission</h2>
-      <p style="margin-bottom: 10px;"><strong>Name:</strong> ${
-        formData.Name
-      }</p>
-      <p style="margin-bottom: 10px;"><strong>Mobile No:</strong> ${
-        formData.Phone
-      }</p>
-      <p style="margin-bottom: 10px;"><strong>Pin Code:</strong> ${
-        formData.Pincode
-      }</p>
-      <p style="margin-bottom: 10px;"><strong>City:</strong> ${
-        formData.City
-      }</p>
-      <p style="margin-bottom: 10px;"><strong>Solar For:</strong> ${
-        formData.SolarFor
-      }</p>
-      <p style="margin-bottom: 10px;"><strong>State:</strong> ${
-        formData.State
-      }</p>
-           <p style="margin-bottom: 10px;"><strong>Country:</strong> ${
-             formData.Country
-           }</p>
-      <p style="margin-bottom: 10px;"><strong>Remark:</strong> ${
-        formData.Remark
-      }</p>
+      <p style="margin-bottom: 10px;"><strong>Name:</strong> ${formData.Name}</p>
+      <p style="margin-bottom: 10px;"><strong>Mobile No:</strong> ${formData.Phone}</p>
+      <p style="margin-bottom: 10px;"><strong>Pin Code:</strong> ${formData.Pincode}</p>
+      <p style="margin-bottom: 10px;"><strong>City:</strong> ${formData.City}</p>
+      <p style="margin-bottom: 10px;"><strong>Solar For:</strong> ${formData.SolarFor}</p>
+      <p style="margin-bottom: 10px;"><strong>State:</strong> ${formData.State}</p>
+           <p style="margin-bottom: 10px;"><strong>Country:</strong> ${formData.Country}</p>
+      <p style="margin-bottom: 10px;"><strong>Remark:</strong> ${formData.Remark}</p>
     </div>
       `,
     };
@@ -505,8 +497,7 @@ app.get("/", (req, res) => {
   res.send({ msg: "Welcome Solar News App" });
 });
 
-
-app.use('/api/dealer',DealerRouter)
+app.use("/api/dealer", DealerRouter);
 
 app.use("/admin", UserRouter);
 app.use("/media", MediaRouter);

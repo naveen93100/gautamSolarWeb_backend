@@ -1,3 +1,6 @@
+// import { rgb } from "pdf-lib";
+// import { rgb } from "pdf-lib";
+// import { wrapText } from "./wraptext.js";
 
 const { wrapText } = require("./wraptext");
 const { rgb } = require("pdf-lib");
@@ -23,10 +26,19 @@ async function drawCompanyInfo({
 
   sharp.cache(false);
 
-  const imagePath = path.join(
+  // const imagePath = path.join(
+  //   // process.cwd(),
+  //   imgUrl.replace("https://gautamsolar.us", "")
+  // );
+
+  imgUrl = imgUrl.replace("dealer_logo", "Dealer_Logo");
+
+  let imagePath = path.join(
     process.cwd(),
-    imgUrl.replace("http://localhost:1008", "")
+    imgUrl.replace("https://gautamsolar.us", "")
+    // imgUrl.replace("http://localhost:1008", "")
   );
+
 
   // read + convert
   const pngBytes = await sharp(fs.readFileSync(imagePath)).png().toBuffer();
@@ -45,9 +57,8 @@ async function drawCompanyInfo({
   const logoHeight = logoDims.height * scale;
   const pageHeight = page.getHeight();
 
-const logoX = 40;
-const logoY = pageHeight - logoHeight - 40;
-
+  const logoX = 40;
+  const logoY = pageHeight - logoHeight - 40;
 
   // page.drawImage(logoImage, {
   //   x: 40,
@@ -57,12 +68,11 @@ const logoY = pageHeight - logoHeight - 40;
   // });
 
   page.drawImage(logoImage, {
-  x: logoX,
-  y: logoY,
-  width: logoWidth,
-  height: logoHeight,
-});
-
+    x: logoX,
+    y: logoY,
+    width: logoWidth,
+    height: logoHeight,
+  });
 
   page.drawText(toCaps(apiData.company.name), {
     x,
