@@ -83,6 +83,7 @@ const loginDealer = async (req, res) => {
 const registerDealer = async (req, res) => {
   try {
     let error = validate(req.body);
+    console.log("Data : ", req.body)
 
     if (error.length >= 1) {
       return res.status(400).json({ success: false, message: error[0].er });
@@ -131,6 +132,8 @@ const registerDealer = async (req, res) => {
       if (!fs.existsSync(folder)) {
         fs.mkdirSync(folder, { recursive: true });
       }
+
+      console.log("req.file.fieldname : ", req.file.fieldname)
 
       let img = req.file.fieldname + "-" + Date.now() + ".webp";
       let imgPath = path.join(folder, img);

@@ -1,6 +1,3 @@
-// import { rgb } from "pdf-lib";
-// import { rgb } from "pdf-lib";
-// import { wrapText } from "./wraptext.js";
 
 const { wrapText } = require("./wraptext");
 const { rgb } = require("pdf-lib");
@@ -37,8 +34,8 @@ async function drawCompanyInfo({
   const logoImage = await pdfDoc.embedPng(pngBytes);
 
   const logoDims = logoImage.scale(1); // original width & height
-  const MAX_LOGO_WIDTH = 200;
-  const MAX_LOGO_HEIGHT = 90;
+  const MAX_LOGO_WIDTH = 220;
+  const MAX_LOGO_HEIGHT = 110;
   const scale = Math.min(
     MAX_LOGO_WIDTH / logoDims.width,
     MAX_LOGO_HEIGHT / logoDims.height
