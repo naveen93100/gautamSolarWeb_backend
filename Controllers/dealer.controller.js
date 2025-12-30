@@ -84,7 +84,6 @@ const loginDealer = async (req, res) => {
 const registerDealer = async (req, res) => {
   try {
     let error = validate(req.body);
-    console.log("Data : ", req.body)
 
     if (error.length >= 1) {
       return res.status(400).json({ success: false, message: error[0].er });
@@ -134,8 +133,6 @@ const registerDealer = async (req, res) => {
         fs.mkdirSync(folder, { recursive: true });
       }
 
-      console.log("req.file.fieldname : ", req.file.fieldname)
-
       let img = req.file.fieldname + "-" + Date.now() + ".webp";
       let imgPath = path.join(folder, img);
 
@@ -148,34 +145,34 @@ const registerDealer = async (req, res) => {
         })
         .webp({ quality: 80 })
         .toFile(imgPath);
+
+
+      // let companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
+      let companyLogo = `http://localhost:1008/dealer_logo/${img}`;
+      //
+      await DealerModel.create({
+        firstName,
+        lastName,
+        email,
+        gstin,
+        companyName,
+        companyLogo,
+        contactNumber,
+        address,
+        token,
+        tokenExpiry: new Date(Date.now() + 15 * 60000),
+      });
     }
 
-    // let companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
-    let companyLogo = `http://localhost:1008/dealer_logo/${img}`;
-    //
-    await DealerModel.create({
-      firstName,
-      lastName,
-      email,
-      gstin,
-      companyName,
-      companyLogo,
-      contactNumber,
-      address,
-      token,
-      tokenExpiry: new Date(Date.now() + 15 * 60000),
-    });
+      // const link = `https://dealer.gautamsolar.com/create-password/${token}`;
+      const link = `http://localhost:5173/create-password/${token}`;
 
-    // const link = `https://dealer.gautamsolar.com/create-password/${token}`;
-    const link = `http://localhost:5173/create-password/${token}`;
-
-    // send create passsword link to dealer email to activate account
-
-    await dealerTransporter.sendMail({
-      from: `Gautam Solar Account Activation ${process.env.DEALER_MAIL}`,
-      to: email,
-      subject: "Create Your Password to Activate Your Account",
-      html: `
+      
+      await dealerTransporter.sendMail({
+        from: `Gautam Solar Account Activation ${process.env.DEALER_MAIL}`,
+        to: email,
+        subject: "Create Your Password to Activate Your Account",
+        html: `
         <!DOCTYPE html>
       <html lang="en">
       <body style="margin:0; padding:0; background:#fafafa; font-family:Arial, sans-serif;">
@@ -213,7 +210,7 @@ const registerDealer = async (req, res) => {
       </body>
       </html>
     `,
-    });
+      });
 
     return res.status(200).json({
       success: true,
@@ -221,7 +218,7 @@ const registerDealer = async (req, res) => {
         "Registered successfully. Check your email to activate your account and create your password.",
     });
   } catch (er) {
-    console.log(er);
+    console.log(er?.message);
     return res
       .status(500)
       .json({ success: false, message: er?.message || "Internal Error" });
@@ -243,6 +240,8 @@ const createPassword = async (req, res) => {
       token,
       tokenExpiry: { $gte: Date.now() },
     });
+
+    console.log(findDealer)
 
     if (!findDealer)
       return res.status(400).json({
@@ -422,7 +421,6 @@ const editProposal = async (req, res) => {
       termsAndConditions,
     } = req.body;
 
-
     console.log(propId);
     if (!propId)
       return res.status(400).json({ success: false, message: "Id not found" });
@@ -475,7 +473,7 @@ const editProposal = async (req, res) => {
       propUpdates.rate = rate;
     }
     if (orderCapacity) {
-      propUpdates.orderCapacity = orderCapacity*1000;
+      propUpdates.orderCapacity = orderCapacity * 1000;
     }
     if (termsAndConditions) {
       propUpdates.termsAndConditions = termsAndConditions;
@@ -491,7 +489,7 @@ const editProposal = async (req, res) => {
       await Prop.save();
     }
 
-    return res.status(200).json({ success: true, message:"Proposal Updated" });
+    return res.status(200).json({ success: true, message: "Proposal Updated" });
   } catch (er) {
     return res
       .status(500)
@@ -559,7 +557,9 @@ const generateProposal = async (req, res) => {
       [
         "1.",
         // `${Proposal?.customerId?.address} (order capacity-${apiData?.customer?.capacity})`,
-        `Supply,Installation and Commissioning of ${apiData?.customer?.capacity?.split('watts')[0]/1000} kw Solar Power Plant at (${Proposal?.customerId?.address})`,
+        `Supply,Installation and Commissioning of ${
+          apiData?.customer?.capacity?.split("watts")[0] / 1000
+        } kw Solar Power Plant at (${Proposal?.customerId?.address})`,
         `${(Proposal?.rate).toString()} Rs/watts`,
         `${(Proposal?.price).toString()} Rs`,
         // Proposal?.price+"rs",
