@@ -30,7 +30,7 @@ router.patch('/edit-proposal',upload.none(),verifyToken,editProposal);
 
 router.get("/get-proposal/:dealerId", verifyToken, getProposal);
 
-router.get("/downloadPropsoal/:propId", verifyToken, generateProposal);
+router.get("/downloadPropsoal/:propId", generateProposal);
 
 router.patch("/:id", verifyToken, upload.single("image"), updateDealerProfile);
 
