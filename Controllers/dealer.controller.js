@@ -19,6 +19,7 @@ const { wrapText } = require("../utils/wraptext.js");
 const { getFonts } = require("../cache/fontCache.js");
 const { templatePdfBytes } = require("../cache/templateChache.js");
 const dealerTransporter = require("../utils/mailer.js");
+const MaterialModel = require("../Models/material.schema.js");
 
 const loginDealer = async (req, res) => {
   try {
@@ -146,7 +147,6 @@ const registerDealer = async (req, res) => {
         .webp({ quality: 80 })
         .toFile(imgPath);
 
-
       // let companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
       let companyLogo = `http://localhost:1008/dealer_logo/${img}`;
       //
@@ -164,15 +164,14 @@ const registerDealer = async (req, res) => {
       });
     }
 
-      // const link = `https://dealer.gautamsolar.com/create-password/${token}`;
-      const link = `http://localhost:5173/create-password/${token}`;
+    // const link = `https://dealer.gautamsolar.com/create-password/${token}`;
+    const link = `http://localhost:5173/create-password/${token}`;
 
-      
-      await dealerTransporter.sendMail({
-        from: `Gautam Solar Account Activation ${process.env.DEALER_MAIL}`,
-        to: email,
-        subject: "Create Your Password to Activate Your Account",
-        html: `
+    await dealerTransporter.sendMail({
+      from: `Gautam Solar Account Activation ${process.env.DEALER_MAIL}`,
+      to: email,
+      subject: "Create Your Password to Activate Your Account",
+      html: `
         <!DOCTYPE html>
       <html lang="en">
       <body style="margin:0; padding:0; background:#fafafa; font-family:Arial, sans-serif;">
@@ -210,7 +209,7 @@ const registerDealer = async (req, res) => {
       </body>
       </html>
     `,
-      });
+    });
 
     return res.status(200).json({
       success: true,
@@ -241,7 +240,7 @@ const createPassword = async (req, res) => {
       tokenExpiry: { $gte: Date.now() },
     });
 
-    console.log(findDealer)
+    console.log(findDealer);
 
     if (!findDealer)
       return res.status(400).json({
@@ -301,8 +300,8 @@ const updateDealerProfile = async (req, res) => {
         req.file.fieldname + "-" + Date.now() + ".webp"
       );
 
-      // let companyLogo = `http://localhost:1008/dealer_logo/${
-      let companyLogo = `https://gautamsolar.us/dealer_logo/${
+      let companyLogo = `http://localhost:1008/dealer_logo/${
+      // let companyLogo = `https://gautamsolar.us/dealer_logo/${
         req.file.fieldname + "-" + Date.now() + ".webp"
       }`;
 
@@ -363,6 +362,7 @@ const createPropsal = async (req, res) => {
       address,
       orderCapacity,
       termsAndConditions,
+      components,
     } = req.body;
     email = email.toLowerCase();
 
@@ -385,12 +385,33 @@ const createPropsal = async (req, res) => {
 
     //  create propsal
 
+    let names = components.map((item) => item.name);
+
+    let findComponent = await MaterialModel.find({
+      name: { $in: names },
+    }).select("_id name");
+
+    findComponent = names.map((item) =>
+      findComponent.find((v) => v.name === item)
+    );
+
+    let finalComponent = components.map((item, idx) => {
+      if (item.name === findComponent[idx]?.name) {
+        return {
+          mId: findComponent[idx]?._id,
+          quantity: item.qty,
+          isActive: true,
+        };
+      }
+    });
+
     let createProposal = new ProposalModel({
       dealerId,
       customerId: createCustomer._id,
       rate: Number(rate),
       orderCapacity: Number(orderCapacity) * 1000,
       termsAndConditions,
+      material: finalComponent,
     });
 
     await createProposal.save();
@@ -418,10 +439,13 @@ const editProposal = async (req, res) => {
       address,
       rate,
       orderCapacity,
+      components,
       termsAndConditions,
     } = req.body;
 
-    console.log(propId);
+
+    // return res.status(200).json({success:true,msg:"working"});
+
     if (!propId)
       return res.status(400).json({ success: false, message: "Id not found" });
 
@@ -469,6 +493,26 @@ const editProposal = async (req, res) => {
       customerUpdates.address = address;
     }
 
+     let names = components.map((item) => item.name.trim());
+
+    let findComponent = await MaterialModel.find({
+      name: { $in: names },
+    }).select("_id name");
+
+    findComponent = names.map((item) =>
+      findComponent.find((v) => v.name.trim() === item.trim())
+    );
+
+    let finalComponent = components.map((item, idx) => {
+      if (item.name === findComponent[idx]?.name) {
+        return {
+          mId: findComponent[idx]?._id,
+          quantity: item.qty,
+          isActive: true,
+        };
+      }
+    });
+
     if (rate) {
       propUpdates.rate = rate;
     }
@@ -483,6 +527,8 @@ const editProposal = async (req, res) => {
       customer.set(customerUpdates);
       await customer.save();
     }
+
+    propUpdates.material=finalComponent
 
     if (Object.keys(propUpdates).length >= 1) {
       Prop.set(propUpdates);
@@ -511,8 +557,52 @@ const getProposal = async (req, res) => {
       {
         $lookup: {
           from: "proposals",
-          localField: "_id",
-          foreignField: "customerId",
+          let: { customerId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$customerId", "$$customerId"] },
+              },
+            },
+            {
+              $lookup: {
+                from: "materials",
+                localField: "material.mId",
+                foreignField: "_id",
+                as: "materialData",
+              },
+            },
+            {
+              $addFields: {
+                material: {
+                  $map: {
+                    input: "$material",
+                    as: "mat",
+                    in: {
+                      $mergeObjects: [
+                        "$$mat",
+                        {
+                          materialData: {
+                            $arrayElemAt: [
+                              {
+                                $filter: {
+                                  input: "$materialData",
+                                  as: "md",
+                                  cond: { $eq: ["$$md._id", "$$mat.mId"] },
+                                },
+                              },
+                              0,
+                            ],
+                          },
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+            { $project: { materialData: 0 } },
+          ],
           as: "proposalsData",
         },
       },

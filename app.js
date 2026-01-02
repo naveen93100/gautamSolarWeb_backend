@@ -27,6 +27,7 @@ const { GaloRouter } = require("./Routes/galo.routes");
 const Supplier = require("./Models/Supplier.schema.js");
 const multer = require("multer");
 const { rejects } = require("assert");
+const seedData = require("./seed.js");
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
@@ -510,6 +511,7 @@ app.listen(process.env.PORT, async () => {
     console.log(
       `App is running on PORT ${process.env.PORT}, ${process.env.MONGO_URI}`
     );
+    // await seedData();
   } catch (err) {
     console.log(err);
   }
