@@ -511,7 +511,7 @@ app.listen(process.env.PORT, async () => {
     console.log(
       `App is running on PORT ${process.env.PORT}, ${process.env.MONGO_URI}`
     );
-    // await seedData();
+    await seedData();
   } catch (err) {
     console.log(err);
   }

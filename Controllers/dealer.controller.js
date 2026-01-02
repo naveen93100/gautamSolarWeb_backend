@@ -147,8 +147,8 @@ const registerDealer = async (req, res) => {
         .webp({ quality: 80 })
         .toFile(imgPath);
 
-      // let companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
-      let companyLogo = `http://localhost:1008/dealer_logo/${img}`;
+      let companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
+      // let companyLogo = `http://localhost:1008/dealer_logo/${img}`;
       //
       await DealerModel.create({
         firstName,
@@ -164,8 +164,8 @@ const registerDealer = async (req, res) => {
       });
     }
 
-    // const link = `https://dealer.gautamsolar.com/create-password/${token}`;
-    const link = `http://localhost:5173/create-password/${token}`;
+    const link = `https://dealer.gautamsolar.com/create-password/${token}`;
+    // const link = `http://localhost:5173/create-password/${token}`;
 
     await dealerTransporter.sendMail({
       from: `Gautam Solar Account Activation ${process.env.DEALER_MAIL}`,
@@ -300,8 +300,8 @@ const updateDealerProfile = async (req, res) => {
         req.file.fieldname + "-" + Date.now() + ".webp"
       );
 
-      let companyLogo = `http://localhost:1008/dealer_logo/${
-      // let companyLogo = `https://gautamsolar.us/dealer_logo/${
+      // let companyLogo = `http://localhost:1008/dealer_logo/${
+      let companyLogo = `https://gautamsolar.us/dealer_logo/${
         req.file.fieldname + "-" + Date.now() + ".webp"
       }`;
 
