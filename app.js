@@ -59,6 +59,8 @@ app.use(express.urlencoded({ limit: "100mb", extended: true }));
 
 app.use("/dealer_logo", express.static(path.join(__dirname, "Dealer_Logo")));
 
+app.use('/proposal_images',express.static(path.join(__dirname,'Proposal_Images')));
+
 app.use("/media_image", express.static(path.join(__dirname, "Media")));
 
 app.use(

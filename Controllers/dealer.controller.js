@@ -609,6 +609,8 @@ const getProposal = async (req, res) => {
       { $sort: { _id: -1 } },
     ]);
 
+    
+
     return res.status(200).json({ success: true, customersProposal });
   } catch (er) {
     return res
