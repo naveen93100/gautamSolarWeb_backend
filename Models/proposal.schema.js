@@ -13,6 +13,7 @@ const propsalSchema = mongoose.Schema(
     rate: {
       type: Number,
     },
+    tax:Number,
     orderCapacity: Number,
     price: Number,
     finalPrice: Number,
@@ -43,15 +44,15 @@ const propsalSchema = mongoose.Schema(
   { timestamps: true }
 );
 
-propsalSchema.pre("save", function (next) {
-  const price = this.orderCapacity * this.rate;
-  const gstAmt = (price * 5) / 100;
-  const finalAmt = price + gstAmt;
-  this.price = price;
-  this.finalPrice = finalAmt;
-  this.gstAmt = gstAmt;
-  next();
-});
+// propsalSchema.pre("save", function (next) {
+//   const price = this.orderCapacity * this.rate;
+//   const gstAmt = (price * 5) / 100;
+//   const finalAmt = price + gstAmt;
+//   this.price = price;
+//   this.finalPrice = finalAmt;
+//   this.gstAmt = gstAmt;
+//   next();
+// });
 
 const ProposalModel = mongoose.model("Proposal", propsalSchema);
 module.exports = ProposalModel;

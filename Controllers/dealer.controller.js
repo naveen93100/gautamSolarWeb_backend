@@ -147,8 +147,8 @@ const registerDealer = async (req, res) => {
         .webp({ quality: 80 })
         .toFile(imgPath);
 
-      let companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
-      // let companyLogo = `http://localhost:1008/dealer_logo/${img}`;
+      // let companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
+      let companyLogo = `http://localhost:1008/dealer_logo/${img}`;
       //
       await DealerModel.create({
         firstName,
@@ -164,8 +164,8 @@ const registerDealer = async (req, res) => {
       });
     }
 
-    const link = `https://dealer.gautamsolar.com/create-password/${token}`;
-    // const link = `http://localhost:5173/create-password/${token}`;
+    // const link = `https://dealer.gautamsolar.com/create-password/${token}`;
+    const link = `http://localhost:5173/create-password/${token}`;
 
     await dealerTransporter.sendMail({
       from: `Gautam Solar Account Activation ${process.env.DEALER_MAIL}`,
@@ -300,8 +300,8 @@ const updateDealerProfile = async (req, res) => {
         req.file.fieldname + "-" + Date.now() + ".webp"
       );
 
-      // let companyLogo = `http://localhost:1008/dealer_logo/${
-      let companyLogo = `https://gautamsolar.us/dealer_logo/${
+      let companyLogo = `http://localhost:1008/dealer_logo/${
+        // let companyLogo = `https://gautamsolar.us/dealer_logo/${
         req.file.fieldname + "-" + Date.now() + ".webp"
       }`;
 
@@ -347,11 +347,11 @@ const updateDealerProfile = async (req, res) => {
 
 const createPropsal = async (req, res) => {
   try {
-    let error = validate(req.body);
+    // let error = validate(req.body);
 
-    if (error.length >= 1) {
-      return res.status(400).json({ success: false, message: error[0].er });
-    }
+    // if (error.length >= 1) {
+    //   return res.status(400).json({ success: false, message: error[0].er });
+    // }
 
     let {
       dealerId,
@@ -363,8 +363,11 @@ const createPropsal = async (req, res) => {
       orderCapacity,
       termsAndConditions,
       components,
+      tax,
     } = req.body;
     email = email.toLowerCase();
+      
+    tax=Number.parseFloat(tax);
 
     let findCustomer = await CustomerModel.findOne({ email });
 
@@ -405,13 +408,21 @@ const createPropsal = async (req, res) => {
       }
     });
 
+    const price = (orderCapacity*1000) * rate;
+    const gstAmt = (price*tax) / 100;
+    const finalAmt = price + gstAmt;
+ 
     let createProposal = new ProposalModel({
       dealerId,
       customerId: createCustomer._id,
       rate: Number(rate),
-      orderCapacity: Number(orderCapacity) * 1000,
+      orderCapacity: Number(orderCapacity)*1000,
       termsAndConditions,
       material: finalComponent,
+      price,
+      gstAmt,
+      finalPrice:finalAmt,
+      tax:tax
     });
 
     await createProposal.save();
@@ -440,9 +451,14 @@ const editProposal = async (req, res) => {
       rate,
       orderCapacity,
       components,
+      tax,
       termsAndConditions,
     } = req.body;
 
+     console.log(orderCapacity);
+    orderCapacity=Number(orderCapacity);
+    tax=Number.parseFloat(tax)
+    rate=Number(rate)
 
     // return res.status(200).json({success:true,msg:"working"});
 
@@ -462,38 +478,38 @@ const editProposal = async (req, res) => {
       customerUpdates.name = name;
     }
     if (email) {
-      let emailRegexp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      let check = emailRegexp.test(email);
-      if (!check)
-        return res
-          .status(400)
-          .json({ success: false, message: "Email is not valid." });
-      let findEmail = await CustomerModel.findOne({ email });
-      if (findEmail)
-        return res
-          .status(409)
-          .json({ success: false, message: "Email already exist" });
+      // let emailRegexp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      // let check = emailRegexp.test(email);
+      // if (!check)
+      //   return res
+      //     .status(400)
+      //     .json({ success: false, message: "Email is not valid." });
+      // let findEmail = await CustomerModel.findOne({ email });
+      // if (findEmail)
+      //   return res
+      //     .status(409)
+      //     .json({ success: false, message: "Email already exist" });
       customerUpdates.email = email;
     }
     if (phone) {
-      let mobileRegexp = /^[0-9]{10}$/;
-      let check = mobileRegexp.test(phone);
-      if (!check)
-        return res
-          .status(400)
-          .json({ success: false, message: "Phone no. is not valid" });
-      let findPhone = await CustomerModel.findOne({ phone });
-      if (findPhone)
-        return res
-          .status(409)
-          .json({ success: false, message: "Phone no. already exist" });
+      // let mobileRegexp = /^[0-9]{10}$/;
+      // let check = mobileRegexp.test(phone);
+      // if (!check)
+      //   return res
+      //     .status(400)
+      //     .json({ success: false, message: "Phone no. is not valid" });
+      // let findPhone = await CustomerModel.findOne({ phone });
+      // if (findPhone)
+      //   return res
+      //     .status(409)
+      //     .json({ success: false, message: "Phone no. already exist" });
       customerUpdates.phone = phone;
     }
     if (address) {
       customerUpdates.address = address;
     }
 
-     let names = components.map((item) => item.name.trim());
+    let names = components.map((item) => item.name.trim());
 
     let findComponent = await MaterialModel.find({
       name: { $in: names },
@@ -513,22 +529,38 @@ const editProposal = async (req, res) => {
       }
     });
 
-    if (rate) {
-      propUpdates.rate = rate;
-    }
-    if (orderCapacity) {
-      propUpdates.orderCapacity = orderCapacity * 1000;
-    }
-    if (termsAndConditions) {
-      propUpdates.termsAndConditions = termsAndConditions;
-    }
+    const price = orderCapacity*1000 * rate;
+    const gstAmt = (price*tax) / 100;
+
+
+    console.log(rate,price,orderCapacity,gstAmt,tax)
+     propUpdates.rate=rate;
+     propUpdates.orderCapacity=orderCapacity*1000;
+     propUpdates.termsAndConditions=termsAndConditions;
+
+     propUpdates.tax=tax
+     propUpdates.price=price
+
+     propUpdates.gstAmt= (price*tax) / 100;
+     propUpdates.finalPrice=price+gstAmt
+
+
+    // if (rate) {
+    //   propUpdates.rate = rate;
+    // }
+    // if (orderCapacity) {
+    //   propUpdates.orderCapacity = orderCapacity * 1000;
+    // }
+    // if (termsAndConditions) {
+    //   propUpdates.termsAndConditions = termsAndConditions;
+    // }
 
     if (Object.keys(customerUpdates).length >= 1) {
       customer.set(customerUpdates);
       await customer.save();
     }
 
-    propUpdates.material=finalComponent
+    propUpdates.material = finalComponent;
 
     if (Object.keys(propUpdates).length >= 1) {
       Prop.set(propUpdates);
@@ -608,8 +640,6 @@ const getProposal = async (req, res) => {
       },
       { $sort: { _id: -1 } },
     ]);
-
-    
 
     return res.status(200).json({ success: true, customersProposal });
   } catch (er) {

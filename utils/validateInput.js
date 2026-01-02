@@ -6,6 +6,7 @@ const validate = (data) => {
     if(!Array.isArray(val)){
       val=val.trim();
     }
+    console.log(val);
 
     if (val === "") {
       error.push({ er: `${obj} is missing` });
