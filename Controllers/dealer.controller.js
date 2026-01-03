@@ -298,7 +298,7 @@ const updateDealerProfile = async (req, res) => {
       let oldImgPath = path.join(__dirname, "..","..", folder, oldImgName);
       console.log(oldImgPath);
       try {
-        await fsp.unlink(oldImgPath);
+        // await fsp.unlink(oldImgPath);
         console.log("Unlink successfully");
       } catch (err) {
         if (err.code === "ENOENT") {
@@ -317,7 +317,7 @@ const updateDealerProfile = async (req, res) => {
       // const baseUrl=  `${req.protocol}://${req.get("host")}`
 
       // let companyLogo = `http://localhost:1008/dealer_logo/${
-      let companyLogo = `${process.env.BASE_URL}/Dealer_Logo/${
+      let companyLogo = `https://gautamsolar.us/Dealer_Logo/${
         req.file.fieldname + "-" + Date.now() + ".webp"
       }`;
       console.log(companyLogo);
