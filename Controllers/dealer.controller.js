@@ -147,8 +147,8 @@ const registerDealer = async (req, res) => {
         .webp({ quality: 80 })
         .toFile(imgPath);
 
-      let companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
-      // let companyLogo = `http://localhost:1008/dealer_logo/${img}`;
+      // let companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
+      let companyLogo = `http://localhost:1008/dealer_logo/${img}`;
       //
       await DealerModel.create({
         firstName,
@@ -164,8 +164,8 @@ const registerDealer = async (req, res) => {
       });
     }
 
-    const link = `https://dealer.gautamsolar.com/create-password/${token}`;
-    // const link = `http://localhost:5173/create-password/${token}`;
+    // const link = `https://dealer.gautamsolar.com/create-password/${token}`;
+    const link = `http://localhost:5173/create-password/${token}`;
 
     await dealerTransporter.sendMail({
       from: `Gautam Solar Account Activation ${process.env.DEALER_MAIL}`,
@@ -268,7 +268,6 @@ const createPassword = async (req, res) => {
 };
 
 const updateDealerProfile = async (req, res) => {
-
   try {
     let { id } = req.params;
 
@@ -290,12 +289,15 @@ const updateDealerProfile = async (req, res) => {
     });
 
     if (req.file) {
-      let folder = path.join("Dealer_logo");
+      let folder = path.join("Dealer_Logo");
       let oldImgName = isDealerExist.companyLogo.split("/").pop();
 
-      let oldImgPath = path.join(__dirname, "..", folder, oldImgName);
-      console.log(oldImgPath);
-      // await fsp.unlink(oldImgPath);
+      console.log("Old Image Name: ", oldImgName);
+      let baseUrl = process.env.BASE_URL + "/" + folder + "/" + oldImgName;
+      console.log(baseUrl);
+      // let oldImgPath = path.join(folder, oldImgName);
+      // console.log(oldImgPath);
+      await fsp.unlink(baseUrl);
 
       let newImagePath = path.join(
         "Dealer_Logo",
@@ -303,13 +305,13 @@ const updateDealerProfile = async (req, res) => {
       );
 
       // console.log(newImagePath);
-      const baseUrl=  `${req.protocol}://${req.get("host")}`
-      console.log(baseUrl);
+      // const baseUrl=  `${req.protocol}://${req.get("host")}`
+
       // let companyLogo = `http://localhost:1008/dealer_logo/${
-        let companyLogo = `https://gautamsolar.us/dealer_logo/${
+      let companyLogo = `${process.env.BASE_URL}/Dealer_Logo/${
         req.file.fieldname + "-" + Date.now() + ".webp"
       }`;
-
+      console.log(companyLogo);
       let buf = req.file.buffer;
       await sharp(buf)
         .resize(600, 600, {
@@ -371,8 +373,8 @@ const createPropsal = async (req, res) => {
       tax,
     } = req.body;
     email = email.toLowerCase();
-      
-    tax=Number.parseFloat(tax);
+
+    tax = Number.parseFloat(tax);
 
     let findCustomer = await CustomerModel.findOne({ email });
 
@@ -413,21 +415,21 @@ const createPropsal = async (req, res) => {
       }
     });
 
-    const price = (orderCapacity*1000) * rate;
-    const gstAmt = (price*tax) / 100;
+    const price = orderCapacity * 1000 * rate;
+    const gstAmt = (price * tax) / 100;
     const finalAmt = price + gstAmt;
- 
+
     let createProposal = new ProposalModel({
       dealerId,
       customerId: createCustomer._id,
       rate: Number(rate),
-      orderCapacity: Number(orderCapacity)*1000,
+      orderCapacity: Number(orderCapacity) * 1000,
       termsAndConditions,
       material: finalComponent,
       price,
       gstAmt,
-      finalPrice:finalAmt,
-      tax:tax
+      finalPrice: finalAmt,
+      tax: tax,
     });
 
     await createProposal.save();
@@ -460,9 +462,9 @@ const editProposal = async (req, res) => {
       termsAndConditions,
     } = req.body;
 
-    orderCapacity=Number(orderCapacity);
-    tax=Number.parseFloat(tax)
-    rate=Number(rate)
+    orderCapacity = Number(orderCapacity);
+    tax = Number.parseFloat(tax);
+    rate = Number(rate);
 
     // return res.status(200).json({success:true,msg:"working"});
 
@@ -533,20 +535,18 @@ const editProposal = async (req, res) => {
       }
     });
 
-    const price = orderCapacity*1000 * rate;
-    const gstAmt = (price*tax) / 100;
+    const price = orderCapacity * 1000 * rate;
+    const gstAmt = (price * tax) / 100;
 
+    propUpdates.rate = rate;
+    propUpdates.orderCapacity = orderCapacity * 1000;
+    propUpdates.termsAndConditions = termsAndConditions;
 
-     propUpdates.rate=rate;
-     propUpdates.orderCapacity=orderCapacity*1000;
-     propUpdates.termsAndConditions=termsAndConditions;
+    propUpdates.tax = tax;
+    propUpdates.price = price;
 
-     propUpdates.tax=tax
-     propUpdates.price=price
-
-     propUpdates.gstAmt= (price*tax) / 100;
-     propUpdates.finalPrice=price+gstAmt
-
+    propUpdates.gstAmt = (price * tax) / 100;
+    propUpdates.finalPrice = price + gstAmt;
 
     // if (rate) {
     //   propUpdates.rate = rate;
