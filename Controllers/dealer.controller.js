@@ -295,14 +295,16 @@ const updateDealerProfile = async (req, res) => {
 
       let oldImgPath = path.join(__dirname, "..", folder, oldImgName);
       console.log(oldImgPath);
-      await fsp.unlink(oldImgPath);
+      // await fsp.unlink(oldImgPath);
 
       let newImagePath = path.join(
         "Dealer_Logo",
         req.file.fieldname + "-" + Date.now() + ".webp"
       );
 
-      console.log(newImagePath);
+      // console.log(newImagePath);
+      const baseUrl=  `${req.protocol}://${req.get("host")}`
+      console.log(baseUrl);
       // let companyLogo = `http://localhost:1008/dealer_logo/${
         let companyLogo = `https://gautamsolar.us/dealer_logo/${
         req.file.fieldname + "-" + Date.now() + ".webp"
