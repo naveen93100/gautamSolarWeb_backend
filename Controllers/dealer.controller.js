@@ -298,6 +298,7 @@ const updateDealerProfile = async (req, res) => {
       // let oldImgPath = path.join(folder, oldImgName);
       // console.log(oldImgPath);
       await fsp.unlink(baseUrl);
+      console.log("Unlink successfully");
 
       let newImagePath = path.join(
         "Dealer_Logo",
@@ -323,6 +324,7 @@ const updateDealerProfile = async (req, res) => {
 
       updates.companyLogo = companyLogo;
     }
+    console.log("Image updated ");
 
     let dealer = await DealerModel.findByIdAndUpdate(
       id,
