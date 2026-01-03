@@ -293,12 +293,20 @@ const updateDealerProfile = async (req, res) => {
       let oldImgName = isDealerExist.companyLogo.split("/").pop();
 
       console.log("Old Image Name: ", oldImgName);
-      let baseUrl = process.env.BASE_URL + "/" + folder + "/" + oldImgName;
-      console.log(baseUrl);
-      // let oldImgPath = path.join(folder, oldImgName);
-      // console.log(oldImgPath);
-      await fsp.unlink(baseUrl);
-      console.log("Unlink successfully");
+      //let baseUrl = process.env.BASE_URL + "/" + folder + "/" + oldImgName;
+      //console.log(baseUrl);
+      let oldImgPath = path.join(__dirname, "..","..", folder, oldImgName);
+      console.log(oldImgPath);
+      try {
+        await fsp.unlink(oldImgPath);
+        console.log("Unlink successfully");
+      } catch (err) {
+        if (err.code === "ENOENT") {
+          console.log("Old image not found, skipping delete");
+        } else {
+          throw err;
+        }
+      }
 
       let newImagePath = path.join(
         "Dealer_Logo",
