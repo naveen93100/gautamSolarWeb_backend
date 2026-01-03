@@ -35,8 +35,8 @@ async function drawCompanyInfo({
 
   let imagePath = path.join(
     process.cwd(),
-    // imgUrl.replace("https://gautamsolar.us", "")
-    imgUrl.replace("http://localhost:1008", "")
+    imgUrl.replace("https://gautamsolar.us", "")
+    // imgUrl.replace("http://localhost:1008", "")
   );
 
 
