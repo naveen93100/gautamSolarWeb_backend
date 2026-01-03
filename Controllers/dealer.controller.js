@@ -320,7 +320,9 @@ const updateDealerProfile = async (req, res) => {
       let companyLogo = `https://gautamsolar.us/Dealer_Logo/${
         req.file.fieldname + "-" + Date.now() + ".webp"
       }`;
+
       console.log(companyLogo);
+
       let buf = req.file.buffer;
       await sharp(buf)
         .resize(600, 600, {
@@ -332,6 +334,7 @@ const updateDealerProfile = async (req, res) => {
 
       updates.companyLogo = companyLogo;
     }
+    
     console.log("Image updated ");
 
     let dealer = await DealerModel.findByIdAndUpdate(
