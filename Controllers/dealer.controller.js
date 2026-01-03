@@ -334,7 +334,8 @@ const updateDealerProfile = async (req, res) => {
 
       updates.companyLogo = companyLogo;
     }
-    
+    console.log("new image path ",newImagePath);
+
     console.log("Image updated ");
 
     let dealer = await DealerModel.findByIdAndUpdate(
