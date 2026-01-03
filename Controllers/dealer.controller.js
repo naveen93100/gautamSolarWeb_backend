@@ -289,41 +289,22 @@ const updateDealerProfile = async (req, res) => {
     });
 
     if (req.file) {
-      let folder = path.join("Dealer_Logo");
+      let folder = path.join("Dealer_logo");
       let oldImgName = isDealerExist.companyLogo.split("/").pop();
 
-      console.log("Old Image Name: ", oldImgName);
-      //let baseUrl = process.env.BASE_URL + "/" + folder + "/" + oldImgName;
-      //console.log(baseUrl);
-      let oldImgPath = path.join(__dirname, "..","..", folder, oldImgName);
-      console.log(oldImgPath);
-      try {
-        // await fsp.unlink(oldImgPath);
-        console.log("Unlink successfully");
-      } catch (err) {
-        if (err.code === "ENOENT") {
-          console.log("Old image not found, skipping delete");
-        } else {
-          throw err;
-        }
-      }
+      let oldImgPath = path.join(__dirname, "..", folder, oldImgName);
+      // await fsp.unlink(oldImgPath);
 
       let newImagePath = path.join(
         "Dealer_Logo",
         req.file.fieldname + "-" + Date.now() + ".webp"
       );
 
-      // console.log(newImagePath);
-      // const baseUrl=  `${req.protocol}://${req.get("host")}`
-
       // let companyLogo = `http://localhost:1008/dealer_logo/${
-      let companyLogo = `https://gautamsolar.us/Dealer_Logo/${
+        let companyLogo = `https://gautamsolar.us/dealer_logo/${
         req.file.fieldname + "-" + Date.now() + ".webp"
       }`;
 
-      console.log(companyLogo);
-
-      console.log('new image path' , newImagePath);
       let buf = req.file.buffer;
       await sharp(buf)
         .resize(600, 600, {
@@ -335,9 +316,6 @@ const updateDealerProfile = async (req, res) => {
 
       updates.companyLogo = companyLogo;
     }
-    console.log("new image path ",newImagePath);
-
-    console.log("Image updated ");
 
     let dealer = await DealerModel.findByIdAndUpdate(
       id,
@@ -388,8 +366,8 @@ const createPropsal = async (req, res) => {
       tax,
     } = req.body;
     email = email.toLowerCase();
-
-    tax = Number.parseFloat(tax);
+      
+    tax=Number.parseFloat(tax);
 
     let findCustomer = await CustomerModel.findOne({ email });
 
@@ -430,21 +408,21 @@ const createPropsal = async (req, res) => {
       }
     });
 
-    const price = orderCapacity * 1000 * rate;
-    const gstAmt = (price * tax) / 100;
+    const price = (orderCapacity*1000) * rate;
+    const gstAmt = (price*tax) / 100;
     const finalAmt = price + gstAmt;
-
+ 
     let createProposal = new ProposalModel({
       dealerId,
       customerId: createCustomer._id,
       rate: Number(rate),
-      orderCapacity: Number(orderCapacity) * 1000,
+      orderCapacity: Number(orderCapacity)*1000,
       termsAndConditions,
       material: finalComponent,
       price,
       gstAmt,
-      finalPrice: finalAmt,
-      tax: tax,
+      finalPrice:finalAmt,
+      tax:tax
     });
 
     await createProposal.save();
@@ -477,9 +455,9 @@ const editProposal = async (req, res) => {
       termsAndConditions,
     } = req.body;
 
-    orderCapacity = Number(orderCapacity);
-    tax = Number.parseFloat(tax);
-    rate = Number(rate);
+    orderCapacity=Number(orderCapacity);
+    tax=Number.parseFloat(tax)
+    rate=Number(rate)
 
     // return res.status(200).json({success:true,msg:"working"});
 
@@ -550,18 +528,21 @@ const editProposal = async (req, res) => {
       }
     });
 
-    const price = orderCapacity * 1000 * rate;
-    const gstAmt = (price * tax) / 100;
+    const price = orderCapacity*1000 * rate;
+    const gstAmt = (price*tax) / 100;
 
-    propUpdates.rate = rate;
-    propUpdates.orderCapacity = orderCapacity * 1000;
-    propUpdates.termsAndConditions = termsAndConditions;
 
-    propUpdates.tax = tax;
-    propUpdates.price = price;
+    console.log(rate,price,orderCapacity,gstAmt,tax)
+     propUpdates.rate=rate;
+     propUpdates.orderCapacity=orderCapacity*1000;
+     propUpdates.termsAndConditions=termsAndConditions;
 
-    propUpdates.gstAmt = (price * tax) / 100;
-    propUpdates.finalPrice = price + gstAmt;
+     propUpdates.tax=tax
+     propUpdates.price=price
+
+     propUpdates.gstAmt= (price*tax) / 100;
+     propUpdates.finalPrice=price+gstAmt
+
 
     // if (rate) {
     //   propUpdates.rate = rate;
