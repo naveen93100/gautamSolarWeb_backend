@@ -323,6 +323,7 @@ const updateDealerProfile = async (req, res) => {
 
       console.log(companyLogo);
 
+      console.log('new image path' , newImagePath);
       let buf = req.file.buffer;
       await sharp(buf)
         .resize(600, 600, {
