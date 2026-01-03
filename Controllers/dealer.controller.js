@@ -268,6 +268,7 @@ const createPassword = async (req, res) => {
 };
 
 const updateDealerProfile = async (req, res) => {
+
   try {
     let { id } = req.params;
 
@@ -293,6 +294,7 @@ const updateDealerProfile = async (req, res) => {
       let oldImgName = isDealerExist.companyLogo.split("/").pop();
 
       let oldImgPath = path.join(__dirname, "..", folder, oldImgName);
+      console.log(oldImgPath);
       await fsp.unlink(oldImgPath);
 
       let newImagePath = path.join(
@@ -300,6 +302,7 @@ const updateDealerProfile = async (req, res) => {
         req.file.fieldname + "-" + Date.now() + ".webp"
       );
 
+      console.log(newImagePath);
       // let companyLogo = `http://localhost:1008/dealer_logo/${
         let companyLogo = `https://gautamsolar.us/dealer_logo/${
         req.file.fieldname + "-" + Date.now() + ".webp"
