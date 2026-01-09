@@ -32,7 +32,7 @@ router.get("/get-proposal/:dealerId", verifyToken, getProposal);
 
 router.get("/downloadPropsoal/:propId", generateProposal);
 
-router.patch("/:id", verifyToken, upload.single("image"), updateDealerProfile);
+router.patch("/:id", upload.single("image"), updateDealerProfile);
 
 // router.get("/", (req, res) => {
 //   let imgUrl = "https://gautamsolar.us/dealer_logo/image-1766730840830.webp";

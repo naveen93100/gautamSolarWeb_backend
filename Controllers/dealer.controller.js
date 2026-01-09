@@ -37,13 +37,6 @@ const loginDealer = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Dealer not found" });
 
-    if (findDealer && !findDealer.isActive) {
-      return res.status(403).json({
-        success: false,
-        message: "Your account is not activated yet.",
-      });
-    }
-
     let comparePass = await bcrypt.compare(password, findDealer.password);
 
     if (!comparePass)
@@ -51,9 +44,17 @@ const loginDealer = async (req, res) => {
         .status(401)
         .json({ success: false, message: "Invalid Email or Password" });
 
+    // if (findDealer && !findDealer.isActive) {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: "Your account is not activated yet.",
+    //   });
+    // }
+
     let generatedToken = crypto.randomBytes(20).toString("hex");
     let tokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
+    findDealer.isActive = true;
     findDealer.token = generatedToken;
     findDealer.tokenExpiry = tokenExpiry;
 
@@ -84,11 +85,11 @@ const loginDealer = async (req, res) => {
 
 const registerDealer = async (req, res) => {
   try {
-    let error = validate(req.body);
+    // let error = validate(req.body);
 
-    if (error.length >= 1) {
-      return res.status(400).json({ success: false, message: error[0].er });
-    }
+    // if (error.length >= 1) {
+    // return res.status(400).json({ success: false, message: error[0].er });
+    // }
 
     let {
       firstName,
@@ -101,6 +102,16 @@ const registerDealer = async (req, res) => {
     } = req.body;
 
     contactNumber = Number(contactNumber);
+    let companyLogo = null;
+    let pass = "";
+
+    let createPass = gstin + contactNumber;
+    for (let i = 0; i < 8; i++) {
+      let idx = Math.floor(Math.random() * createPass.length);
+      pass = pass + createPass[idx];
+    }
+
+    let hashPass = await bcrypt.hash(pass, 10);
 
     let conditions = [];
     if (email) conditions.push({ email });
@@ -126,30 +137,31 @@ const registerDealer = async (req, res) => {
     if (isDealerExist && !isDealerExist.isActive) {
       isDealerExist.token = token;
       isDealerExist.tokenExpiry = new Date(Date.now() + 15 * 60000);
+      isDealerExist.password = hashPass;
       await isDealerExist.save();
     }
     //  create fresh dealer
     else {
-      if (!fs.existsSync(folder)) {
-        fs.mkdirSync(folder, { recursive: true });
+      if (req.file) {
+        await fsp.mkdir(folder, { recursive: true });
+
+        let img = req.file.fieldname + "-" + Date.now() + ".webp";
+        let imgPath = path.join(folder, img);
+
+        let buf = req.file.buffer;
+
+        await sharp(buf)
+          .resize(600, 600, {
+            fit: "inside",
+            withoutEnlargement: true,
+          })
+          .webp({ quality: 80 })
+          .toFile(imgPath);
+
+         companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
+        // companyLogo = `http://localhost:1008/dealer_logo/${img}`;
       }
 
-      let img = req.file.fieldname + "-" + Date.now() + ".webp";
-      let imgPath = path.join(folder, img);
-
-      let buf = req.file.buffer;
-
-      await sharp(buf)
-        .resize(600, 600, {
-          fit: "inside",
-          withoutEnlargement: true,
-        })
-        .webp({ quality: 80 })
-        .toFile(imgPath);
-
-      let companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
-      // let companyLogo = `http://localhost:1008/dealer_logo/${img}`;
-      //
       await DealerModel.create({
         firstName,
         lastName,
@@ -158,56 +170,88 @@ const registerDealer = async (req, res) => {
         companyName,
         companyLogo,
         contactNumber,
+        password: hashPass,
         address,
         token,
         tokenExpiry: new Date(Date.now() + 15 * 60000),
       });
+
+      // await fsp.mkdir(folder, { recursive: true });
+
+      // let img = req.file.fieldname + "-" + Date.now() + ".webp";
+      // let imgPath = path.join(folder, img);
+
+      // let buf = req.file.buffer;
+
+      // await sharp(buf)
+      //   .resize(600, 600, {
+      //     fit: "inside",
+      //     withoutEnlargement: true,
+      //   })
+      //   .webp({ quality: 80 })
+      //   .toFile(imgPath);
+
+      // // let companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
+      // let companyLogo = `http://localhost:1008/dealer_logo/${img}`;
+      //
     }
 
-    const link = `https://dealer.gautamsolar.com/create-password/${token}`;
+    // const link = `https://dealer.gautamsolar.com/create-password/${token}`;
     // const link = `http://localhost:5173/create-password/${token}`;
+
+    // send email and password to dealer
 
     await dealerTransporter.sendMail({
       from: `Gautam Solar Account Activation ${process.env.DEALER_MAIL}`,
       to: email,
-      subject: "Create Your Password to Activate Your Account",
+      subject: "Your Dealer Portal Login Credentials",
       html: `
         <!DOCTYPE html>
-      <html lang="en">
+    <html lang="en">
       <body style="margin:0; padding:0; background:#fafafa; font-family:Arial, sans-serif;">
-
         <div style="max-width:480px; margin:40px auto; background:#ffffff; border-radius:8px; padding:28px;">
-
           <h2 style="margin:0 0 10px; color:#111; font-size:20px; text-align:center;">
-            Activate Your Account
+            Dealer Account Created
           </h2>
 
           <p style="margin:0 0 20px; font-size:14px; color:#444; line-height:1.6;">
-            You have been registered on the <strong>Gautam Solar Dealer Portal</strong>.  
-            Please create your password to activate your account.
+            Your account has been successfully created on the
+            <strong>Gautam Solar Dealer Portal</strong>. Please use the
+            credentials below to log in.
           </p>
 
+          <div style="background:#f6f6f6; padding:16px; border-radius:6px; font-size:14px; color:#333;">
+            <p style="margin:0 0 8px;">
+              <strong>Email:</strong> ${email}
+            </p>
+            <p style="margin:0;">
+              <strong>Password:</strong> ${pass}
+            </p>
+          </div>
+
           <div style="text-align:center; margin:25px 0;">
-            <a href="${link}" target="_blank"
+            <a
+              href="https://dealer.gautamsolar.com"
+              target="_blank"
               style="background:#a20000; color:#fff; font-weight:bold; text-decoration:none;
-                    padding:12px 26px; border-radius:6px; font-size:14px; display:inline-block;">
-              Activate Account
+                padding:12px 26px; border-radius:6px; font-size:14px; display:inline-block;"
+            >
+              Login to Dealer Portal
             </a>
           </div>
 
-          <p style="font-size:12px; color:#666; margin-top:20px; line-height:1.5;text-align:center">
-            This link will expire in <strong>15 minutes</strong> for security purposes.
+          <p style="font-size:12px; color:#666; line-height:1.5; text-align:center;">
+            For security reasons, please change your password after logging in.
           </p>
 
           <hr style="border:none; border-top:1px solid #eee; margin:25px 0;" />
+
           <p style="text-align:center; font-size:11px; color:#999; margin:0;">
             © ${new Date().getFullYear()} Gautam Solar. All rights reserved.
           </p>
-
         </div>
-
       </body>
-      </html>
+    </html>;
     `,
     });
 
@@ -240,8 +284,6 @@ const createPassword = async (req, res) => {
       tokenExpiry: { $gte: Date.now() },
     });
 
-    console.log(findDealer);
-
     if (!findDealer)
       return res.status(400).json({
         success: false,
@@ -267,6 +309,84 @@ const createPassword = async (req, res) => {
   }
 };
 
+// const updateDealerProfile = async (req, res) => {
+//   try {
+//     let { id } = req.params;
+
+//     if (!id)
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "Id not Provided" });
+
+//     let updates = {};
+//     let isDealerExist = await DealerModel.findOne({ _id: id });
+
+//     if (!isDealerExist)
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Dealer not found" });
+
+//     Object.keys(req.body).forEach((v) => {
+//       updates[v] = req.body[v];
+//     });
+
+//     if (req.file) {
+//       let folder = path.join("Dealer_logo");
+//       let oldImgName = isDealerExist.companyLogo.split("/").pop();
+
+//       let oldImgPath = path.join(__dirname, "..", folder, oldImgName);
+//       // await fsp.unlink(oldImgPath);
+
+//       let newImagePath = path.join(
+//         "Dealer_Logo",
+//         req.file.fieldname + "-" + Date.now() + ".webp"
+//       );
+
+//       let companyLogo = `http://localhost:1008/dealer_logo/${
+//         // let companyLogo = `https://gautamsolar.us/dealer_logo/${
+//         req.file.fieldname + "-" + Date.now() + ".webp"
+//       }`;
+
+//       let buf = req.file.buffer;
+//       await sharp(buf)
+//         .resize(600, 600, {
+//           fit: "inside",
+//           withoutEnlargement: true,
+//         })
+//         .webp({ quality: 80 })
+//         .toFile(newImagePath);
+
+//       updates.companyLogo = companyLogo;
+//     }
+
+//     let dealer = await DealerModel.findByIdAndUpdate(
+//       id,
+//       { $set: updates },
+//       { new: true }
+//     );
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Profile Updated",
+//       data: {
+//         id: dealer._id,
+//         firstName: dealer.firstName,
+//         lastName: dealer.lastName,
+//         email: dealer.email,
+//         profileImg: dealer.companyLogo,
+//         companyName: dealer.companyName,
+//         address: dealer.address,
+//         gstin: dealer.gstin,
+//         contactNumber: dealer.contactNumber,
+//       },
+//     });
+//   } catch (er) {
+//     return res
+//       .status(500)
+//       .json({ success: false, message: er?.message || "Internal error" });
+//   }
+// };
+
 const updateDealerProfile = async (req, res) => {
   try {
     let { id } = req.params;
@@ -284,25 +404,49 @@ const updateDealerProfile = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Dealer not found" });
 
-    Object.keys(req.body).forEach((v) => {
-      updates[v] = req.body[v];
-    });
+
+        for(const v of Object.keys(req.body)){
+          if(v==='password'){
+            let hashPass=await bcrypt.hash(req.body[v],10);
+            updates[v]=hashPass
+          }
+          else{
+             updates[v]=req.body[v];
+          }
+        }
+
+    // Object.keys(req.body).forEach(async(v) => {
+
+    //   if(v==='password'){
+    //     console.log(req.body[v]);
+    //     let hashPass=await bcrypt.hash(req.body[v],10);
+    //     console.log(v,updates[v],hashPass);
+    //     updates[v]=hashPass
+    //     console.log(hashPass);
+    //   }else{
+    //     updates[v] = req.body[v];
+    //   }
+
+    // });
 
     if (req.file) {
-      let folder = path.join("Dealer_logo");
-      let oldImgName = isDealerExist.companyLogo.split("/").pop();
+      let folder = path.join("Dealer_Logo");
 
-      let oldImgPath = path.join(__dirname, "..", folder, oldImgName);
-      // await fsp.unlink(oldImgPath);
+      if(isDealerExist.companyLogo){
+        let oldImgName = isDealerExist.companyLogo.split("/").pop();
+        let oldImgPath = path.join(__dirname, "..", folder, oldImgName);
+        await fsp.unlink(oldImgPath);
+      }
 
-      let newImagePath = path.join(
-        "Dealer_Logo",
-        req.file.fieldname + "-" + Date.now() + ".webp"
-      );
+
+
+      let imgUrlName = req.file.fieldname + "-" + Date.now() + ".webp";
+
+      let newImagePath = path.join("Dealer_Logo", imgUrlName);
 
       // let companyLogo = `http://localhost:1008/dealer_logo/${
-        let companyLogo = `https://gautamsolar.us/dealer_logo/${
-        req.file.fieldname + "-" + Date.now() + ".webp"
+        let companyLogo = `https://gautamsolar.us/Dealer_Logo/${
+        imgUrlName
       }`;
 
       let buf = req.file.buffer;
@@ -366,8 +510,8 @@ const createPropsal = async (req, res) => {
       tax,
     } = req.body;
     email = email.toLowerCase();
-      
-    tax=Number.parseFloat(tax);
+
+    tax = Number.parseFloat(tax);
 
     let findCustomer = await CustomerModel.findOne({ email });
 
@@ -408,21 +552,21 @@ const createPropsal = async (req, res) => {
       }
     });
 
-    const price = (orderCapacity*1000) * rate;
-    const gstAmt = (price*tax) / 100;
+    const price = orderCapacity * 1000 * rate;
+    const gstAmt = (price * tax) / 100;
     const finalAmt = price + gstAmt;
- 
+
     let createProposal = new ProposalModel({
       dealerId,
       customerId: createCustomer._id,
       rate: Number(rate),
-      orderCapacity: Number(orderCapacity)*1000,
+      orderCapacity: Number(orderCapacity) * 1000,
       termsAndConditions,
       material: finalComponent,
       price,
       gstAmt,
-      finalPrice:finalAmt,
-      tax:tax
+      finalPrice: finalAmt,
+      tax: tax,
     });
 
     await createProposal.save();
@@ -440,8 +584,7 @@ const createPropsal = async (req, res) => {
 
 const editProposal = async (req, res) => {
   try {
-    // let { propId } = req.params;
-
+    
     let {
       propId,
       name,
@@ -455,11 +598,9 @@ const editProposal = async (req, res) => {
       termsAndConditions,
     } = req.body;
 
-    orderCapacity=Number(orderCapacity);
-    tax=Number.parseFloat(tax)
-    rate=Number(rate)
-
-    // return res.status(200).json({success:true,msg:"working"});
+    orderCapacity = Number(orderCapacity);
+    tax = Number.parseFloat(tax);
+    rate = Number(rate);
 
     if (!propId)
       return res.status(400).json({ success: false, message: "Id not found" });
@@ -528,21 +669,18 @@ const editProposal = async (req, res) => {
       }
     });
 
-    const price = orderCapacity*1000 * rate;
-    const gstAmt = (price*tax) / 100;
+    const price = orderCapacity * 1000 * rate;
+    const gstAmt = (price * tax) / 100;
 
+    propUpdates.rate = rate;
+    propUpdates.orderCapacity = orderCapacity * 1000;
+    propUpdates.termsAndConditions = termsAndConditions;
 
-    console.log(rate,price,orderCapacity,gstAmt,tax)
-     propUpdates.rate=rate;
-     propUpdates.orderCapacity=orderCapacity*1000;
-     propUpdates.termsAndConditions=termsAndConditions;
+    propUpdates.tax = tax;
+    propUpdates.price = price;
 
-     propUpdates.tax=tax
-     propUpdates.price=price
-
-     propUpdates.gstAmt= (price*tax) / 100;
-     propUpdates.finalPrice=price+gstAmt
-
+    propUpdates.gstAmt = (price * tax) / 100;
+    propUpdates.finalPrice = price + gstAmt;
 
     // if (rate) {
     //   propUpdates.rate = rate;
