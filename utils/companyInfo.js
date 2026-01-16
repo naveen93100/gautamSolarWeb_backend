@@ -29,7 +29,7 @@ async function drawCompanyInfo({
   // const imagePath = path.join(
   //   // process.cwd(),
   //   imgUrl.replace("https://gautamsolar.us", "")
-  // );
+  // ); 
 
   imgUrl = imgUrl.replace("dealer_logo", "Dealer_Logo");
 
@@ -37,7 +37,7 @@ async function drawCompanyInfo({
     process.cwd(),
     imgUrl.replace("https://gautamsolar.us", "")
     // imgUrl.replace("http://localhost:1008", "")
-  );
+  ); 
 
 
   // read + convert

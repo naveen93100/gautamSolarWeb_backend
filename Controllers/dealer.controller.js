@@ -175,6 +175,7 @@ const registerDealer = async (req, res) => {
         token,
         tokenExpiry: new Date(Date.now() + 15 * 60000),
       });
+      console.log("commit")
 
       // await fsp.mkdir(folder, { recursive: true });
 
