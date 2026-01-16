@@ -47,3 +47,7 @@ const propsalSchema = mongoose.Schema(
 
 const ProposalModel = mongoose.model("Proposal", propsalSchema);
 module.exports = ProposalModel;
+
+
+
+
