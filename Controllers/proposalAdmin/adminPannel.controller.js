@@ -15,7 +15,7 @@ const createPanel = async (req, res) => {
             })
         }
 
-        panelType = panelType?.trim().replace(/\s+/g, "").toUpperCase()
+        panelType = panelType?.trim().toUpperCase()
 
         const existingPannel = await Panel.findOne({ panelType })
         // console.log("existingPannel : ", existingPannel)
@@ -67,8 +67,8 @@ const getPanel = async (req, res) => {
 }
 
 const updatePanel = async (req, res) => {
-    const { _id, panelType, panelActive } = req.query;
-    panelType = panelType?.trim().replace(/\s+/g, "").toUpperCase()
+    let { _id, panelType, panelActive } = req.query;
+    panelType = panelType?.trim().toUpperCase()
 
     //  console.log("_id : ",_id)
 
@@ -86,14 +86,14 @@ const updatePanel = async (req, res) => {
 
         const findPanel = await Panel.findById({ _id: _id });
         // console.log("pannelData ", findPanel)
-        if (!findPanel ) {
+        if (!findPanel) {
             return res.status(400).json({
                 success: false,
                 message: "Enter valid Panel Id , "
             })
         }
 
-        if (!panelType  || panelType.length < 1) {
+        if (!panelType || panelType.length < 1) {
             return res.status(400).json({
                 success: false,
                 message: "Panel Type not be null"
@@ -137,7 +137,7 @@ const createTechnology = async (req, res) => {
     // console.log("PanelId,technologyPanel : ", panelId, technologyPanel)
     try {
 
-        if (!panelId || !technologyPanel ) {
+        if (!panelId || !technologyPanel) {
             return res.status(400).json({
                 success: false,
                 message: "Panel Id and technology of panel not be empty..."
@@ -155,7 +155,7 @@ const createTechnology = async (req, res) => {
         // const panelData = await Panel.findOne({ _id: panelId });
         // console.log("panelData : ", panelData)
 
-        technologyPanel = technologyPanel?.trim().replace(/\s+/g, "").toUpperCase()
+        technologyPanel = technologyPanel?.trim().toUpperCase()
 
         const isExiting = await Technology.findOne({ panelId, technologyPanel });
         // console.log("data", isExiting);
@@ -215,9 +215,9 @@ const getTechnology = async (req, res) => {
 }
 
 const updateTechnology = async (req, res) => {
-    let { _id, panelId, technologyPanel, isActive } = req.body;
+    let { _id, panelId, technologyPanel } = req.body;
     // console.log("_id, technologyPanel, isActive ", _id, technologyPanel, isActive);
-    technologyPanel = technologyPanel?.trim().replace(/\s+/g, "").toUpperCase()
+    technologyPanel = technologyPanel?.trim().toUpperCase()
 
     try {
         if (!_id || !technologyPanel) {
@@ -236,12 +236,12 @@ const updateTechnology = async (req, res) => {
         const exitingData = await Technology.findOne({ _id });
         // console.log("IsExiting data : ", exitingData)
 
-         if(!exitingData){
+        if (!exitingData) {
             return res.status(400).json({
-                success:false,
-                message:"Technology is not found.."
+                success: false,
+                message: "Technology is not found.."
             })
-         }
+        }
 
         if (technologyPanel === exitingData?.technologyPanel) {
             return res.status(409).json({
@@ -252,12 +252,12 @@ const updateTechnology = async (req, res) => {
 
 
         const allData = await Technology.findOne({ panelId, technologyPanel });
-        console.log("allData", allData);
+        // console.log("allData", allData);
 
         // if (!allData) return res.status(409).json({ success: false, message: "Cannot Update Same Name" });
 
         if (!allData) {
-            const updateData = await Technology.findByIdAndUpdate({ _id }, { technologyPanel, isActive }, { new: true })
+            const updateData = await Technology.findByIdAndUpdate({ _id }, { technologyPanel }, { new: true })
 
             return res.status(200).json({
                 success: true,
@@ -277,13 +277,60 @@ const updateTechnology = async (req, res) => {
     }
 }
 
+const activeDisableTech = async (req, res) => {
+    const { id, panelId, isActive } = req.body;
+    // console.log("id,isActive : ", id, isActive)
+    try {
+
+        if (!id || !panelId) {
+            return res.status(400).json({
+                success: false,
+                message: "PanelId & Id is required.. "
+            })
+        }
+        const findPanel = await Panel.findById({ _id: panelId });
+        // console.log("findPanel : ", findPanel)
+        if (!findPanel) {
+            return res.status(400).json({
+                success: false,
+                message: "Panel is not find ,try with correct panel Id.."
+            })
+        }
+        const findTech = await Technology.findById({ _id: id });
+        if (!findTech) {
+            return res.status(400).json({
+                success: false,
+                message: "Technology is not find ,try with correct technology Id.."
+            })
+        }
+
+        const updateData = await Technology.findByIdAndUpdate(id, { $set: { isActive } }, { new: true });
+
+        return res.status(200).json({
+            success: true,
+            message: `${isActive === true ? "Technology is Active" : "Technology is Disable"}`,
+            data: updateData
+        })
+
+    } catch (error) {
+        console.log("error : ", error)
+        return res.status(500).json({
+            success: false,
+            message: "Internal server Error..."
+        })
+
+    }
+
+
+}
+
 const createConstructive = async (req, res) => {
     let { panelId, technologyId, constructiveType } = req.body;
     // console.log("panel id : ", panelId)
 
     // console.log("panelId, technologyId, constructiveType", panelId, technologyId, constructiveType);
     try {
-        if (!panelId || !technologyId  || !constructiveType ) {
+        if (!panelId || !technologyId || !constructiveType) {
             return res.status(400).json({
                 success: false,
                 message: "All fields are required (panelId, technologyId, constructiveType)"
@@ -297,7 +344,7 @@ const createConstructive = async (req, res) => {
                 message: "All fields are reqquired (panelId, technologyId, constructiveType)"
             })
         }
-        constructiveType = constructiveType.trim().replace(/\s+/g, "").toUpperCase();
+        constructiveType = constructiveType.trim().toUpperCase();
         const panelExits = await Panel.findOne({ _id: panelId });
         const technologyExits = await Technology.findOne({ _id: technologyId });
         const isExits = await Constructive.findOne({ constructiveType });
@@ -306,21 +353,21 @@ const createConstructive = async (req, res) => {
         // console.log("panel ",panelExits);
         console.log("Constructive ", isExits);
 
-        if (!panelExits ) {
+        if (!panelExits) {
             return res.status(404).json({
                 success: false,
                 message: "Panel Id is not exits, try with correct panel Id"
             })
         }
 
-        if (!technologyExits ) {
+        if (!technologyExits) {
             return res.status(404).json({
                 success: false,
                 message: "Technology Id is not exits, try with correct technology Id"
             })
         }
 
-        if (isExits ) {
+        if (isExits) {
             return res.status(409).json({
                 success: false,
                 message: "Constructive Type is already exits,Try with different type.."
@@ -382,25 +429,71 @@ const getConstructive = async (req, res) => {
 }
 
 const updateConstructive = async (req, res) => {
-    const { id, panelId, technologyId, constructiveType, isActive } = req.body;
+    let { id, panelId, technologyId, constructiveType } = req.body;
     // console.log(id, panelId, technologyId, constructiveType);
     // console.log(req.body);
+    constructiveType = constructiveType.trim().toUpperCase()
 
     try {
-        if (!id || !panelId  || !technologyId  || !constructiveType ) {
+        if (!id || !panelId || !technologyId || !constructiveType) {
             return res.status(400).json({
                 success: false,
                 message: "All fields are required..."
             })
         }
 
-        
+        const findPanel = await Panel.findById({ _id: panelId });
+
+        if (!findPanel) {
+            return res.status(404).json({
+                success: false,
+                message: "Panel is not find try with correct panel id.."
+            })
+        }
+
+        const findTechnology = await Technology.findById({ _id: technologyId });
+        if (!findTechnology) {
+            return res.status(404).json({
+                success: false,
+                message: "Technology is not find try with correct technology id.."
+            })
+        }
+
+        const findConstructive = await Constructive.findById({ _id: id })
+
+        // console.log("findTechnology: ", findTechnology);
+        // console.log("findConstructive: ", findConstructive);
+        // console.log(constructiveType)
+        if (!findConstructive) {
+            return res.status(404).json({
+                success: false,
+                message: "Constructive is not find try with correct constructive id.."
+            })
+        }
 
 
+        const allData = await Constructive.find({ panelId });
+        // console.log("allData : ", allData);
+        const isExits = allData.some((data) => {
+            // console.log("data",data)
+            // console.log("data?.constructiveType : ",data?.constructiveType)
+            return data?.constructiveType === constructiveType
+        })
+        // console.log("isExits : ", isExits)
 
-        return res.status(false).json({
-            success: false,
-            message: "Update sucessfully"
+        if (isExits) {
+            return res.status(400).json({
+                success: false,
+                message: "This name constructive is already exits , you can not update with same name,Try with different name"
+            })
+        }
+
+        const updateData = await Constructive.findByIdAndUpdate({ _id: id }, { $set: { _id: id, panelId, technologyId, constructiveType } }, { new: true })
+
+        return res.status(200).json({
+            success: true,
+            message: "Update sucessfully",
+            updatedData: updateData
         })
 
     } catch (error) {
@@ -412,6 +505,55 @@ const updateConstructive = async (req, res) => {
     }
 }
 
+const activeDisableConst = async (req, res) => {
+    const { id, panelId, technologyId, isActive } = req.body;
+    try {
+
+        if (!id || !panelId || !technologyId) {
+            return res.status(400).json({
+                success: false,
+                message: "All fields are required(id,panelId,technology).."
+            })
+        }
+        const findPanel = await Panel.findById({ _id: panelId });
+        if (!findPanel) {
+            return res.status(400).json({
+                success: false,
+                message: "Panel is not find ,try with correct panel Id.."
+            })
+        }
+        const findTech = await Technology.findById({ _id: technologyId });
+        if (!findTech) {
+            return res.status(400).json({
+                success: false,
+                message: "Technology is not find ,try with correct technology Id.."
+            })
+        }
+        const findConstrutive = await Constructive.findById({ _id: id });
+        if (!findConstrutive) {
+            return res.status(400).json({
+                success: false,
+                message: "Construtive is not find ,try with correct Construtive Id.."
+            })
+        }
+
+        const data = await Constructive.findByIdAndUpdate(id, { $set: { isActive } }, { new: true });
+        return res.status(200).json({
+            success: true,
+            message: `${isActive ? "Construvtive is Active" : "Constructive is Disable"}`,
+            data: data
+        })
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Internal server Error..."
+        })
+
+    }
+
+
+}
 
 module.exports = {
     createPanel,
@@ -420,7 +562,11 @@ module.exports = {
     createTechnology,
     getTechnology,
     updateTechnology,
+    activeDisableTech,
     createConstructive,
     getConstructive,
-    updateConstructive
+    updateConstructive,
+    activeDisableConst
+
+    
 }

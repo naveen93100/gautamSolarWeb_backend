@@ -9,7 +9,9 @@ const { createPanel,
     updateTechnology,
     createConstructive,
     getConstructive,
-    updateConstructive
+    updateConstructive,
+    activeDisableTech,
+    activeDisableConst
 } = require("../../Controllers/proposalAdmin/adminPannel.controller.js")
 
 
@@ -20,9 +22,11 @@ panelRouter.put("/updatePanel", updatePanel)
 panelRouter.post("/addTechnology", createTechnology)
 panelRouter.get("/getTechnology", getTechnology)
 panelRouter.put("/updateTechnology", updateTechnology)
+panelRouter.put("/changeStatusTech", activeDisableTech)
 
 panelRouter.post("/createConstructive", createConstructive)
 panelRouter.get("/getConstructive", getConstructive)
 panelRouter.put("/updateConstructive", updateConstructive)
+panelRouter.put("/changeStatusConst", activeDisableConst)
 
 module.exports = panelRouter
