@@ -67,9 +67,14 @@ const getPanel = async (req, res) => {
 
 const updatePanel = async (req, res) => {
   try {
-    let { _id, panelType, panelActive } = req.query;
+    let { _id, panelType } = req.query;
 
     panelType = panelType?.trim().toUpperCase();
+
+    if (!mongoose.Types.ObjectId.isValid(_id))
+      return res
+        .status(400)
+        .json({ success: false, message: "You did something with Id" });
 
     if (!_id) {
       return res.status(400).json({
@@ -85,24 +90,45 @@ const updatePanel = async (req, res) => {
     }
 
     const findPanel = await Panel.findById({ _id: _id });
+    // console.log("findPanel : ", findPanel)
 
     if (!findPanel) {
       return res.status(400).json({
         success: false,
-        message: "Panel not found",
+        message: "Panel not found ",
       });
     }
 
-    if (findPanel?.panelActive.toString() === panelActive?.toString()) {
-      return res.status(400).json({
+    if (findPanel?.panelType === panelType) {
+      return res.status(409).json({
         success: false,
-        message: `${panelActive === true ? "Panel is Already Active" : "Panel is already disable"} `,
-      });
+        message: "This name panel is already exits you can not update the panel with same name , Try with different name "
+      })
     }
+
+    const panelData = await Panel.find();
+    // console.log("panelData : ",panelData)
+
+    // panelData?.some(item => console.log(item));
+    const data = panelData?.some(item => item?.panelType === panelType);
+    // console.log("data : ", data)
+    if (data) {
+      return res.status(409).json({
+        success: false,
+        message: "This  panel name is already exist , Try with New Name.."
+      })
+    }
+
+    // if (findPanel?.panelActive.toString() === panelActive?.toString()) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: `${panelActive !== true ? "Panel is Already Active" : "Panel is already disable"} `,
+    //   });
+    // }
 
     const updateData = await Panel.findByIdAndUpdate(
       _id,
-      { ...req?.query },
+      { _id, panelType },
       { new: true },
     );
 
@@ -112,9 +138,73 @@ const updatePanel = async (req, res) => {
       data: updateData,
     });
   } catch (error) {
+    // console.log(error)
     res.status(500).json({
       success: false,
       message: "Internal Server Error.." || error?.message,
+    });
+  }
+};
+
+const togglePanel = async (req, res) => {
+  // console.log("id,isActive : ", id, isActive)
+  try {
+    const { id, panelActive } = req.body;
+
+    // checking panelActive is string or not
+    if (typeof panelActive === "string")
+      return res.status(400).json({
+        success: false,
+        message: "panelActive should be boolean but getting string",
+      });
+
+    //   checking if id's coming as string or something else
+
+    if (typeof id !== "string")
+      return res.status(400).json({
+        success: false,
+        message: "Panel Id should be string",
+      });
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Panel Id  is required.. ",
+      });
+    }
+
+    // checking if id's are valid or not
+    if (!mongoose.Types.ObjectId.isValid(id))
+      return res
+        .status(400)
+        .json({ success: false, message: "Technology id is not valid" });
+
+
+    const findPanel = await Panel.findById(id);
+
+    if (!findPanel) {
+      return res.status(400).json({
+        success: false,
+        message: "Panel is not find ,try with correct panel Id..",
+      });
+    }
+
+    const updateData = await Panel.findByIdAndUpdate(
+      id,
+      { $set: { panelActive } },
+      { new: true },
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: `${panelActive === true ? "Panel is Active" : "Panel is Disable"}`,
+      data: updateData,
+    });
+  } catch (error) {
+    console.log("error : ", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server Error...",
     });
   }
 };
@@ -591,6 +681,7 @@ module.exports = {
   createPanel,
   getPanel,
   updatePanel,
+  togglePanel,
   createTechnology,
   getTechnology,
   updateTechnology,

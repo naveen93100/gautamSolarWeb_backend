@@ -11,7 +11,8 @@ const { createPanel,
     getConstructive,
     updateConstructive,
     activeDisableTech,
-    activeDisableConst
+    activeDisableConst,
+    togglePanel
 } = require("../../Controllers/proposalAdmin/adminPannel.controller.js")
 
 
@@ -19,6 +20,7 @@ const { createPanel,
 panelRouter.post("/addPanel", createPanel)
 panelRouter.get("/getPanel", getPanel)
 panelRouter.put("/updatePanel", updatePanel)
+panelRouter.put("/togglePanel", togglePanel)
 
 // technology routes
 panelRouter.post("/addTechnology", createTechnology)
