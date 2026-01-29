@@ -12,7 +12,10 @@ const { createPanel,
     updateConstructive,
     activeDisableTech,
     activeDisableConst,
-    togglePanel
+    togglePanel,
+    createAdmin,
+    getAdmin,
+    loginAdmin
 } = require("../../Controllers/proposalAdmin/adminPannel.controller.js")
 
 
@@ -33,5 +36,10 @@ panelRouter.post("/createConstructive", createConstructive)
 panelRouter.get("/getConstructive", getConstructive)
 panelRouter.put("/updateConstructive", updateConstructive)
 panelRouter.put("/changeStatusConst", activeDisableConst)
+
+// admin
+panelRouter.post("/createAdmin", createAdmin)
+panelRouter.get("/getAdmin", getAdmin)
+panelRouter.post("/loginAdmin", loginAdmin)
 
 module.exports = panelRouter

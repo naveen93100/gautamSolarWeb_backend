@@ -1,7 +1,9 @@
 const Panel = require("../../Models/AdminModel/pannelTypeSchema");
 const Technology = require("../../Models/AdminModel/panneTechnologySchema");
 const Constructive = require("../../Models/AdminModel/constructiveSchema");
-const { default: mongoose } = require("mongoose");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { Admin } = require("../../Models/AdminModel/AdminSchema");
 
 const createPanel = async (req, res) => {
   try {
@@ -677,6 +679,155 @@ const activeDisableConst = async (req, res) => {
   }
 };
 
+const createAdmin = async (req, res) => {
+  let { email, password, role } = req.body;
+  email = email?.toLowerCase().trim();
+  // console.log("email ", email)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  try {
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and Password are required.."
+      })
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be 6 digits"
+      })
+    }
+
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invaild email format.."
+      })
+    }
+
+    const admin = await Admin.findOne({ email });
+    if (admin) {
+      return res.status(409).json({
+        success: false,
+        message: "Admin already exists"
+      });
+    }
+
+    const hashPass = await bcrypt.hash(password, 10);
+    // console.log("hashPass : ", hashPass)
+
+    const token = jwt.sign({
+      email,
+      role: role || "admin",
+    },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    )
+
+    // console.log("token : ", token)
+
+    const adminData = await Admin.create({
+      email,
+      password: hashPass,
+      role,
+      token
+    })
+
+    return res.status(201).json({
+      success: true,
+      message: "Admin created successfully...",
+      admin: adminData
+    })
+
+  } catch (error) {
+    // console.log("Error : ", error);
+    return res.status(500).json({
+      success: false,
+      message: error?.message || "Internal Server Error.."
+    })
+  }
+}
+
+const getAdmin = async (req, res) => {
+  try {
+    const allData = await Admin.find();
+    return res.status(200).json({
+      success: true,
+      data: allData
+    })
+
+  } catch (error) {
+    // console.log("Error : ", error);
+    return res.status(500).json({
+      success: false,
+      message: error?.message || "Internal server error.."
+    })
+
+
+  }
+
+}
+
+const loginAdmin = async (req, res) => {
+  let { email, password } = req.body;
+  email = email?.toLowerCase().trim();
+  // console.log("Email ", email);
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  try {
+
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required.."
+      })
+    }
+
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invaild email format.."
+      })
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be 6 digit.."
+      })
+    }
+
+    const admin = await Admin.findOne({ email });
+    if (!admin) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password"
+      });
+    }
+
+      
+
+
+
+
+    return res.status(200).json({
+      success: true,
+      message: "Admin Login successfully.."
+    })
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error..."
+    })
+
+  }
+
+}
+
+
+
+
 module.exports = {
   createPanel,
   getPanel,
@@ -690,4 +841,7 @@ module.exports = {
   getConstructive,
   updateConstructive,
   activeDisableConst,
+  createAdmin,
+  getAdmin,
+  loginAdmin
 };
