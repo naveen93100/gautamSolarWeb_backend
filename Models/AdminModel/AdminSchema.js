@@ -14,9 +14,6 @@ const adminSchema = new mongoose.Schema({
         minlength: 6
 
     },
-    token: {
-        type: String,
-    },
     role: {
         type: String,
         enum: ["super_admin", "admin"],

@@ -4,6 +4,7 @@ const Constructive = require("../../Models/AdminModel/constructiveSchema");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { Admin } = require("../../Models/AdminModel/AdminSchema");
+const { default: mongoose } = require("mongoose");
 
 const createPanel = async (req, res) => {
   try {
@@ -300,7 +301,7 @@ const getTechnology = async (req, res) => {
       data: data,
     });
   } catch (error) {
-    console.log(error?.message);
+    console.log("error", error?.message);
     return res.status(500).json({
       success: false,
       message: "Internal server error...",
@@ -717,21 +718,10 @@ const createAdmin = async (req, res) => {
     const hashPass = await bcrypt.hash(password, 10);
     // console.log("hashPass : ", hashPass)
 
-    const token = jwt.sign({
-      email,
-      role: role || "admin",
-    },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    )
-
-    // console.log("token : ", token)
-
     const adminData = await Admin.create({
       email,
       password: hashPass,
-      role,
-      token
+      role
     })
 
     return res.status(201).json({
@@ -775,7 +765,6 @@ const loginAdmin = async (req, res) => {
   // console.log("Email ", email);
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   try {
-
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -804,12 +793,41 @@ const loginAdmin = async (req, res) => {
         message: "Invalid email or password"
       });
     }
+    // console.log("Admin : ", admin); 
 
-      
+    const match = await bcrypt.compare(password, admin.password);
+    if (!match) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password"
+      });
+    }
 
+    const token = jwt.sign({
+      adminId: admin._id,
+      email: admin.email,
+      role: "admin"
+    },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    )
+    // console.log("Match ", match)
+    if (match) {
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000
+      });
 
+      res.cookie("role", admin?.role, {
+        httpOnly: false, // frontend can read it
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000
+      });
 
-
+    }
     return res.status(200).json({
       success: true,
       message: "Admin Login successfully.."
@@ -823,6 +841,28 @@ const loginAdmin = async (req, res) => {
 
   }
 
+}
+
+const logoutAdmin = async (req, res) => {
+  try {
+    res.clearCookie("admin_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax"
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Logout successful"
+    });
+
+
+  } catch (err) {
+    return (res.status(500).json({
+      success: false,
+      message: err.message || "Internal server Error..."
+    }))
+  }
 }
 
 
@@ -843,5 +883,6 @@ module.exports = {
   activeDisableConst,
   createAdmin,
   getAdmin,
-  loginAdmin
+  loginAdmin,
+  logoutAdmin
 };

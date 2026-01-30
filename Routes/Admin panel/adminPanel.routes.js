@@ -15,8 +15,10 @@ const { createPanel,
     togglePanel,
     createAdmin,
     getAdmin,
-    loginAdmin
-} = require("../../Controllers/proposalAdmin/adminPannel.controller.js")
+    loginAdmin,
+    logoutAdmin
+} = require("../../Controllers/proposalAdmin/adminPannel.controller.js");
+const  adminAuth  = require("../../Middleware/adminAuth.js");
 
 
 // panel routes
@@ -40,6 +42,7 @@ panelRouter.put("/changeStatusConst", activeDisableConst)
 // admin
 panelRouter.post("/createAdmin", createAdmin)
 panelRouter.get("/getAdmin", getAdmin)
-panelRouter.post("/loginAdmin", loginAdmin)
+panelRouter.post("/loginAdmin",adminAuth, loginAdmin)
+panelRouter.get("/logoutAdmin", adminAuth,logoutAdmin)
 
 module.exports = panelRouter
