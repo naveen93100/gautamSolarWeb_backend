@@ -10,7 +10,10 @@ const url = require("url");
 const cookieParser = require("cookie-parser");
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}));
 require("dotenv").config();
 app.use(bodyParser.json());
 app.use(cookieParser());
@@ -60,7 +63,7 @@ app.use(express.urlencoded({ limit: "100mb", extended: true }));
 
 app.use("/dealer_logo", express.static(path.join(__dirname, "Dealer_Logo")));
 
-app.use('/proposal_images',express.static(path.join(__dirname,'Proposal_Images')));
+app.use('/proposal_images', express.static(path.join(__dirname, 'Proposal_Images')));
 
 app.use("/media_image", express.static(path.join(__dirname, "Media")));
 
@@ -397,7 +400,7 @@ app.use("/media", MediaRouter);
 
 app.use("/galo_admin", GaloRouter);
 
-app.use("/adminPanel",panelRouter)
+app.use("/adminPanel", panelRouter)
 
 
 

@@ -18,31 +18,31 @@ const { createPanel,
     loginAdmin,
     logoutAdmin
 } = require("../../Controllers/proposalAdmin/adminPannel.controller.js");
-const  adminAuth  = require("../../Middleware/adminAuth.js");
+const adminAuth = require("../../Middleware/adminAuth.js");
 
 
 // panel routes
-panelRouter.post("/addPanel", createPanel)
-panelRouter.get("/getPanel", getPanel)
-panelRouter.put("/updatePanel", updatePanel)
-panelRouter.put("/togglePanel", togglePanel)
+panelRouter.post("/addPanel", adminAuth, createPanel)
+panelRouter.get("/getPanel", adminAuth, getPanel)
+panelRouter.put("/updatePanel", adminAuth, updatePanel)
+panelRouter.put("/togglePanel", adminAuth, togglePanel)
 
 // technology routes
-panelRouter.post("/addTechnology", createTechnology)
-panelRouter.get("/getTechnology", getTechnology)
-panelRouter.put("/updateTechnology", updateTechnology)
-panelRouter.put("/changeStatusTech", activeDisableTech)
+panelRouter.post("/addTechnology", adminAuth, createTechnology)
+panelRouter.get("/getTechnology", adminAuth, getTechnology)
+panelRouter.put("/updateTechnology", adminAuth, updateTechnology)
+panelRouter.put("/changeStatusTech", adminAuth, activeDisableTech)
 
 // constructive routes
 panelRouter.post("/createConstructive", createConstructive)
-panelRouter.get("/getConstructive", getConstructive)
-panelRouter.put("/updateConstructive", updateConstructive)
-panelRouter.put("/changeStatusConst", activeDisableConst)
+panelRouter.get("/getConstructive", adminAuth, getConstructive)
+panelRouter.put("/updateConstructive", adminAuth, updateConstructive)
+panelRouter.put("/changeStatusConst", adminAuth, activeDisableConst)
 
 // admin
 panelRouter.post("/createAdmin", createAdmin)
 panelRouter.get("/getAdmin", getAdmin)
-panelRouter.post("/loginAdmin",adminAuth, loginAdmin)
-panelRouter.get("/logoutAdmin", adminAuth,logoutAdmin)
+panelRouter.post("/loginAdmin", loginAdmin)
+panelRouter.get("/logoutAdmin", adminAuth, logoutAdmin)
 
 module.exports = panelRouter

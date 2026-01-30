@@ -4,6 +4,8 @@ const { Admin } = require("../Models/AdminModel/AdminSchema");
 const adminAuth = async (req, res, next) => {
     try {
         const token = req.cookies.token;
+         console.log("token ",token);
+         console.log("req : ",req.cookies)
         if (!token) {
             return res.status(404).json({
                 success: false,
