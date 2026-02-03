@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { Admin } = require("../../Models/AdminModel/AdminSchema");
 const { default: mongoose } = require("mongoose");
+const DealerModel = require("../../Models/dealer.schema");
 
 const createPanel = async (req, res) => {
   try {
@@ -845,10 +846,16 @@ const loginAdmin = async (req, res) => {
 
 const logoutAdmin = async (req, res) => {
   try {
-    res.clearCookie("admin_token", {
+    console.log(req?.cookies)
+    res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax"
+      sameSite: "lax",
+
+    });
+
+    res.clearCookie("role", {
+      path: "/",
     });
 
     return res.status(200).json({
@@ -863,6 +870,33 @@ const logoutAdmin = async (req, res) => {
       message: err.message || "Internal server Error..."
     }))
   }
+}
+
+const adminDashBoardData = async (req, res) => {
+  try {
+
+    const totalPannel = await Panel.find().select("panelType panelActive")
+    const totalDealer = await DealerModel.find().select(" firstName email companyName contactNumber ")
+
+    // console.log("totalPannel ", totalPannel)
+    // console.log("totalDelaer ", totalDealer)
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        pannelData: totalPannel,
+        dealerData: totalDealer
+      }
+    })
+
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Internal server Error.."
+    })
+  }
+
 }
 
 
@@ -884,5 +918,6 @@ module.exports = {
   createAdmin,
   getAdmin,
   loginAdmin,
-  logoutAdmin
+  logoutAdmin,
+  adminDashBoardData
 };
