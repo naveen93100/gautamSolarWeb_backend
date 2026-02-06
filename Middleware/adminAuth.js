@@ -4,8 +4,8 @@ const { Admin } = require("../Models/AdminModel/AdminSchema");
 const adminAuth = async (req, res, next) => {
     try {
         const token = req.cookies.token;
-         console.log("token ",token);
-         console.log("req : ",req.cookies)
+        //  console.log("token ",token);
+        //  console.log("req : ",req.cookies)
         if (!token) {
             return res.status(404).json({
                 success: false,
@@ -13,13 +13,13 @@ const adminAuth = async (req, res, next) => {
             })
         }
         const decode = jwt.verify(token, process.env.JWT_SECRET);
-        console.log("decode : ",decode);
+        // console.log("decode : ",decode);
         const admin = await Admin.find({ _id: decode?.adminId });
         //  console.log("Admin : ",admin)
         if (!admin) {
             return res.status(401).json({ message: "Unauthorized" });
         }
-            req.admin=admin
+        req.admin = admin
         next()
     } catch (error) {
         return res.status(401).json(error.message || { message: "Unauthorized" });

@@ -478,7 +478,8 @@ const createConstructive = async (req, res) => {
 
     // console.log("technology",technologyExits);
     // console.log("panel ",panelExits);
-    console.log("Constructive ", isExits);
+    // console.log("Constructive ", isExits);
+    
 
     if (!panelExits) {
       return res.status(404).json({
@@ -846,7 +847,7 @@ const loginAdmin = async (req, res) => {
 
 const logoutAdmin = async (req, res) => {
   try {
-    console.log(req?.cookies)
+    // console.log(req?.cookies)
     res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
