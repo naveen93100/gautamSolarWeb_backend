@@ -6,7 +6,7 @@ const panelWatt = new mongoose.Schema({
         required: true,
         ref: "Panel"
     },
-    technologId: {
+    technologyId: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref: "Technology"
@@ -16,18 +16,18 @@ const panelWatt = new mongoose.Schema({
         required: true,
         ref: "Constructive"
     },
-    panelWatt: [
-        {
-            watt: {
-                type: Number,
-                required: true,
-            },
-            isActive:{
-                type : Boolean,
-                default:true
-            }
-        }
-    ]
+    watt: {
+        type: Number,
+        required: true,
+    },
+    isActive: {
+        type: Boolean,
+        default: true
+    },
+    imgWatt: {
+        type: [String], 
+        required: true
+    }
 }, { timestamps: true })
 
 const PanelWatt = mongoose.model("PanelWatt", panelWatt);

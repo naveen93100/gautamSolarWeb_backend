@@ -17,9 +17,11 @@ const { createPanel,
     getAdmin,
     loginAdmin,
     logoutAdmin,
-    adminDashBoardData
+    adminDashBoardData,
+    panelWatt
 } = require("../../Controllers/proposalAdmin/adminPannel.controller.js");
 const adminAuth = require("../../Middleware/adminAuth.js");
+const uploadImgPath = require("../../Middleware/panalImgWattMulter.js");
 
 
 // panel routes
@@ -39,6 +41,11 @@ panelRouter.post("/createConstructive", adminAuth, createConstructive)
 panelRouter.get("/getConstructive", adminAuth, getConstructive)
 panelRouter.put("/updateConstructive", adminAuth, updateConstructive)
 panelRouter.put("/changeStatusConst", adminAuth, activeDisableConst)
+
+
+// panel Watt
+
+panelRouter.post("/createPanelWatt", uploadImgPath.array("imgWatt", 2), panelWatt)
 
 // admin
 panelRouter.post("/createAdmin", createAdmin)

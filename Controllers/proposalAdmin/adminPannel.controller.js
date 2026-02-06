@@ -6,6 +6,7 @@ const jwt = require("jsonwebtoken");
 const { Admin } = require("../../Models/AdminModel/AdminSchema");
 const { default: mongoose } = require("mongoose");
 const DealerModel = require("../../Models/dealer.schema");
+const PanelWatt = require("../../Models/AdminModel/panelWattSchema");
 
 const createPanel = async (req, res) => {
   try {
@@ -479,7 +480,7 @@ const createConstructive = async (req, res) => {
     // console.log("technology",technologyExits);
     // console.log("panel ",panelExits);
     // console.log("Constructive ", isExits);
-    
+
 
     if (!panelExits) {
       return res.status(404).json({
@@ -681,6 +682,96 @@ const activeDisableConst = async (req, res) => {
     });
   }
 };
+
+const panelWatt = async (req, res) => {
+  const { panelId, technologyId, constructiveId, watt } = req.body;
+
+
+  console.log("panelId, technologyId, constructiveId, panelWatt : ", panelId, technologyId, constructiveId, watt)
+  try {
+
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ message: "Images required" });
+    }
+    // console.log("files : ", req.files)
+    const imgWatt = req.files.map(f => f.filename);
+
+    //  console.log("imgWatt : ",imgWatt);
+
+    if (!panelId || !technologyId || !constructiveId) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required(panelId,technologId,constructiveId)"
+      })
+    }
+
+    console.log(typeof watt);
+    if (!watt || typeof Number.parseInt(watt) !== "number") {
+      return res.status(400).json({
+        success: false,
+        message: "Panel watt is required And it must be number, and uploading a panel watt image is mandatory."
+      })
+    }
+
+
+    if (typeof panelId !== "string" || typeof technologyId !== "string" || typeof constructiveId !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Invaild format of panelId,technologId,constructiveId."
+      })
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(panelId) || !mongoose.Types.ObjectId.isValid(technologyId) || !mongoose.Types.ObjectId.isValid(constructiveId)) {
+      return res.status(400).json({
+        success: false,
+        message: "You did something with Id"
+      })
+    }
+
+
+    const panelExits = await Panel.findById(panelId);
+    const technologExit = await Technology.findById(technologyId);
+    const constructiveExit = await Constructive.findById(constructiveId);
+
+    if (!panelExits || !technologExit || !constructiveExit) {
+      return res.status(404).json({
+        success: false,
+        message: "Oops! We couldn’t find the panel you’re trying to create watts for."
+      })
+    }
+
+    // checking data is already exits or not
+    const isExits = await PanelWatt.findOne({ watt });
+    if (isExits) {
+      return res.status(409).json({
+        success: false,
+        message: "This watt of panel is already exits.."
+      })
+    }
+
+
+
+    const data = await PanelWatt.create({
+      panelId, technologyId, constructiveId, watt: Number.parseInt(watt), imgWatt
+    })
+
+    console.log("panel watt data : ", data)
+
+
+    return res.status(201).json({
+      success: true,
+      message: "Panel Watt Create Successfully.."
+    })
+
+  } catch (error) {
+    console.log("error", error)
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Internal server error..."
+    })
+  }
+
+}
 
 const createAdmin = async (req, res) => {
   let { email, password, role } = req.body;
@@ -920,5 +1011,6 @@ module.exports = {
   getAdmin,
   loginAdmin,
   logoutAdmin,
-  adminDashBoardData
+  adminDashBoardData,
+  panelWatt
 };
