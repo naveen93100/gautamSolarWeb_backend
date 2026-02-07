@@ -18,7 +18,9 @@ const { createPanel,
     loginAdmin,
     logoutAdmin,
     adminDashBoardData,
-    panelWatt
+    panelWatt,
+    getPanelWatt,
+    togglePanelWatt
 } = require("../../Controllers/proposalAdmin/adminPannel.controller.js");
 const adminAuth = require("../../Middleware/adminAuth.js");
 const uploadImgPath = require("../../Middleware/panalImgWattMulter.js");
@@ -45,7 +47,9 @@ panelRouter.put("/changeStatusConst", adminAuth, activeDisableConst)
 
 // panel Watt
 
-panelRouter.post("/createPanelWatt", uploadImgPath.array("imgWatt", 2), panelWatt)
+panelRouter.post("/createPanelWatt", adminAuth,uploadImgPath.array("imgWatt", 2), panelWatt)
+panelRouter.get("/getPanelWatt",adminAuth,getPanelWatt)
+panelRouter.put("/togglePanelWatt",adminAuth,togglePanelWatt)
 
 // admin
 panelRouter.post("/createAdmin", createAdmin)

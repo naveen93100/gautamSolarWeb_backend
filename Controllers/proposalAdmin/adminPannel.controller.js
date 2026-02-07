@@ -685,9 +685,7 @@ const activeDisableConst = async (req, res) => {
 
 const panelWatt = async (req, res) => {
   const { panelId, technologyId, constructiveId, watt } = req.body;
-
-
-  console.log("panelId, technologyId, constructiveId, panelWatt : ", panelId, technologyId, constructiveId, watt)
+  // console.log("panelId, technologyId, constructiveId, panelWatt : ", panelId, technologyId, constructiveId, watt)
   try {
 
     if (!req.files || req.files.length === 0) {
@@ -705,7 +703,7 @@ const panelWatt = async (req, res) => {
       })
     }
 
-    console.log(typeof watt);
+    // console.log(typeof watt);
     if (!watt || typeof Number.parseInt(watt) !== "number") {
       return res.status(400).json({
         success: false,
@@ -755,7 +753,7 @@ const panelWatt = async (req, res) => {
       panelId, technologyId, constructiveId, watt: Number.parseInt(watt), imgWatt
     })
 
-    console.log("panel watt data : ", data)
+    // console.log("panel watt data : ", data)
 
 
     return res.status(201).json({
@@ -772,6 +770,95 @@ const panelWatt = async (req, res) => {
   }
 
 }
+
+const getPanelWatt = async (req, res) => {
+  const { constructiveId } = req.query;
+  // console.log("constructiveId : ", constructiveId)
+  try {
+    if (!constructiveId || !mongoose.Types.ObjectId.isValid(constructiveId) || typeof constructiveId !== "string") {
+      return res.status(404).json({
+        success: false,
+        message: "Constructive Id must be required..|| Invaild Constructive Id"
+      })
+    }
+    const getData = await PanelWatt.find({ constructiveId })
+
+    return res.status(200).json({
+      success: true,
+      data: getData
+    })
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error.."
+    })
+
+  }
+}
+const togglePanelWatt = async (req, res) => {
+  const { constructiveId, _id, isActive } = req.query;
+  console.log("isActive", typeof isActive);
+
+  try {
+
+    if (!constructiveId || !_id) {
+      return res.status(404).json({
+        success: false,
+        message: "Constructive Id and panel Watt _id is required.."
+      })
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(_id) || !mongoose.Types.ObjectId.isValid(constructiveId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid constructive Id and panel watt _id.."
+      })
+    }
+
+    const panelWattExits = await PanelWatt.findOne({ _id });
+
+    const constructiveExits = await PanelWatt.findOne({ constructiveId });
+    // console.log("PanelWatt exits : ", panelWattExits);
+
+    if (!constructiveExits) {
+      return res.status(404).json({
+        success: false,
+        message: "Constructive ID not found. Please provide a valid Constructive ID and try again."
+      })
+    }
+
+    if (!panelWattExits) {
+      return res.status(404).json({
+        success: false,
+        message: "Panel watt not found. Please provide a valid panel watt ID and try again."
+      })
+    }
+
+    // console.log(typeof panelWattExits?.isActive)
+
+    if (panelWattExits?.isActive.toString() === isActive) {
+      return res.status(409).json({
+        success: false,
+        message: `Your panel watt is already ${isActive === "true" ? "Active" : "InActive"}`
+      })
+    }
+
+    const tooglePanel = await PanelWatt.findByIdAndUpdate({ _id }, { $set: { isActive } }, { new: true })
+    return res.status(200).json({
+      success: true,
+      message: `Panel watt ${isActive == "true" ? "activated" : "deactivated"} successfully.`,
+    })
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Internal server Error..."
+    })
+  }
+
+}
+
 
 const createAdmin = async (req, res) => {
   let { email, password, role } = req.body;
@@ -994,6 +1081,8 @@ const adminDashBoardData = async (req, res) => {
 
 
 
+
+
 module.exports = {
   createPanel,
   getPanel,
@@ -1012,5 +1101,7 @@ module.exports = {
   loginAdmin,
   logoutAdmin,
   adminDashBoardData,
-  panelWatt
+  panelWatt,
+  getPanelWatt,
+  togglePanelWatt
 };
