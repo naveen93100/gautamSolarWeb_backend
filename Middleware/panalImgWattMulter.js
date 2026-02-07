@@ -33,7 +33,7 @@ const uploadImgPath = multer({
     fileFilter,
     limits: {
         files: 2,
-        fileSize: 2 * 1024 * 1024
+        fileSize: 4 * 1024 * 1024
     }
 })
 
