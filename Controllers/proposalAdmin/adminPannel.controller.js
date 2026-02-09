@@ -55,7 +55,9 @@ const createPanel = async (req, res) => {
 
 const getPanel = async (req, res) => {
   try {
-    const panelData = await Panel.find();
+    const { isActive } = req.query;
+    const panelData = await Panel.find({ isActive });
+    console.log("panelData : ", panelData)
 
     return res.status(200).json({
       success: true,
