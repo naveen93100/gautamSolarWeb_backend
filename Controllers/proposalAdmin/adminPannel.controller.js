@@ -56,8 +56,12 @@ const createPanel = async (req, res) => {
 const getPanel = async (req, res) => {
   try {
     const { isActive } = req.query;
-    const panelData = await Panel.find({ isActive });
-    console.log("panelData : ", panelData)
+    if (!isActive) {
+      var panelData = await Panel.find();
+    } else {
+      var panelData = await Panel.find({ panelActive: isActive });
+    }
+    // console.log("panelData : ", panelData)
 
     return res.status(200).json({
       success: true,
@@ -278,7 +282,7 @@ const createTechnology = async (req, res) => {
 
 const getTechnology = async (req, res) => {
   try {
-    let { panelId } = req?.query;
+    let { panelId, isActive } = req?.query;
 
     if (!panelId.trim())
       return res
@@ -298,7 +302,12 @@ const getTechnology = async (req, res) => {
         message: "Panel Id is not found try with another panel Id..",
       });
     }
-    const data = await Technology.find({ panelId });
+
+    if (!isActive) {
+      var data = await Technology.find({ panelId });
+    } else {
+      var data = await Technology.find({ panelId, isActive });
+    }
     return res.status(200).json({
       success: true,
       message: "Data fetch successfully..",
@@ -528,7 +537,7 @@ const createConstructive = async (req, res) => {
 };
 
 const getConstructive = async (req, res) => {
-  const { technologyId } = req.query;
+  const { technologyId, isActive } = req.query;
   // console.log("technologyId : ", technologyId);
 
   try {
@@ -541,7 +550,11 @@ const getConstructive = async (req, res) => {
         message: "Technology is not find try with correct technology Id",
       });
     }
-    const data = await Constructive.find({ technologyId });
+    if (!isActive) {
+      var data = await Constructive.find({ technologyId });
+    } else {
+      var data = await Constructive.find({ technologyId, isActive });
+    }
     return res.status(200).json({
       success: true,
       message: "Data fetch Successfully..",
@@ -774,7 +787,7 @@ const panelWatt = async (req, res) => {
 }
 
 const getPanelWatt = async (req, res) => {
-  const { constructiveId } = req.query;
+  const { constructiveId, isActive } = req.query;
   // console.log("constructiveId : ", constructiveId)
   try {
     if (!constructiveId || !mongoose.Types.ObjectId.isValid(constructiveId) || typeof constructiveId !== "string") {
@@ -783,7 +796,11 @@ const getPanelWatt = async (req, res) => {
         message: "Constructive Id must be required..|| Invaild Constructive Id"
       })
     }
-    const getData = await PanelWatt.find({ constructiveId })
+    if (!isActive) {
+      var getData = await PanelWatt.find({ constructiveId })
+    } else {
+      var getData = await PanelWatt.find({ constructiveId, isActive })
+    }
 
     return res.status(200).json({
       success: true,
