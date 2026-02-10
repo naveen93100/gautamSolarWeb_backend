@@ -13,7 +13,7 @@ const propsalSchema = mongoose.Schema(
     rate: {
       type: Number,
     },
-    tax:Number,
+    tax:Number, 
     orderCapacity: Number,
     price: Number,
     finalPrice: Number,

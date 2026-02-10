@@ -20,6 +20,7 @@ const { getFonts } = require("../cache/fontCache.js");
 const { templatePdfBytes } = require("../cache/templateChache.js");
 const dealerTransporter = require("../utils/mailer.js");
 const MaterialModel = require("../Models/material.schema.js");
+const PanelModel = require("../Models/panelSchema.js");
 
 const loginDealer = async (req, res) => {
   try {
@@ -60,22 +61,23 @@ const loginDealer = async (req, res) => {
 
     await findDealer.save();
 
-    return res.status(200).json({
-      success: true,
-      message: "Login Successfull",
-      token: generatedToken,
-      data: {
-        id: findDealer._id,
-        firstName: findDealer.firstName,
-        lastName: findDealer.lastName,
-        email: findDealer.email,
-        profileImg: findDealer.companyLogo,
-        companyName: findDealer.companyName,
-        address: findDealer.address,
-        gstin: findDealer.gstin,
-        contactNumber: findDealer.contactNumber,
-      },
-    });
+    return res.status(200)
+      .json({
+        success: true,
+        message: "Login Successfull",
+        token: generatedToken,
+        data: {
+          id: findDealer._id,
+          firstName: findDealer.firstName,
+          lastName: findDealer.lastName,
+          email: findDealer.email,
+          profileImg: findDealer.companyLogo,
+          companyName: findDealer.companyName,
+          address: findDealer.address,
+          gstin: findDealer.gstin,
+          contactNumber: findDealer.contactNumber,
+        },
+      });
   } catch (er) {
     return res
       .status(500)
@@ -158,7 +160,7 @@ const registerDealer = async (req, res) => {
           .webp({ quality: 80 })
           .toFile(imgPath);
 
-         companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
+        companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
         // companyLogo = `http://localhost:1008/dealer_logo/${img}`;
       }
 
@@ -406,15 +408,15 @@ const updateDealerProfile = async (req, res) => {
         .json({ success: false, message: "Dealer not found" });
 
 
-        for(const v of Object.keys(req.body)){
-          if(v==='password'){
-            let hashPass=await bcrypt.hash(req.body[v],10);
-            updates[v]=hashPass
-          }
-          else{
-             updates[v]=req.body[v];
-          }
-        }
+    for (const v of Object.keys(req.body)) {
+      if (v === 'password') {
+        let hashPass = await bcrypt.hash(req.body[v], 10);
+        updates[v] = hashPass
+      }
+      else {
+        updates[v] = req.body[v];
+      }
+    }
 
     // Object.keys(req.body).forEach(async(v) => {
 
@@ -433,7 +435,7 @@ const updateDealerProfile = async (req, res) => {
     if (req.file) {
       let folder = path.join("Dealer_Logo");
 
-      if(isDealerExist.companyLogo){
+      if (isDealerExist.companyLogo) {
         let oldImgName = isDealerExist.companyLogo.split("/").pop();
         let oldImgPath = path.join(__dirname, "..", folder, oldImgName);
         await fsp.unlink(oldImgPath);
@@ -446,9 +448,8 @@ const updateDealerProfile = async (req, res) => {
       let newImagePath = path.join("Dealer_Logo", imgUrlName);
 
       // let companyLogo = `http://localhost:1008/dealer_logo/${
-        let companyLogo = `https://gautamsolar.us/Dealer_Logo/${
-        imgUrlName
-      }`;
+      let companyLogo = `https://gautamsolar.us/Dealer_Logo/${imgUrlName
+        }`;
 
       let buf = req.file.buffer;
       await sharp(buf)
@@ -585,7 +586,7 @@ const createPropsal = async (req, res) => {
 
 const editProposal = async (req, res) => {
   try {
-    
+
     let {
       propId,
       name,
@@ -817,8 +818,7 @@ const generateProposal = async (req, res) => {
       [
         "1.",
         // `${Proposal?.customerId?.address} (order capacity-${apiData?.customer?.capacity})`,
-        `Supply,Installation and Commissioning of ${
-          apiData?.customer?.capacity?.split("watts")[0] / 1000
+        `Supply,Installation and Commissioning of ${apiData?.customer?.capacity?.split("watts")[0] / 1000
         } kw Solar Power Plant at (${Proposal?.customerId?.address})`,
         `${(Proposal?.rate).toString()} Rs/watts`,
         `${(Proposal?.price).toString()} Rs`,
@@ -1008,6 +1008,140 @@ const generateProposal = async (req, res) => {
   }
 };
 
+const generatePanelPropsal = async (req, res) => {
+
+  let { dealerId,
+    customerName,
+    email,
+    phone,
+    address,
+    tax,
+    termsAndConditions,
+    selectedPanel
+  } = req.body;
+
+  // console.log(dealerId, customerName, email, phone, rate,
+  //   address, tax, termsAndConditions, selectedPanel
+  // )
+  try {
+
+    if (!dealerId || !customerName || !email || !phone || !address || !tax || !termsAndConditions || !selectedPanel) {
+      return res.status(404).json({
+        success: false,
+        message: "All fields are required..(delarId,customerName,emal,phone,rate,address,tax,term & condition and Panel..)"
+      })
+    }
+    email = email.toLowerCase().trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    tax = Number.parseFloat(tax);
+
+    if (!mongoose.Types.ObjectId.isValid(dealerId)) {
+      return res.status(400).json({ message: "Invalid dealerId" });
+    }
+
+    for (const panel of selectedPanel) {
+      if (!mongoose.Types.ObjectId.isValid(panel.panelId ||
+        !mongoose.Types.ObjectId.isValid(panel.technologyId) ||
+        !mongoose.Types.ObjectId.isValid(panel.constructiveId) ||
+        !mongoose.Types.ObjectId.isValid(panel.wattId)
+      )) {
+        return res.status(400).json({
+          message: "Invalid ObjectId in selectedPanel"
+        });
+      }
+    }
+
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invaild email format.."
+      })
+    }
+
+    if (typeof (phone) !== "number" || typeof (tax) !== "number") {
+      return res.status(400).json({
+        success: false,
+        message: "Tax,rate and phone number must be Type Number..."
+      })
+    }
+
+
+    const wattIds = selectedPanel.map(p => p.wattId);
+    const uniqueWattIds = new Set(wattIds);
+    if (wattIds.length !== uniqueWattIds.size) {
+      return res.status(400).json({
+        message: "Duplicate wattId found in selectedPanel"
+      });
+    }
+
+
+    const empExits = await CustomerModel.findOne({ email });
+    if (empExits) {
+      return res.status(409).json({
+        success: false,
+        message: "Client is already exits ,try with another employee, if you want to create for same employee then search that emplopyee and create panel Propsoal.."
+      })
+    }
+
+    let createCustomer = await CustomerModel.create({
+      dealerId,
+      name: customerName,
+      email,
+      phone,
+      address,
+    });
+
+    const clientId = createCustomer?._id;
+    // console.log("client Id : ", clientId);
+    // console.log("create Customer: ", createCustomer);
+
+    const panelPropsalExits = await PanelModel.findOne({ clientId });
+    if (panelPropsalExits) {
+      return res.status(400).json({
+        success: false,
+        message: "This Employee is already created panel Propsal..."
+      })
+    }
+
+    // calculate final price
+    // store panel propsal data in PanelModel
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    return res.json({
+      message: "Hii"
+    })
+
+  } catch (error) {
+    // console.log("error : ",error);
+
+    return res.status(500).json({
+      success: false,
+      message: error?.message || "Internal Server Error.."
+    })
+  }
+
+}
+
+
+
 module.exports = {
   loginDealer,
   registerDealer,
@@ -1017,4 +1151,5 @@ module.exports = {
   getProposal,
   generateProposal,
   editProposal,
+  generatePanelPropsal
 };
