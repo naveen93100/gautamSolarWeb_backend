@@ -9,7 +9,7 @@ const panelSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Customer"
     },
-    tax: Number,
+    gst: Number,
     termsAndConditions: String,
 
     selectedPanels: [
