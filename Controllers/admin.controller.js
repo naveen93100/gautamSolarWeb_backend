@@ -211,16 +211,39 @@ const getNews = async (req, res) => {
       },
     ]);
 
-    if (total.length>0&&total[0]["totalPages"] < Number(Page)) {
-     return res.status(404).send({ msg: `there is no ${Page} Page` });
-    } else {
-      let data = await News.aggregate([
-        { $sort: { CreatedOn: -1 } },
-        { $skip: (Number(Page) - 1) * Number(NoOfNews) },
-        { $limit: Number(NoOfNews) },
-      ]);
-     return res.send({ data});
+    if(!NoOfNews || ! Page || isNaN(Number.parseInt(NoOfNews)) || isNaN(Number.parseInt(Page))){
+      throw new Error("Please Provide page and noOfNews as integers")
     }
+
+    const correctSize = Number.parseInt(NoOfNews);
+    const correctPage = Number.parseInt(Page);
+
+    const totalNewsCount = await News.countDocument();
+
+    const totalPages = Math.ceil(totalNewsCount/correctSize) ||1;
+    const safePage = Math.min(Math.max(correctSize,1),1);
+
+    const data = await News.find().$skip((correctPage-1)*correctSize).$limit(correctSize);
+
+    if(!data){
+      return res.status(500).json(
+        {
+          message:"Error while fetching from DB"
+        })
+    }
+
+    return res.status(200).send(data);
+
+    // if (total.length>0&&total[0]["totalPages"] < Number(Page)) {
+    //  return res.status(404).send({ msg: `there is no ${Page} Page` });
+    // } else {
+    //   let data = await News.aggregate([
+    //     { $sort: { CreatedOn: -1 } },
+    //     { $skip: (Number(Page) - 1) * Number(NoOfNews) },
+    //     { $limit: Number(NoOfNews) },
+    //   ]);
+    //  return res.send({ data});
+    // }
   } catch (error) {
     
     res
