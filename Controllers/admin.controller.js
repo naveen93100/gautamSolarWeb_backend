@@ -1,4 +1,3 @@
-
 const { News } = require("../Models/News.Schema");
 const { User } = require("../Models/admin.schema");
 const { v4: uuidv4 } = require("uuid");
@@ -23,7 +22,7 @@ const generateSitemap = async () => {
 
     // Generate the sitemap XML and save it to a file
     const xmlData = await streamToPromise(
-      Readable.from(sitemapLinks).pipe(stream)
+      Readable.from(sitemapLinks).pipe(stream),
     );
     fs.writeFileSync(Path.join(__dirname, "sitemap.xml"), xmlData);
     console.log("Sitemap generated and saved");
@@ -44,7 +43,6 @@ const createSlug = (header) => {
 
 /** ################################################################### */
 const create = async (req, res) => {
-
   try {
     const UUID = req.body.UUID || uuidv4(); // Use provided UUID or generate a new one
     const { Header, Description, Body, tags } = req.body;
@@ -101,11 +99,15 @@ const create = async (req, res) => {
       if (fileBuffer) {
         fs.writeFileSync(filePath1, fileBuffer);
       }
-    }  
+    }
 
-    const videofilePath = videoFileName ? `https://gautamsolar.us/admin/blogVideo/${videoFileName}` : null;
-    
-    const imagefilePath = imageFileName ? `https://gautamsolar.us/admin/blogImage/${imageFileName}` : null;
+    const videofilePath = videoFileName
+      ? `https://gautamsolar.us/admin/blogVideo/${videoFileName}`
+      : null;
+
+    const imagefilePath = imageFileName
+      ? `https://gautamsolar.us/admin/blogImage/${imageFileName}`
+      : null;
 
     /** Prepare data for insertion or update */
     const data = {
@@ -204,15 +206,20 @@ const getNews = async (req, res) => {
     //   { $group: { _id: null, total: { $sum: 1 } } },
     //   {
     //     $project: {
-    //       _id: 0, 
+    //       _id: 0,
     //       total: 1,
     //       totalPages: { $ceil: { $divide: ["$total", Number(NoOfNews)] } },
     //     },
     //   },
     // ]);
 
-    if(!NoOfNews || ! Page || isNaN(Number.parseInt(NoOfNews)) || isNaN(Number.parseInt(Page))){
-      throw new Error("Please Provide page and noOfNews as integers")
+    if (
+      !NoOfNews ||
+      !Page ||
+      isNaN(Number.parseInt(NoOfNews)) ||
+      isNaN(Number.parseInt(Page))
+    ) {
+      throw new Error("Please Provide page and noOfNews as integers");
     }
 
     const correctSize = Number.parseInt(NoOfNews);
@@ -220,22 +227,24 @@ const getNews = async (req, res) => {
 
     const totalNewsCount = await News.countDocuments();
 
-    const totalPages = Math.ceil(totalNewsCount/correctSize) ||1;
-    const safePage = Math.min(Math.max(correctSize,1),1);
+    const totalPages = Math.ceil(totalNewsCount / correctSize) || 1;
+    const safePage = Math.min(Math.max(correctSize, 1), 1);
 
-    const data = await News.find().skip((correctPage-1)*correctSize).limit(correctSize);
+    const data = await News.find()
+      .sort({ createdAt: -1 })
+      .skip((correctPage - 1) * correctSize)
+      .limit(correctSize);
 
-    if(!data){
-      return res.status(500).json(
-        {
-          message:"Error while fetching from DB"
-        })
+    if (!data) {
+      return res.status(500).json({
+        message: "Error while fetching from DB",
+      });
     }
 
     return res.status(200).json({
-      success:true,
-      message:"News Fetched Successfuly",
-      data
+      success: true,
+      message: "News Fetched Successfuly",
+      data,
     });
 
     // if (total.length>0&&total[0]["totalPages"] < Number(Page)) {
@@ -249,14 +258,11 @@ const getNews = async (req, res) => {
     //  return res.send({ data});
     // }
   } catch (error) {
-    
-    res
-      .status(500)
-      .json({
-          success:false,
-          message: "Error fetching news items from the database",
-          error:error.message
-        });
+    res.status(500).json({
+      success: false,
+      message: "Error fetching news items from the database",
+      error: error.message,
+    });
   }
 };
 
@@ -274,8 +280,8 @@ const deleteNews = async (req, res) => {
     let videoDir = find.VideoUrl?.split("/blogVideo/")[1];
 
     const filePath = [
-      imageDir&&`Blog_Images/${imageDir}`,
-      videoDir&&`Blog_Video/${videoDir}`,
+      imageDir && `Blog_Images/${imageDir}`,
+      videoDir && `Blog_Video/${videoDir}`,
     ].filter(Boolean);
 
     Promise.all(filePath.map((file) => unlinkAsync(file)))
