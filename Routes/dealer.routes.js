@@ -6,7 +6,9 @@ const {
   createPropsal,
   getProposal,
   generateProposal,
-  editProposal
+  editProposal,
+  generatePanelPropsal,
+  updatePanelPropsal
 } = require("../Controllers/dealer.controller.js");
 const path = require("path");
 
@@ -26,7 +28,7 @@ router.post("/create-password/:token", createPassword);
 
 router.post("/create-propsal", verifyToken, createPropsal);
 
-router.patch('/edit-proposal',upload.none(),verifyToken,editProposal);
+router.patch('/edit-proposal', upload.none(), verifyToken, editProposal);
 
 router.get("/get-proposal/:dealerId", verifyToken, getProposal);
 
@@ -34,16 +36,9 @@ router.get("/downloadPropsoal/:propId", generateProposal);
 
 router.patch("/:id", upload.single("image"), updateDealerProfile);
 
-// router.get("/", (req, res) => {
-//   let imgUrl = "https://gautamsolar.us/dealer_logo/image-1766730840830.webp";
-//   imgUrl=imgUrl.replace('dealer_logo','Dealer_Logo');
+router.post("/createPanelPropsal", generatePanelPropsal)
+router.put("/updatePanelProposal", updatePanelPropsal)
 
-//   let img = path.join(
-//     process.cwd(),
-//     imgUrl.replace("https://gautamsolar.us", "")
-//   );
- 
-//   return res.send("asdf");
-// });
+
 
 module.exports = router;
