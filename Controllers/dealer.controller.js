@@ -177,7 +177,7 @@ const registerDealer = async (req, res) => {
         token,
         tokenExpiry: new Date(Date.now() + 15 * 60000),
       });
-      console.log("commit")
+      // console.log("commit")
 
       // await fsp.mkdir(folder, { recursive: true });
 
@@ -515,22 +515,34 @@ const createPropsal = async (req, res) => {
 
     tax = Number.parseFloat(tax);
 
-    let findCustomer = await CustomerModel.findOne({ email });
+    let createCustomer = await CustomerModel.findOne({ email });
 
-    if (findCustomer)
-      return res
-        .status(409)
-        .json({ success: false, message: "Email already Exist" });
+    // if (createCustomer)
+    //   return res
+    //     .status(409)
+    //     .json({ success: false, message: "Email already Exist" });
 
     //first create customer
 
-    let createCustomer = await CustomerModel.create({
-      dealerId,
-      name: customerName,
-      email,
-      phone,
-      address,
-    });
+    // let createCustomer = await CustomerModel.create({
+    //   dealerId,
+    //   name: customerName,
+    //   email,
+    //   phone,
+    //   address,
+    // });
+
+    if (!createCustomer) {
+      createCustomer = await CustomerModel.create({
+        dealerId,
+        name: customerName,
+        email,
+        phone,
+        address
+      });
+    }
+
+
 
     //  create propsal
 
@@ -1182,7 +1194,7 @@ const generatePanelPropsal = async (req, res) => {
     let createCustomer = await CustomerModel.findOne({ email });
 
     if (!createCustomer) {
-      customer = await CustomerModel.create({
+      createCustomer = await CustomerModel.create({
         dealerId,
         name: customerName,
         email,
@@ -1192,10 +1204,11 @@ const generatePanelPropsal = async (req, res) => {
     }
 
     const clientId = createCustomer?._id;
-    console.log("client Id : ", clientId);
+    // console.log("client Id : ", clientId);
     // console.log("create Customer: ", createCustomer);
 
     const panelPropsalExits = await PanelModel.findOne({ customerId: clientId });
+    // console.log("panelPropsalExits : ", panelPropsalExits)
     if (panelPropsalExits) {
       return res.status(400).json({
         success: false,
@@ -1219,7 +1232,6 @@ const generatePanelPropsal = async (req, res) => {
       termsAndConditions,
       selectedPanels: selectedPanel,
       finalPrice
-
     })
     // console.log("createPanelPropsal : ", createPanelPropsal)
 
