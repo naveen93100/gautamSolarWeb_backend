@@ -231,7 +231,7 @@ const getNews = async (req, res) => {
     const safePage = Math.min(Math.max(correctSize, 1), 1);
 
     const data = await News.find()
-      .sort({ createdAt: -1 })
+      .sort({ CreatedOn: -1 })
       .skip((correctPage - 1) * correctSize)
       .limit(correctSize);
 
