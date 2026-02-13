@@ -1,4 +1,7 @@
+require("dotenv").config();
+
 const express = require("express");
+const rateLimiter = require("express-rate-limit");
 const { connect } = require("./db.config");
 const { UserRouter } = require("./Routes/admin.routes");
 const MediaRouter = require("./Routes/media.routes.js");
@@ -8,13 +11,23 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const url = require("url");
 const cookieParser = require("cookie-parser");
+
+
+const limiter = rateLimiter.rateLimit({
+    windowMs: 2000, // 1 second
+    limit: 10, // Limit each IP to 10 requests per second
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    ipv6Subnet: 56,
+});
+
 const app = express();
 app.use(express.json());
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: true,
   credentials: true
 }));
-require("dotenv").config();
+app.use(limiter);
 app.use(bodyParser.json());
 app.use(cookieParser());
 

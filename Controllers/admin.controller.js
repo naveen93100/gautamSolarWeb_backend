@@ -200,32 +200,63 @@ const getNews = async (req, res) => {
 
   try {
     // here News is a collection
-    let total = await News.aggregate([
-      { $group: { _id: null, total: { $sum: 1 } } },
-      {
-        $project: {
-          _id: 0, 
-          total: 1,
-          totalPages: { $ceil: { $divide: ["$total", Number(NoOfNews)] } },
-        },
-      },
-    ]);
+    // let total = await News.aggregate([
+    //   { $group: { _id: null, total: { $sum: 1 } } },
+    //   {
+    //     $project: {
+    //       _id: 0, 
+    //       total: 1,
+    //       totalPages: { $ceil: { $divide: ["$total", Number(NoOfNews)] } },
+    //     },
+    //   },
+    // ]);
 
-    if (total.length>0&&total[0]["totalPages"] < Number(Page)) {
-     return res.status(404).send({ msg: `there is no ${Page} Page` });
-    } else {
-      let data = await News.aggregate([
-        { $sort: { CreatedOn: -1 } },
-        { $skip: (Number(Page) - 1) * Number(NoOfNews) },
-        { $limit: Number(NoOfNews) },
-      ]);
-     return res.send({ data});
+    if(!NoOfNews || ! Page || isNaN(Number.parseInt(NoOfNews)) || isNaN(Number.parseInt(Page))){
+      throw new Error("Please Provide page and noOfNews as integers")
     }
+
+    const correctSize = Number.parseInt(NoOfNews);
+    const correctPage = Number.parseInt(Page);
+
+    const totalNewsCount = await News.countDocuments();
+
+    const totalPages = Math.ceil(totalNewsCount/correctSize) ||1;
+    const safePage = Math.min(Math.max(correctSize,1),1);
+
+    const data = await News.find().skip((correctPage-1)*correctSize).limit(correctSize);
+
+    if(!data){
+      return res.status(500).json(
+        {
+          message:"Error while fetching from DB"
+        })
+    }
+
+    return res.status(200).json({
+      success:true,
+      message:"News Fetched Successfuly",
+      data
+    });
+
+    // if (total.length>0&&total[0]["totalPages"] < Number(Page)) {
+    //  return res.status(404).send({ msg: `there is no ${Page} Page` });
+    // } else {
+    //   let data = await News.aggregate([
+    //     { $sort: { CreatedOn: -1 } },
+    //     { $skip: (Number(Page) - 1) * Number(NoOfNews) },
+    //     { $limit: Number(NoOfNews) },
+    //   ]);
+    //  return res.send({ data});
+    // }
   } catch (error) {
     
     res
       .status(500)
-      .send({ message: "Error fetching news items from the database" });
+      .json({
+          success:false,
+          message: "Error fetching news items from the database",
+          error:error.message
+        });
   }
 };
 
