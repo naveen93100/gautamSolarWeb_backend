@@ -325,6 +325,7 @@ const getTechnology = async (req, res) => {
 const updateTechnology = async (req, res) => {
   try {
     let { _id, panelId, technologyPanel } = req.body;
+    console.log(" technology data  : ", req.body)
 
     if (typeof _id !== "string" || typeof technologyPanel !== "string") {
       return res.status(400).json({
@@ -486,7 +487,7 @@ const createConstructive = async (req, res) => {
     constructiveType = constructiveType.trim().toUpperCase();
     const panelExits = await Panel.findOne({ _id: panelId });
     const technologyExits = await Technology.findOne({ _id: technologyId });
-    const isExits = await Constructive.findOne({ constructiveType });
+    const isExits = await Constructive.findOne({ technologyId, constructiveType });
 
     // console.log("technology",technologyExits);
     // console.log("panel ",panelExits);
@@ -754,7 +755,7 @@ const panelWatt = async (req, res) => {
     }
 
     // checking data is already exits or not
-    const isExits = await PanelWatt.findOne({ watt });
+    const isExits = await PanelWatt.findOne({ constructiveId, watt });
     if (isExits) {
       return res.status(409).json({
         success: false,
