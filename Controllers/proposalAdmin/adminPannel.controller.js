@@ -708,7 +708,24 @@ const panelWatt = async (req, res) => {
       return res.status(400).json({ message: "Images required" });
     }
     // console.log("files : ", req.files)
-    const imgWatt = req.files.map(f => f.filename);
+    // const imgWatt = req.files.map(f => f.filename);
+    const files = req.files;
+    const orders = req.body.imgOrder;
+
+    // console.log("files :  ", files)
+    // console.log("orders : ", orders)
+
+    const orderedImages = files
+      .map((file, i) => ({
+        name: file.filename,
+        order: Array.isArray(orders)
+          ? Number(orders[i])
+          : Number(orders)
+      }))
+      .sort((a, b) => b.order - a.order)
+      .map(i => i.name);
+
+    const imgWatt = orderedImages;
 
     //  console.log("imgWatt : ",imgWatt);
 
@@ -766,8 +783,12 @@ const panelWatt = async (req, res) => {
 
 
     const data = await PanelWatt.create({
-      panelId, technologyId, constructiveId, watt: Number.parseInt(watt), imgWatt
-    })
+      panelId,
+      technologyId,
+      constructiveId,
+      watt: Number.parseInt(watt),
+      imgWatt
+    });
 
     // console.log("panel watt data : ", data)
 
@@ -878,6 +899,10 @@ const togglePanelWatt = async (req, res) => {
   }
 
 }
+
+// const handleEditPanelWatt = async (req, res) => {
+//   const { id, watt } = req.body;
+// }
 
 
 const createAdmin = async (req, res) => {
@@ -1097,10 +1122,6 @@ const adminDashBoardData = async (req, res) => {
   }
 
 }
-
-
-
-
 
 
 module.exports = {
