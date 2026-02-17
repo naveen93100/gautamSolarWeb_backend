@@ -951,8 +951,6 @@ const updatePanelWatt = async (req, res) => {
       // DELETE OLD FILES
       isExisting?.imgWatt?.forEach(img => {
         const filePath = path.join(__dirname, "../../Proposal_Images/watt", img);
-
-
         if (fs.existsSync(filePath)) {
           fs.unlinkSync(filePath);
         }
@@ -983,10 +981,6 @@ const updatePanelWatt = async (req, res) => {
       message: "Panel watt updated successfully"
     });
 
-
-
-
-
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -994,7 +988,6 @@ const updatePanelWatt = async (req, res) => {
     })
   }
 }
-
 
 const createAdmin = async (req, res) => {
   let { email, password, role } = req.body;
@@ -1132,14 +1125,14 @@ const loginAdmin = async (req, res) => {
       res.cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        sameSite: "none",
         maxAge: 7 * 24 * 60 * 60 * 1000
       });
 
       res.cookie("role", admin?.role, {
-        httpOnly: false, // frontend can read it
+        httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        sameSite: "none",
         maxAge: 7 * 24 * 60 * 60 * 1000
       });
 
@@ -1165,7 +1158,7 @@ const logoutAdmin = async (req, res) => {
     res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: "none",
 
     });
 

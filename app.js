@@ -30,6 +30,7 @@ app.use(cors({
 app.use(limiter);
 app.use(bodyParser.json());
 app.use(cookieParser());
+app.set("trust proxy",1)
 
 function extractWebsiteName(domain) {
   const domainParts = domain.split(".");
