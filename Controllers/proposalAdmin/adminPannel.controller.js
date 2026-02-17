@@ -7,6 +7,8 @@ const { Admin } = require("../../Models/AdminModel/AdminSchema");
 const { default: mongoose } = require("mongoose");
 const DealerModel = require("../../Models/dealer.schema");
 const PanelWatt = require("../../Models/AdminModel/panelWattSchema");
+const path = require("path")
+const fs=require("fs")
 
 const createPanel = async (req, res) => {
   try {
@@ -900,9 +902,98 @@ const togglePanelWatt = async (req, res) => {
 
 }
 
-// const handleEditPanelWatt = async (req, res) => {
-//   const { id, watt } = req.body;
-// }
+const updatePanelWatt = async (req, res) => {
+  let { id, watt, constructiveId } = req.body;
+  watt = Number(watt)
+  // console.log("req.body ", constructiveId)
+  try {
+    if (!id || !watt) {
+      return res.status(404).json({
+        success: false,
+        message: "Panel watt must be Required.."
+      })
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(id) || typeof id !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Panel watt Id must be required..|| Invaild Panel Watt Id"
+      })
+    }
+
+    const isExisting = await PanelWatt.findById(id);
+    // console.log("IsExiting :", isExisting)
+    if (!isExisting) {
+      return res.status(400).json({
+        success: false,
+        message: "The panel you’re trying to update was not found. Please reload the page and try again."
+      })
+    }
+
+    const duplicate = await PanelWatt.findOne({
+      constructiveId,
+      watt,
+      _id: { $ne: id }
+    });
+
+    if (duplicate) {
+      return res.status(409).json({
+        success: false,
+        message: "This watt already exists for this Panel Watt"
+      });
+    }
+
+    let imgWatt;
+
+    // ONLY if new images uploaded
+    if (req.files?.length) {
+
+      // DELETE OLD FILES
+      isExisting?.imgWatt?.forEach(img => {
+        const filePath = path.join(__dirname, "../../Proposal_Images/watt", img);
+
+
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      });
+
+      // ORDER NEW FILES
+      const orders = req.body.imgOrder;
+
+      imgWatt = req.files
+        .map((file, i) => ({
+          name: file.filename,
+          order: Array.isArray(orders)
+            ? Number(orders[i])
+            : Number(orders)
+        }))
+        .sort((a, b) => b.order - a.order)
+        .map(i => i.name);
+    }
+    const update = {
+      watt
+    };
+    if (imgWatt) update.imgWatt = imgWatt;
+
+    await PanelWatt.findByIdAndUpdate(id, update);
+
+    return res.json({
+      success: true,
+      message: "Panel watt updated successfully"
+    });
+
+
+
+
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error?.message || "Internal server error.."
+    })
+  }
+}
 
 
 const createAdmin = async (req, res) => {
@@ -1144,5 +1235,6 @@ module.exports = {
   adminDashBoardData,
   panelWatt,
   getPanelWatt,
-  togglePanelWatt
+  togglePanelWatt,
+  updatePanelWatt
 };
