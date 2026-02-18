@@ -8,7 +8,7 @@ const { default: mongoose } = require("mongoose");
 const DealerModel = require("../../Models/dealer.schema");
 const PanelWatt = require("../../Models/AdminModel/panelWattSchema");
 const path = require("path")
-const fs=require("fs")
+const fs = require("fs")
 
 const createPanel = async (req, res) => {
   try {
@@ -226,6 +226,8 @@ const createTechnology = async (req, res) => {
   try {
     let { panelId, technologyPanel } = req.body;
 
+    console.log("req.body : ", req.body)
+
     if (typeof technologyPanel !== "string" || typeof panelId !== "string")
       return res
         .status(400)
@@ -255,7 +257,11 @@ const createTechnology = async (req, res) => {
         message: "Panel is not found.Try with correct panel Id",
       });
     }
-    const isExisting = await Technology.findOne({ panelId, technologyPanel });
+    // const isExisting = await Technology.findOne({ panelId, technologyPanel });
+    const isExisting = await Technology.findOne({
+      panelId: new mongoose.Types.ObjectId(panelId),
+      technologyPanel,
+    });
 
     if (isExisting?.technologyPanel === technologyPanel) {
       return res.status(400).json({
@@ -368,6 +374,7 @@ const updateTechnology = async (req, res) => {
     }
 
     const allData = await Technology.findOne({ panelId, technologyPanel });
+    console.log("allData : ", allData)
 
     if (!allData) {
       const updateData = await Technology.findByIdAndUpdate(
@@ -383,6 +390,7 @@ const updateTechnology = async (req, res) => {
       });
     }
   } catch (error) {
+    console.log("error : ", error)
     return res.status(500).json({
       success: false,
       message: "Internal server error..." || error?.message,
@@ -1125,14 +1133,14 @@ const loginAdmin = async (req, res) => {
       res.cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "none",
+        sameSite: "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000
       });
 
       res.cookie("role", admin?.role, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "none",
+        sameSite: "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000
       });
 
