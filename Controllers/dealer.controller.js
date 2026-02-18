@@ -820,7 +820,7 @@ const getProposal = async (req, res) => {
       // ================= PROPOSALS =================
       {
         $lookup: {
-          from: "proposals",
+          from: "proposals", 
           let: { customerId: "$_id" },
           pipeline: [
             {

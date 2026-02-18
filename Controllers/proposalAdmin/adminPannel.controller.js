@@ -265,7 +265,7 @@ const createTechnology = async (req, res) => {
     }
 
     await Technology.create({
-      panelId: panelId,
+      panelId: panelId,  
       technologyPanel,
     });
 
