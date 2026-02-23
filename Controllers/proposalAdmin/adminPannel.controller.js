@@ -7,8 +7,9 @@ const { Admin } = require("../../Models/AdminModel/AdminSchema");
 const { default: mongoose } = require("mongoose");
 const DealerModel = require("../../Models/dealer.schema");
 const PanelWatt = require("../../Models/AdminModel/panelWattSchema");
-const path = require("path")
-const fs=require("fs")
+const path = require("path");
+const fs = require("fs");
+const xlxs = require("xlsx");
 
 const createPanel = async (req, res) => {
   try {
@@ -115,21 +116,22 @@ const updatePanel = async (req, res) => {
     if (findPanel?.panelType === panelType) {
       return res.status(409).json({
         success: false,
-        message: "This name panel is already exits you can not update the panel with same name , Try with different name "
-      })
+        message:
+          "This name panel is already exits you can not update the panel with same name , Try with different name ",
+      });
     }
 
     const panelData = await Panel.find();
     // console.log("panelData : ",panelData)
 
     // panelData?.some(item => console.log(item));
-    const data = panelData?.some(item => item?.panelType === panelType);
+    const data = panelData?.some((item) => item?.panelType === panelType);
     // console.log("data : ", data)
     if (data) {
       return res.status(409).json({
         success: false,
-        message: "This  panel name is already exist , Try with New Name.."
-      })
+        message: "This  panel name is already exist , Try with New Name..",
+      });
     }
 
     // if (findPanel?.panelActive.toString() === panelActive?.toString()) {
@@ -191,7 +193,6 @@ const togglePanel = async (req, res) => {
       return res
         .status(400)
         .json({ success: false, message: "Technology id is not valid" });
-
 
     const findPanel = await Panel.findById(id);
 
@@ -265,7 +266,7 @@ const createTechnology = async (req, res) => {
     }
 
     await Technology.create({
-      panelId: panelId,  
+      panelId: panelId,
       technologyPanel,
     });
 
@@ -327,7 +328,7 @@ const getTechnology = async (req, res) => {
 const updateTechnology = async (req, res) => {
   try {
     let { _id, panelId, technologyPanel } = req.body;
-    console.log(" technology data  : ", req.body)
+    console.log(" technology data  : ", req.body);
 
     if (typeof _id !== "string" || typeof technologyPanel !== "string") {
       return res.status(400).json({
@@ -489,12 +490,14 @@ const createConstructive = async (req, res) => {
     constructiveType = constructiveType.trim().toUpperCase();
     const panelExits = await Panel.findOne({ _id: panelId });
     const technologyExits = await Technology.findOne({ _id: technologyId });
-    const isExits = await Constructive.findOne({ technologyId, constructiveType });
+    const isExits = await Constructive.findOne({
+      technologyId,
+      constructiveType,
+    });
 
     // console.log("technology",technologyExits);
     // console.log("panel ",panelExits);
     // console.log("Constructive ", isExits);
-
 
     if (!panelExits) {
       return res.status(404).json({
@@ -705,7 +708,6 @@ const panelWatt = async (req, res) => {
   const { panelId, technologyId, constructiveId, watt } = req.body;
   // console.log("panelId, technologyId, constructiveId, panelWatt : ", panelId, technologyId, constructiveId, watt)
   try {
-
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: "Images required" });
     }
@@ -720,12 +722,10 @@ const panelWatt = async (req, res) => {
     const orderedImages = files
       .map((file, i) => ({
         name: file.filename,
-        order: Array.isArray(orders)
-          ? Number(orders[i])
-          : Number(orders)
+        order: Array.isArray(orders) ? Number(orders[i]) : Number(orders),
       }))
       .sort((a, b) => b.order - a.order)
-      .map(i => i.name);
+      .map((i) => i.name);
 
     const imgWatt = orderedImages;
 
@@ -734,33 +734,40 @@ const panelWatt = async (req, res) => {
     if (!panelId || !technologyId || !constructiveId) {
       return res.status(400).json({
         success: false,
-        message: "All fields are required(panelId,technologId,constructiveId)"
-      })
+        message: "All fields are required(panelId,technologId,constructiveId)",
+      });
     }
 
     // console.log(typeof watt);
     if (!watt || typeof Number.parseInt(watt) !== "number") {
       return res.status(400).json({
         success: false,
-        message: "Panel watt is required And it must be number, and uploading a panel watt image is mandatory."
-      })
+        message:
+          "Panel watt is required And it must be number, and uploading a panel watt image is mandatory.",
+      });
     }
 
-
-    if (typeof panelId !== "string" || typeof technologyId !== "string" || typeof constructiveId !== "string") {
+    if (
+      typeof panelId !== "string" ||
+      typeof technologyId !== "string" ||
+      typeof constructiveId !== "string"
+    ) {
       return res.status(400).json({
         success: false,
-        message: "Invaild format of panelId,technologId,constructiveId."
-      })
+        message: "Invaild format of panelId,technologId,constructiveId.",
+      });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(panelId) || !mongoose.Types.ObjectId.isValid(technologyId) || !mongoose.Types.ObjectId.isValid(constructiveId)) {
+    if (
+      !mongoose.Types.ObjectId.isValid(panelId) ||
+      !mongoose.Types.ObjectId.isValid(technologyId) ||
+      !mongoose.Types.ObjectId.isValid(constructiveId)
+    ) {
       return res.status(400).json({
         success: false,
-        message: "You did something with Id"
-      })
+        message: "You did something with Id",
+      });
     }
-
 
     const panelExits = await Panel.findById(panelId);
     const technologExit = await Technology.findById(technologyId);
@@ -769,8 +776,9 @@ const panelWatt = async (req, res) => {
     if (!panelExits || !technologExit || !constructiveExit) {
       return res.status(404).json({
         success: false,
-        message: "Oops! We couldn’t find the panel you’re trying to create watts for."
-      })
+        message:
+          "Oops! We couldn’t find the panel you’re trying to create watts for.",
+      });
     }
 
     // checking data is already exits or not
@@ -778,85 +786,84 @@ const panelWatt = async (req, res) => {
     if (isExits) {
       return res.status(409).json({
         success: false,
-        message: "This watt of panel is already exits.."
-      })
+        message: "This watt of panel is already exits..",
+      });
     }
-
-
 
     const data = await PanelWatt.create({
       panelId,
       technologyId,
       constructiveId,
       watt: Number.parseInt(watt),
-      imgWatt
+      imgWatt,
     });
 
     // console.log("panel watt data : ", data)
 
-
     return res.status(201).json({
       success: true,
-      message: "Panel Watt Create Successfully.."
-    })
-
+      message: "Panel Watt Create Successfully..",
+    });
   } catch (error) {
-    console.log("error", error)
+    console.log("error", error);
     return res.status(500).json({
       success: false,
-      message: error.message || "Internal server error..."
-    })
+      message: error.message || "Internal server error...",
+    });
   }
-
-}
+};
 
 const getPanelWatt = async (req, res) => {
   const { constructiveId, isActive } = req.query;
   // console.log("constructiveId : ", constructiveId)
   try {
-    if (!constructiveId || !mongoose.Types.ObjectId.isValid(constructiveId) || typeof constructiveId !== "string") {
+    if (
+      !constructiveId ||
+      !mongoose.Types.ObjectId.isValid(constructiveId) ||
+      typeof constructiveId !== "string"
+    ) {
       return res.status(404).json({
         success: false,
-        message: "Constructive Id must be required..|| Invaild Constructive Id"
-      })
+        message: "Constructive Id must be required..|| Invaild Constructive Id",
+      });
     }
     if (!isActive) {
-      var getData = await PanelWatt.find({ constructiveId })
+      var getData = await PanelWatt.find({ constructiveId });
     } else {
-      var getData = await PanelWatt.find({ constructiveId, isActive })
+      var getData = await PanelWatt.find({ constructiveId, isActive });
     }
 
     return res.status(200).json({
       success: true,
-      data: getData
-    })
-
+      data: getData,
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error.message || "Internal Server Error.."
-    })
-
+      message: error.message || "Internal Server Error..",
+    });
   }
-}
+};
 const togglePanelWatt = async (req, res) => {
   const { constructiveId, _id, isActive } = req.query;
   console.log("isActive", typeof isActive);
 
   try {
-
     if (!constructiveId || !_id) {
       return res.status(404).json({
         success: false,
-        message: "Constructive Id and panel Watt _id is required.."
-      })
+        message: "Constructive Id and panel Watt _id is required..",
+      });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(_id) || !mongoose.Types.ObjectId.isValid(constructiveId)) {
+    if (
+      !mongoose.Types.ObjectId.isValid(_id) ||
+      !mongoose.Types.ObjectId.isValid(constructiveId)
+    ) {
       return res.status(400).json({
         success: false,
-        message: "Invalid constructive Id and panel watt _id.."
-      })
+        message: "Invalid constructive Id and panel watt _id..",
+      });
     }
 
     const panelWattExits = await PanelWatt.findOne({ _id });
@@ -867,15 +874,17 @@ const togglePanelWatt = async (req, res) => {
     if (!constructiveExits) {
       return res.status(404).json({
         success: false,
-        message: "Constructive ID not found. Please provide a valid Constructive ID and try again."
-      })
+        message:
+          "Constructive ID not found. Please provide a valid Constructive ID and try again.",
+      });
     }
 
     if (!panelWattExits) {
       return res.status(404).json({
         success: false,
-        message: "Panel watt not found. Please provide a valid panel watt ID and try again."
-      })
+        message:
+          "Panel watt not found. Please provide a valid panel watt ID and try again.",
+      });
     }
 
     // console.log(typeof panelWattExits?.isActive)
@@ -883,42 +892,44 @@ const togglePanelWatt = async (req, res) => {
     if (panelWattExits?.isActive.toString() === isActive) {
       return res.status(409).json({
         success: false,
-        message: `Your panel watt is already ${isActive === "true" ? "Active" : "InActive"}`
-      })
+        message: `Your panel watt is already ${isActive === "true" ? "Active" : "InActive"}`,
+      });
     }
 
-    const tooglePanel = await PanelWatt.findByIdAndUpdate({ _id }, { $set: { isActive } }, { new: true })
+    const tooglePanel = await PanelWatt.findByIdAndUpdate(
+      { _id },
+      { $set: { isActive } },
+      { new: true },
+    );
     return res.status(200).json({
       success: true,
       message: `Panel watt ${isActive == "true" ? "activated" : "deactivated"} successfully.`,
-    })
-
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error.message || "Internal server Error..."
-    })
+      message: error.message || "Internal server Error...",
+    });
   }
-
-}
+};
 
 const updatePanelWatt = async (req, res) => {
   let { id, watt, constructiveId } = req.body;
-  watt = Number(watt)
+  watt = Number(watt);
   // console.log("req.body ", constructiveId)
   try {
     if (!id || !watt) {
       return res.status(404).json({
         success: false,
-        message: "Panel watt must be Required.."
-      })
+        message: "Panel watt must be Required..",
+      });
     }
 
     if (!mongoose.Types.ObjectId.isValid(id) || typeof id !== "string") {
       return res.status(400).json({
         success: false,
-        message: "Panel watt Id must be required..|| Invaild Panel Watt Id"
-      })
+        message: "Panel watt Id must be required..|| Invaild Panel Watt Id",
+      });
     }
 
     const isExisting = await PanelWatt.findById(id);
@@ -926,20 +937,21 @@ const updatePanelWatt = async (req, res) => {
     if (!isExisting) {
       return res.status(400).json({
         success: false,
-        message: "The panel you’re trying to update was not found. Please reload the page and try again."
-      })
+        message:
+          "The panel you’re trying to update was not found. Please reload the page and try again.",
+      });
     }
 
     const duplicate = await PanelWatt.findOne({
       constructiveId,
       watt,
-      _id: { $ne: id }
+      _id: { $ne: id },
     });
 
     if (duplicate) {
       return res.status(409).json({
         success: false,
-        message: "This watt already exists for this Panel Watt"
+        message: "This watt already exists for this Panel Watt",
       });
     }
 
@@ -947,10 +959,13 @@ const updatePanelWatt = async (req, res) => {
 
     // ONLY if new images uploaded
     if (req.files?.length) {
-
       // DELETE OLD FILES
-      isExisting?.imgWatt?.forEach(img => {
-        const filePath = path.join(__dirname, "../../Proposal_Images/watt", img);
+      isExisting?.imgWatt?.forEach((img) => {
+        const filePath = path.join(
+          __dirname,
+          "../../Proposal_Images/watt",
+          img,
+        );
         if (fs.existsSync(filePath)) {
           fs.unlinkSync(filePath);
         }
@@ -962,15 +977,13 @@ const updatePanelWatt = async (req, res) => {
       imgWatt = req.files
         .map((file, i) => ({
           name: file.filename,
-          order: Array.isArray(orders)
-            ? Number(orders[i])
-            : Number(orders)
+          order: Array.isArray(orders) ? Number(orders[i]) : Number(orders),
         }))
         .sort((a, b) => b.order - a.order)
-        .map(i => i.name);
+        .map((i) => i.name);
     }
     const update = {
-      watt
+      watt,
     };
     if (imgWatt) update.imgWatt = imgWatt;
 
@@ -978,16 +991,15 @@ const updatePanelWatt = async (req, res) => {
 
     return res.json({
       success: true,
-      message: "Panel watt updated successfully"
+      message: "Panel watt updated successfully",
     });
-
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error?.message || "Internal server error.."
-    })
+      message: error?.message || "Internal server error..",
+    });
   }
-}
+};
 
 const createAdmin = async (req, res) => {
   let { email, password, role } = req.body;
@@ -998,29 +1010,29 @@ const createAdmin = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Email and Password are required.."
-      })
+        message: "Email and Password are required..",
+      });
     }
 
     if (password.length < 6) {
       return res.status(400).json({
         success: false,
-        message: "Password must be 6 digits"
-      })
+        message: "Password must be 6 digits",
+      });
     }
 
     if (!emailRegex.test(email)) {
       return res.status(400).json({
         success: false,
-        message: "Invaild email format.."
-      })
+        message: "Invaild email format..",
+      });
     }
 
     const admin = await Admin.findOne({ email });
     if (admin) {
       return res.status(409).json({
         success: false,
-        message: "Admin already exists"
+        message: "Admin already exists",
       });
     }
 
@@ -1030,43 +1042,38 @@ const createAdmin = async (req, res) => {
     const adminData = await Admin.create({
       email,
       password: hashPass,
-      role
-    })
+      role,
+    });
 
     return res.status(201).json({
       success: true,
       message: "Admin created successfully...",
-      admin: adminData
-    })
-
+      admin: adminData,
+    });
   } catch (error) {
     // console.log("Error : ", error);
     return res.status(500).json({
       success: false,
-      message: error?.message || "Internal Server Error.."
-    })
+      message: error?.message || "Internal Server Error..",
+    });
   }
-}
+};
 
 const getAdmin = async (req, res) => {
   try {
     const allData = await Admin.find();
     return res.status(200).json({
       success: true,
-      data: allData
-    })
-
+      data: allData,
+    });
   } catch (error) {
     // console.log("Error : ", error);
     return res.status(500).json({
       success: false,
-      message: error?.message || "Internal server error.."
-    })
-
-
+      message: error?.message || "Internal server error..",
+    });
   }
-
-}
+};
 
 const loginAdmin = async (req, res) => {
   let { email, password } = req.body;
@@ -1077,80 +1084,77 @@ const loginAdmin = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Email and password are required.."
-      })
+        message: "Email and password are required..",
+      });
     }
 
     if (!emailRegex.test(email)) {
       return res.status(400).json({
         success: false,
-        message: "Invaild email format.."
-      })
+        message: "Invaild email format..",
+      });
     }
 
     if (password.length < 6) {
       return res.status(400).json({
         success: false,
-        message: "Password must be 6 digit.."
-      })
+        message: "Password must be 6 digit..",
+      });
     }
 
     const admin = await Admin.findOne({ email });
     if (!admin) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password"
+        message: "Invalid email or password",
       });
     }
-    // console.log("Admin : ", admin); 
+    // console.log("Admin : ", admin);
 
     const match = await bcrypt.compare(password, admin.password);
     if (!match) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password"
+        message: "Invalid email or password",
       });
     }
 
-    const token = jwt.sign({
-      adminId: admin._id,
-      email: admin.email,
-      role: "admin"
-    },
+    const token = jwt.sign(
+      {
+        adminId: admin._id,
+        email: admin.email,
+        role: "admin",
+      },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    )
+      { expiresIn: "7d" },
+    );
     // console.log("Match ", match)
     if (match) {
       res.cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "none",
-        maxAge: 7 * 24 * 60 * 60 * 1000
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
       res.cookie("role", admin?.role, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "none",
-        maxAge: 7 * 24 * 60 * 60 * 1000
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
-
     }
     return res.status(200).json({
       success: true,
-      message: "Admin Login successfully.."
-    })
-
+      message: "Admin Login successfully..",
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error.message || "Internal Server Error..."
-    })
-
+      message: error.message || "Internal Server Error...",
+    });
   }
-
-}
+};
 
 const logoutAdmin = async (req, res) => {
   try {
@@ -1159,7 +1163,6 @@ const logoutAdmin = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "none",
-
     });
 
     res.clearCookie("role", {
@@ -1168,23 +1171,22 @@ const logoutAdmin = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Logout successful"
+      message: "Logout successful",
     });
-
-
   } catch (err) {
-    return (res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: err.message || "Internal server Error..."
-    }))
+      message: err.message || "Internal server Error...",
+    });
   }
-}
+};
 
 const adminDashBoardData = async (req, res) => {
   try {
-
-    const totalPannel = await Panel.find().select("panelType panelActive")
-    const totalDealer = await DealerModel.find().select(" firstName email companyName contactNumber ")
+    const totalPannel = await Panel.find().select("panelType panelActive");
+    const totalDealer = await DealerModel.find()
+      .select(" firstName email companyName contactNumber")
+      .sort({ createdAt: -1 });
 
     // console.log("totalPannel ", totalPannel)
     // console.log("totalDelaer ", totalDealer)
@@ -1193,20 +1195,56 @@ const adminDashBoardData = async (req, res) => {
       success: true,
       data: {
         pannelData: totalPannel,
-        dealerData: totalDealer
-      }
-    })
-
-
+        dealerData: totalDealer,
+      },
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error.message || "Internal server Error.."
-    })
+      message: error.message || "Internal server Error..",
+    });
   }
+};
 
-}
+const ExcelDownload = async (req, res) => {
+  try {
+    const totalDealer = await DealerModel.find()
+      .select(" firstName email companyName contactNumber createdAt _id")
+      .sort({ createdAt: -1 })
+      .lean();
 
+    let modifiedDealer = totalDealer.map((item) => ({
+      firstName: item?.firstName,
+      email: item?.email,
+      companyName: item?.companyName,
+      contactNumber: item?.contactNumber,
+      createdAt: new Date(item?.createdAt).toLocaleString(),
+    }));
+
+    const worksheet = xlxs.utils.json_to_sheet(modifiedDealer);
+
+    const workbook = xlxs.utils.book_new();
+    xlxs.utils.book_append_sheet(workbook, worksheet, "Dealer");
+
+    const excelBuffer = xlxs.write(workbook, {
+      type: "buffer",
+      bookType: "xlsx",
+    });
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
+
+    res.setHeader("Content-Disposition", "attachment; filename=dealer.xlsx");
+
+    res.send(excelBuffer);
+  } catch (er) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
 
 module.exports = {
   createPanel,
@@ -1229,5 +1267,6 @@ module.exports = {
   panelWatt,
   getPanelWatt,
   togglePanelWatt,
-  updatePanelWatt
+  updatePanelWatt,
+  ExcelDownload,
 };
