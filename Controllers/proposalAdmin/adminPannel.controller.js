@@ -1251,6 +1251,7 @@ const ExcelDownload = async (req, res) => {
 
     res.send(excelBuffer);
   } catch (er) {
+    console.log(er?.message);
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });
