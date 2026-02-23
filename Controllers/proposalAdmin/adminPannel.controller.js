@@ -1231,6 +1231,7 @@ const ExcelDownload = async (req, res) => {
       contactNumber: item?.contactNumber,
       createdAt: new Date(item?.createdAt).toLocaleString(),
     }));
+    
 
     const worksheet = xlxs.utils.json_to_sheet(modifiedDealer);
 
