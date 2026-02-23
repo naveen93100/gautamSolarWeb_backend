@@ -7,9 +7,8 @@ const { Admin } = require("../../Models/AdminModel/AdminSchema");
 const { default: mongoose } = require("mongoose");
 const DealerModel = require("../../Models/dealer.schema");
 const PanelWatt = require("../../Models/AdminModel/panelWattSchema");
-const path = require("path");
-const fs = require("fs");
-const xlxs = require("xlsx");
+const path = require("path")
+const fs=require("fs")
 
 const createPanel = async (req, res) => {
   try {
@@ -227,6 +226,8 @@ const createTechnology = async (req, res) => {
   try {
     let { panelId, technologyPanel } = req.body;
 
+    console.log("req.body : ", req.body)
+
     if (typeof technologyPanel !== "string" || typeof panelId !== "string")
       return res
         .status(400)
@@ -256,7 +257,11 @@ const createTechnology = async (req, res) => {
         message: "Panel is not found.Try with correct panel Id",
       });
     }
-    const isExisting = await Technology.findOne({ panelId, technologyPanel });
+    // const isExisting = await Technology.findOne({ panelId, technologyPanel });
+    const isExisting = await Technology.findOne({
+      panelId: new mongoose.Types.ObjectId(panelId),
+      technologyPanel,
+    });
 
     if (isExisting?.technologyPanel === technologyPanel) {
       return res.status(400).json({
@@ -369,6 +374,7 @@ const updateTechnology = async (req, res) => {
     }
 
     const allData = await Technology.findOne({ panelId, technologyPanel });
+    console.log("allData : ", allData)
 
     if (!allData) {
       const updateData = await Technology.findByIdAndUpdate(
@@ -384,6 +390,7 @@ const updateTechnology = async (req, res) => {
       });
     }
   } catch (error) {
+    console.log("error : ", error)
     return res.status(500).json({
       success: false,
       message: "Internal server error..." || error?.message,
@@ -1119,40 +1126,45 @@ const loginAdmin = async (req, res) => {
       });
     }
 
-    const token = jwt.sign(
-      {
-        adminId: admin._id,
-        email: admin.email,
-        role: "admin",
-      },
+    const token = jwt.sign({
+      adminId: admin._id,
+      email: admin.email,
+      role: "admin"
+    },
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
     );
     // console.log("Match ", match)
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    if (match) {
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "none",
+        maxAge: 7 * 24 * 60 * 60 * 1000
+      });
 
-    res.cookie("role", admin?.role, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+      res.cookie("role", admin?.role, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "none",
+        maxAge: 7 * 24 * 60 * 60 * 1000
+      });
+
+    }
     return res.status(200).json({
       success: true,
-      message: "Admin Login successfully..",
-    });
+      message: "Admin Login successfully.."
+    })
+
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error.message || "Internal Server Error...",
-    });
+      message: error.message || "Internal Server Error..."
+    })
+
   }
-};
+
+}
 
 const logoutAdmin = async (req, res) => {
   try {
@@ -1199,50 +1211,12 @@ const adminDashBoardData = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error.message || "Internal server Error..",
-    });
+      message: error.message || "Internal server Error.."
+    })
   }
-};
 
-const ExcelDownload = async (req, res) => {
-  try {
-    const totalDealer = await DealerModel.find()
-      .select(" firstName email companyName contactNumber createdAt _id")
-      .sort({ createdAt: -1 })
-      .lean();
+}
 
-    let modifiedDealer = totalDealer.map((item) => ({
-      firstName: item?.firstName,
-      email: item?.email,
-      companyName: item?.companyName,
-      contactNumber: item?.contactNumber,
-      createdAt: new Date(item?.createdAt).toLocaleString(),
-    }));
-
-    const worksheet = xlxs.utils.json_to_sheet(modifiedDealer);
-
-    const workbook = xlxs.utils.book_new();
-    xlxs.utils.book_append_sheet(workbook, worksheet, "Dealer");
-
-    const excelBuffer = xlxs.write(workbook, {
-      type: "buffer",
-      bookType: "xlsx",
-    });
-
-    res.setHeader(
-      "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    );
-
-    res.setHeader("Content-Disposition", "attachment; filename=dealer.xlsx");
-
-    res.send(excelBuffer);
-  } catch (er) {
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
-  }
-};
 
 module.exports = {
   createPanel,
@@ -1265,6 +1239,5 @@ module.exports = {
   panelWatt,
   getPanelWatt,
   togglePanelWatt,
-  updatePanelWatt,
-  ExcelDownload,
+  updatePanelWatt
 };

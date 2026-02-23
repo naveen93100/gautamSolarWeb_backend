@@ -62,6 +62,7 @@ panelRouter.get("/logoutAdmin", adminAuth, logoutAdmin)
 
 // dashboard Data 
 panelRouter.get("/adminDashBoardData", adminDashBoardData);
+panelRouter.get('/excel-download', adminAuth, ExcelDownload);
 
 panelRouter.get('/excel-download',adminAuth,ExcelDownload);
 
