@@ -9,7 +9,7 @@ const DealerModel = require("../../Models/dealer.schema");
 const PanelWatt = require("../../Models/AdminModel/panelWattSchema");
 const path = require("path")
 const fs=require("fs")
-const xlsx=require('xlsx');
+const xlxs=require('xlsx');
 
 const createPanel = async (req, res) => {
   try {
