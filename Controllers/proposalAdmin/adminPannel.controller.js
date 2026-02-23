@@ -1217,6 +1217,46 @@ const adminDashBoardData = async (req, res) => {
 
 }
 
+const ExcelDownload = async (req, res) => {
+  try {
+    const totalDealer = await DealerModel.find()
+      .select(" firstName email companyName contactNumber createdAt _id")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    let modifiedDealer = totalDealer.map((item) => ({
+      firstName: item?.firstName,
+      email: item?.email,
+      companyName: item?.companyName,
+      contactNumber: item?.contactNumber,
+      createdAt: new Date(item?.createdAt).toLocaleString(),
+    }));
+
+    const worksheet = xlxs.utils.json_to_sheet(modifiedDealer);
+
+    const workbook = xlxs.utils.book_new();
+    xlxs.utils.book_append_sheet(workbook, worksheet, "Dealer");
+
+    const excelBuffer = xlxs.write(workbook, {
+      type: "buffer",
+      bookType: "xlsx",
+    });
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
+
+    res.setHeader("Content-Disposition", "attachment; filename=dealer.xlsx");
+
+    res.send(excelBuffer);
+  } catch (er) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
 
 module.exports = {
   createPanel,
