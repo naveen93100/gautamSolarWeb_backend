@@ -1279,5 +1279,6 @@ module.exports = {
   panelWatt,
   getPanelWatt,
   togglePanelWatt,
-  updatePanelWatt
+  updatePanelWatt,
+  ExcelDownload
 };
