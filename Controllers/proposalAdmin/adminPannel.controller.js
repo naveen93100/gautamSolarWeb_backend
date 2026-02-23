@@ -1117,6 +1117,7 @@ const loginAdmin = async (req, res) => {
       email: admin.email,
       role: "admin"
     },
+
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     )
