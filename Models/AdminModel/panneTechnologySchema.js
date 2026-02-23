@@ -9,7 +9,6 @@ const panelTechnology = new mongoose.Schema({
     technologyPanel: {
         type: String,
         required: true,
-        unique: true
     },
     isActive: {
         type: Boolean,

@@ -14,11 +14,11 @@ const cookieParser = require("cookie-parser");
 
 
 const limiter = rateLimiter.rateLimit({
-    windowMs: 2000, // 1 second
-    limit: 10, // Limit each IP to 10 requests per second
-    standardHeaders: 'draft-8',
-    legacyHeaders: false,
-    ipv6Subnet: 56,
+  windowMs: 2000, // 1 second
+  limit: 10, // Limit each IP to 10 requests per second
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  ipv6Subnet: 56,
 });
 
 const app = express();
@@ -30,7 +30,7 @@ app.use(cors({
 app.use(limiter);
 app.use(bodyParser.json());
 app.use(cookieParser());
-app.set("trust proxy",1)
+app.set("trust proxy", 1)
 
 function extractWebsiteName(domain) {
   const domainParts = domain.split(".");
@@ -77,7 +77,8 @@ app.use(express.urlencoded({ limit: "100mb", extended: true }));
 
 app.use("/dealer_logo", express.static(path.join(__dirname, "Dealer_Logo")));
 
-app.use('/proposal_images', express.static(path.join(__dirname, 'Proposal_Images')));
+app.use('/proposal_images', express.static(path.join(__dirname, 'Pro posal_Images')));
+// app.use('/proposal_images/watt', express.static(path.join(__dirname, 'Proposal_Images/watt')));
 
 app.use("/media_image", express.static(path.join(__dirname, "Media")));
 

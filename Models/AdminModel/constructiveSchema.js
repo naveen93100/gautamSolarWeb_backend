@@ -14,7 +14,6 @@ const constructiveSchema = new mongoose.Schema({
     constructiveType: {
         type: String,
         required: true,
-        unqiue: true
     },
     isActive: {
         type: Boolean,
