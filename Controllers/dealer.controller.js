@@ -517,10 +517,10 @@ const createPropsal = async (req, res) => {
 
     let createCustomer = await CustomerModel.findOne({ email });
 
-    // if (createCustomer)
-    //   return res
-    //     .status(409)
-    //     .json({ success: false, message: "Email already Exist" });
+    if (createCustomer)
+      return res
+        .status(409)
+        .json({ success: false, message: "Email already Exist" });
 
     //first create customer
 
