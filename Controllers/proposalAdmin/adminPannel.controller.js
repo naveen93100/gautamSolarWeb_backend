@@ -1304,8 +1304,6 @@ const ExcelDownload = async (req, res) => {
     })
 
 
-
-
     let modifiedDealer = totalDealer.map((item) => ({
       firstName: item?.firstName,
       email: item?.email,
