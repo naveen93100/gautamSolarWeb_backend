@@ -22,7 +22,8 @@ const { createPanel,
     getPanelWatt,
     togglePanelWatt,
     updatePanelWatt,
-    ExcelDownload
+    ExcelDownload,
+    getCustomerData
 } = require("../../Controllers/proposalAdmin/adminPannel.controller.js");
 const adminAuth = require("../../Middleware/adminAuth.js");
 const uploadImgPath = require("../../Middleware/panalImgWattMulter.js");
@@ -63,5 +64,6 @@ panelRouter.get("/logoutAdmin", adminAuth, logoutAdmin)
 // dashboard Data 
 panelRouter.get("/adminDashBoardData", adminDashBoardData);
 panelRouter.get('/excel-download', adminAuth, ExcelDownload);
+panelRouter.get('/getCustomerData', adminAuth, getCustomerData);
 
 module.exports = panelRouter

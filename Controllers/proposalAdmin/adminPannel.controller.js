@@ -10,6 +10,9 @@ const PanelWatt = require("../../Models/AdminModel/panelWattSchema");
 const path = require("path")
 const fs = require("fs")
 const xlxs = require("xlsx");
+const CustomerModel = require("../../Models/customer.schema");
+const PanelModel = require("../../Models/panelSchema");
+const ProposalModel = require("../../Models/proposal.schema");
 
 const createPanel = async (req, res) => {
   try {
@@ -1146,19 +1149,19 @@ const loginAdmin = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-  
+
     return res.status(200).json({
-    success: true,
-    message: "Admin Login successfully.."
-  })
+      success: true,
+      message: "Admin Login successfully.."
+    })
 
-} catch (error) {
-  return res.status(500).json({
-    success: false,
-    message: error.message || "Internal Server Error..."
-  })
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error..."
+    })
 
-}
+  }
 
 }
 
@@ -1199,11 +1202,16 @@ const adminDashBoardData = async (req, res) => {
     // console.log("totalPannel ", totalPannel)
     // console.log("totalDelaer ", totalDealer)
 
+    const totalCustomer = await CustomerModel.find().select("name email dealerId phone");
+
+    // console.log("total proposal create : ", totalCustomer)
+
     return res.status(200).json({
       success: true,
       data: {
         pannelData: totalPannel,
-        dealerData: totalDealer
+        dealerData: totalDealer,
+        customer: totalCustomer
       }
     })
 
@@ -1224,13 +1232,94 @@ const ExcelDownload = async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
 
+    // console.log("totalDealer : ", totalDealer)
+
+    const dealerIds = totalDealer.map((item) => (
+      item?._id
+    ))
+
+    // console.log("dealerId : ", dealerId) 
+
+    // check here the client of every dealer
+    const customers = await CustomerModel.aggregate([
+      {
+        $match: { dealerId: { $in: dealerIds } }
+      },
+      {
+        $group: {
+          _id: "$dealerId",
+          totalClients: { $sum: 1 }
+        }
+      }
+    ])
+
+    // console.log("customer : ", customers)
+
+    const clientCountMap = {};
+    customers.forEach(item => {
+      clientCountMap[item._id.toString()] = item.totalClients;
+    });
+
+    // console.log("clientCountMap  : ", clientCountMap)
+
+    const panelCreateClient = await PanelModel.aggregate([
+      {
+        $match: { dealerId: { $in: dealerIds } }
+      },
+      {
+        $group: {
+          _id: "$dealerId",
+          totalPanelCreated: { $sum: 1 }
+        }
+      }
+    ])
+    // console.log("panelCreateClient : ", panelCreateClient)
+    const panelCreated = {};
+    panelCreateClient.forEach(item => {
+      panelCreated[item._id.toString()] = item.totalPanelCreated
+    })
+
+    // console.log("panelCreated : ", panelCreated)
+
+
+    const powerPlantPropsal = await ProposalModel.aggregate([
+      {
+        $match: {
+          dealerId: { $in: dealerIds }
+        }
+      },
+      {
+        $group: {
+          _id: "$dealerId",
+          totalPowerPlantPropsal: { $sum: 1 }
+        }
+      }
+    ])
+
+    // console.log("powerPlantPropsal : ", powerPlantPropsal)
+
+    const powerPlantPropsalData = {};
+    powerPlantPropsal.forEach(item => {
+      powerPlantPropsalData[item._id.toString()] = item.totalPowerPlantPropsal
+    })
+
+
+
+
     let modifiedDealer = totalDealer.map((item) => ({
       firstName: item?.firstName,
       email: item?.email,
       companyName: item?.companyName,
       contactNumber: item?.contactNumber,
+      TotalClients: clientCountMap[item._id.toString()] || 0,
+      PanelPropsal: panelCreated[item._id.toString()] || 0,
+      PowerPlantPropsal: powerPlantPropsalData[item._id.toString()] || 0,
       createdAt: new Date(item?.createdAt).toLocaleString(),
     }));
+
+    // console.log("modifiedDealer : ", modifiedDealer)
+
+
 
     const worksheet = xlxs.utils.json_to_sheet(modifiedDealer);
 
@@ -1251,11 +1340,43 @@ const ExcelDownload = async (req, res) => {
 
     res.send(excelBuffer);
   } catch (er) {
+
+    console.log("Error : ", er)
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });
   }
 };
+
+
+const getCustomerData = async (req, res) => {
+  const { dealerId } = req.query;
+  // console.log("delaerId : ", dealerId)
+  try {
+
+    if (!dealerId || !mongoose.Types.ObjectId.isValid(dealerId) || typeof dealerId !== "string") {
+      return res.status(404).json({
+        success: false,
+        message: "Dealer Id Must be required..,please check dealer Id again.. "
+      })
+    }
+
+    const customerData = await CustomerModel.find({ dealerId: dealerId }).select("dealerId  name email ");
+    // console.log("customerData : ", customerData)
+
+    return res.status(200).json({
+      success: true,
+      data: customerData
+    })
+  } catch (error) {
+    console.log("Error : ", error)
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error..."
+    })
+
+  }
+}
 
 
 module.exports = {
@@ -1280,5 +1401,6 @@ module.exports = {
   getPanelWatt,
   togglePanelWatt,
   updatePanelWatt,
-  ExcelDownload
+  ExcelDownload,
+  getCustomerData
 };
