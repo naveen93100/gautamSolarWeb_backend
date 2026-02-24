@@ -1136,16 +1136,16 @@ const loginAdmin = async (req, res) => {
     // console.log("Match ", match)
 
     res.cookie("token", token, {
-      httpOnly: false,
+      httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.cookie("role", admin?.role, {
-      httpOnly: false,
+      httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -1316,6 +1316,7 @@ const ExcelDownload = async (req, res) => {
       PowerPlantPropsal: powerPlantPropsalData[item._id.toString()] || 0,
       createdAt: new Date(item?.createdAt).toLocaleString(),
     }));
+    
 
     // console.log("modifiedDealer : ", modifiedDealer)
 
