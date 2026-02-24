@@ -1155,11 +1155,12 @@ const loginAdmin = async (req, res) => {
       });
 
 
-    return res.status(200).json({
-      success: true,
-      message: "Admin Login successfully.."
-    })
+      return res.status(200).json({
+        success: true,
+        message: "Admin Login successfully.."
+      })
 
+    }
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -1319,7 +1320,7 @@ const ExcelDownload = async (req, res) => {
       PowerPlantPropsal: powerPlantPropsalData[item._id.toString()] || 0,
       createdAt: new Date(item?.createdAt).toLocaleString(),
     }));
-    
+
 
     // console.log("modifiedDealer : ", modifiedDealer)
 
