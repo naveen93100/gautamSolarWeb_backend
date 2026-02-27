@@ -160,8 +160,8 @@ const registerDealer = async (req, res) => {
           .webp({ quality: 80 })
           .toFile(imgPath);
 
-        companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
-        // companyLogo = `http://localhost:1008/dealer_logo/${img}`;
+        // companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
+        companyLogo = `http://localhost:1008/dealer_logo/${img}`;
       }
 
       await DealerModel.create({
