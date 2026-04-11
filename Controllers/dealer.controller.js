@@ -134,6 +134,7 @@ const registerDealer = async (req, res) => {
 
     // generate a token
     let token = crypto.randomBytes(20).toString("hex");
+    let v=null;
 
     //  check if dealer already exist but is not active
     if (isDealerExist && !isDealerExist.isActive) {
@@ -164,7 +165,7 @@ const registerDealer = async (req, res) => {
         // companyLogo = `http://localhost:1008/dealer_logo/${img}`;
       }
 
-     let v= await DealerModel.create({
+       v= await DealerModel.create({
         firstName,
         lastName,
         email,
@@ -199,6 +200,8 @@ const registerDealer = async (req, res) => {
       // let companyLogo = `http://localhost:1008/dealer_logo/${img}`;
       //
     }
+
+    console.log("this is working ",v)
 
     // const link = `https://dealer.gautamsolar.com/create-password/${token}`;
     // const link = `http://localhost:5173/create-password/${token}`;
