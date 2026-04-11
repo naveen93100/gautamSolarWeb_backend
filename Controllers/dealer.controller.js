@@ -135,6 +135,7 @@ const registerDealer = async (req, res) => {
     // generate a token
     let token = crypto.randomBytes(20).toString("hex");
     let v=null;
+    console.log("dealer,",isDealerExist);
 
     //  check if dealer already exist but is not active
     if (isDealerExist && !isDealerExist.isActive) {
