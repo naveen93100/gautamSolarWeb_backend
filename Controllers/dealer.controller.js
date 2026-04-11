@@ -164,7 +164,7 @@ const registerDealer = async (req, res) => {
         // companyLogo = `http://localhost:1008/dealer_logo/${img}`;
       }
 
-      await DealerModel.create({
+     let v= await DealerModel.create({
         firstName,
         lastName,
         email,
@@ -177,6 +177,7 @@ const registerDealer = async (req, res) => {
         token,
         tokenExpiry: new Date(Date.now() + 15 * 60000),
       });
+      console.log("this is new dealer",v)
       // console.log("commit")
 
       // await fsp.mkdir(folder, { recursive: true });
