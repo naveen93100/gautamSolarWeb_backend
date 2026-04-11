@@ -138,6 +138,7 @@ const registerDealer = async (req, res) => {
 
     //  check if dealer already exist but is not active
     if (isDealerExist && !isDealerExist.isActive) {
+      console.log("this is if")
       isDealerExist.token = token;
       isDealerExist.tokenExpiry = new Date(Date.now() + 7 * 7 * 24 * 60 * 60 * 1000);
       isDealerExist.password = hashPass;
@@ -145,6 +146,7 @@ const registerDealer = async (req, res) => {
     }
     //  create fresh dealer
     else {
+      console.log("this is else")
       if (req.file) {
         await fsp.mkdir(folder, { recursive: true });
 
