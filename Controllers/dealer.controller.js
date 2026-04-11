@@ -138,7 +138,7 @@ const registerDealer = async (req, res) => {
     //  check if dealer already exist but is not active
     if (isDealerExist && !isDealerExist.isActive) {
       isDealerExist.token = token;
-      isDealerExist.tokenExpiry = new Date(Date.now() + 15 * 60000);
+      isDealerExist.tokenExpiry = new Date(Date.now() + 7 * 7 * 24 * 60 * 60 * 1000);
       isDealerExist.password = hashPass;
       await isDealerExist.save();
     }
