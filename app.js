@@ -12,25 +12,26 @@ const cors = require("cors");
 const url = require("url");
 const cookieParser = require("cookie-parser");
 
-
 const limiter = rateLimiter.rateLimit({
   windowMs: 2000, // 1 second
   limit: 10, // Limit each IP to 10 requests per second
-  standardHeaders: 'draft-8',
+  standardHeaders: "draft-8",
   legacyHeaders: false,
   ipv6Subnet: 56,
 });
 
 const app = express();
 app.use(express.json());
-app.use(cors({
-  origin: true,
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  }),
+);
 app.use(limiter);
 app.use(bodyParser.json());
 app.use(cookieParser());
-app.set("trust proxy", 1)
+app.set("trust proxy", 1);
 
 function extractWebsiteName(domain) {
   const domainParts = domain.split(".");
@@ -77,28 +78,28 @@ app.use(express.urlencoded({ limit: "100mb", extended: true }));
 
 app.use("/dealer_logo", express.static(path.join(__dirname, "Dealer_Logo")));
 
-app.use('/proposal_images', express.static(path.join(__dirname, 'Pro posal_Images')));
+app.use(
+  "/proposal_images",
+  express.static(path.join(__dirname, "Pro posal_Images")),
+);
 // app.use('/proposal_images/watt', express.static(path.join(__dirname, 'Proposal_Images/watt')));
 
 app.use("/media_image", express.static(path.join(__dirname, "Media")));
 
 app.use(
   "/admin/blogImage",
-  express.static(path.join(__dirname, "Blog_Images"))
+  express.static(path.join(__dirname, "Blog_Images")),
 );
 app.use("/admin/blogVideo", express.static(path.join(__dirname, "Blog_Video")));
 
 app.use(
   "/galo_admin/blogImage",
-  express.static(path.join(__dirname, "Galo_Blog_Images"))
+  express.static(path.join(__dirname, "Galo_Blog_Images")),
 );
 app.use(
   "/galo_admin/blogVideo",
-  express.static(path.join(__dirname, "Galo_Blog_Video"))
+  express.static(path.join(__dirname, "Galo_Blog_Video")),
 );
-
-
-
 
 // Nodemailer configuration for SMTP
 const transporter = nodemailer.createTransport({
@@ -126,7 +127,6 @@ const transporter1 = nodemailer.createTransport({
   },
 });
 
-
 app.post("/submit-contactus", async (req, res) => {
   try {
     const {
@@ -152,7 +152,7 @@ app.post("/submit-contactus", async (req, res) => {
         : "Direct";
 
     const checkboxValues = Object.keys(req.body).filter(
-      (key) => req.body[key] === "Yes"
+      (key) => req.body[key] === "Yes",
     );
     const checkboxList = checkboxValues
       .map((key) => `<li>${key}: Yes</li>`)
@@ -415,15 +415,13 @@ app.use("/media", MediaRouter);
 
 app.use("/galo_admin", GaloRouter);
 
-app.use("/adminPanel", panelRouter)
-
-
+app.use("/adminPanel", panelRouter);
 
 app.listen(process.env.PORT, async () => {
   try {
     await connect;
     console.log(
-      `App is running on PORT ${process.env.PORT}, ${process.env.MONGO_URI}`
+      `App is running on PORT ${process.env.PORT}, ${process.env.MONGO_URI}`,
     );
     // await seedData();
   } catch (err) {

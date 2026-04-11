@@ -25,7 +25,7 @@ const dealerSchema = mongoose.Schema(
     address: String,
     isActive: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     token: String,
     tokenExpiry: Date,

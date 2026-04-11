@@ -8,7 +8,7 @@ const {
   generateProposal,
   editProposal,
   generatePanelPropsal,
-  updatePanelPropsal
+  updatePanelPropsal,
 } = require("../Controllers/dealer.controller.js");
 const path = require("path");
 
@@ -28,7 +28,7 @@ router.post("/create-password/:token", createPassword);
 
 router.post("/create-propsal", verifyToken, createPropsal);
 
-router.patch('/edit-proposal', upload.none(), verifyToken, editProposal);
+router.patch("/edit-proposal", upload.none(), verifyToken, editProposal);
 
 router.get("/get-proposal/:dealerId", verifyToken, getProposal);
 
@@ -36,9 +36,7 @@ router.get("/downloadPropsoal/:propId", generateProposal);
 
 router.patch("/:id", upload.single("image"), updateDealerProfile);
 
-router.post("/createPanelPropsal", generatePanelPropsal)
-router.put("/updatePanelProposal", updatePanelPropsal)
-
-
+router.post("/createPanelPropsal", generatePanelPropsal);
+router.put("/updatePanelProposal", updatePanelPropsal);
 
 module.exports = router;

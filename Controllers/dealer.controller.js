@@ -61,23 +61,22 @@ const loginDealer = async (req, res) => {
 
     await findDealer.save();
 
-    return res.status(200)
-      .json({
-        success: true,
-        message: "Login Successfull",
-        token: generatedToken,
-        data: {
-          id: findDealer._id,
-          firstName: findDealer.firstName,
-          lastName: findDealer.lastName,
-          email: findDealer.email,
-          profileImg: findDealer.companyLogo,
-          companyName: findDealer.companyName,
-          address: findDealer.address,
-          gstin: findDealer.gstin,
-          contactNumber: findDealer.contactNumber,
-        },
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Login Successfull",
+      token: generatedToken,
+      data: {
+        id: findDealer._id,
+        firstName: findDealer.firstName,
+        lastName: findDealer.lastName,
+        email: findDealer.email,
+        profileImg: findDealer.companyLogo,
+        companyName: findDealer.companyName,
+        address: findDealer.address,
+        gstin: findDealer.gstin,
+        contactNumber: findDealer.contactNumber,
+      },
+    });
   } catch (er) {
     return res
       .status(500)
@@ -107,7 +106,7 @@ const registerDealer = async (req, res) => {
     let companyLogo = null;
     let pass = "";
 
-    let createPass = gstin + contactNumber;
+    const createPass = gstin + contactNumber;
     for (let i = 0; i < 8; i++) {
       let idx = Math.floor(Math.random() * createPass.length);
       pass = pass + createPass[idx];
@@ -132,7 +131,6 @@ const registerDealer = async (req, res) => {
         .status(409)
         .json({ success: false, message: "Dealer Already Exist" });
 
-    // generate a token
     let token = crypto.randomBytes(20).toString("hex");
 
     //  check if dealer already exist but is not active
@@ -164,7 +162,7 @@ const registerDealer = async (req, res) => {
         // companyLogo = `http://localhost:1008/dealer_logo/${img}`;
       }
 
-      await DealerModel.create({
+     const v= await DealerModel.create({
         firstName,
         lastName,
         email,
@@ -175,9 +173,11 @@ const registerDealer = async (req, res) => {
         password: hashPass,
         address,
         token,
+        isActive: true,
         tokenExpiry: new Date(Date.now() + 15 * 60000),
       });
-      // console.log("commit")
+
+      console.log("THis is new Dealer:",v);
 
       // await fsp.mkdir(folder, { recursive: true });
 
@@ -198,9 +198,6 @@ const registerDealer = async (req, res) => {
       // let companyLogo = `http://localhost:1008/dealer_logo/${img}`;
       //
     }
-
-    // const link = `https://dealer.gautamsolar.com/create-password/${token}`;
-    // const link = `http://localhost:5173/create-password/${token}`;
 
     // send email and password to dealer
 
@@ -312,84 +309,6 @@ const createPassword = async (req, res) => {
   }
 };
 
-// const updateDealerProfile = async (req, res) => {
-//   try {
-//     let { id } = req.params;
-
-//     if (!id)
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "Id not Provided" });
-
-//     let updates = {};
-//     let isDealerExist = await DealerModel.findOne({ _id: id });
-
-//     if (!isDealerExist)
-//       return res
-//         .status(404)
-//         .json({ success: false, message: "Dealer not found" });
-
-//     Object.keys(req.body).forEach((v) => {
-//       updates[v] = req.body[v];
-//     });
-
-//     if (req.file) {
-//       let folder = path.join("Dealer_logo");
-//       let oldImgName = isDealerExist.companyLogo.split("/").pop();
-
-//       let oldImgPath = path.join(__dirname, "..", folder, oldImgName);
-//       // await fsp.unlink(oldImgPath);
-
-//       let newImagePath = path.join(
-//         "Dealer_Logo",
-//         req.file.fieldname + "-" + Date.now() + ".webp"
-//       );
-
-//       let companyLogo = `http://localhost:1008/dealer_logo/${
-//         // let companyLogo = `https://gautamsolar.us/dealer_logo/${
-//         req.file.fieldname + "-" + Date.now() + ".webp"
-//       }`;
-
-//       let buf = req.file.buffer;
-//       await sharp(buf)
-//         .resize(600, 600, {
-//           fit: "inside",
-//           withoutEnlargement: true,
-//         })
-//         .webp({ quality: 80 })
-//         .toFile(newImagePath);
-
-//       updates.companyLogo = companyLogo;
-//     }
-
-//     let dealer = await DealerModel.findByIdAndUpdate(
-//       id,
-//       { $set: updates },
-//       { new: true }
-//     );
-
-//     return res.status(200).json({
-//       success: true,
-//       message: "Profile Updated",
-//       data: {
-//         id: dealer._id,
-//         firstName: dealer.firstName,
-//         lastName: dealer.lastName,
-//         email: dealer.email,
-//         profileImg: dealer.companyLogo,
-//         companyName: dealer.companyName,
-//         address: dealer.address,
-//         gstin: dealer.gstin,
-//         contactNumber: dealer.contactNumber,
-//       },
-//     });
-//   } catch (er) {
-//     return res
-//       .status(500)
-//       .json({ success: false, message: er?.message || "Internal error" });
-//   }
-// };
-
 const updateDealerProfile = async (req, res) => {
   try {
     let { id } = req.params;
@@ -407,13 +326,11 @@ const updateDealerProfile = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Dealer not found" });
 
-
     for (const v of Object.keys(req.body)) {
-      if (v === 'password') {
+      if (v === "password") {
         let hashPass = await bcrypt.hash(req.body[v], 10);
-        updates[v] = hashPass
-      }
-      else {
+        updates[v] = hashPass;
+      } else {
         updates[v] = req.body[v];
       }
     }
@@ -441,15 +358,12 @@ const updateDealerProfile = async (req, res) => {
         await fsp.unlink(oldImgPath);
       }
 
-
-
       let imgUrlName = req.file.fieldname + "-" + Date.now() + ".webp";
 
       let newImagePath = path.join("Dealer_Logo", imgUrlName);
 
       // let companyLogo = `http://localhost:1008/dealer_logo/${
-      let companyLogo = `https://gautamsolar.us/Dealer_Logo/${imgUrlName
-        }`;
+      let companyLogo = `https://gautamsolar.us/Dealer_Logo/${imgUrlName}`;
 
       let buf = req.file.buffer;
       await sharp(buf)
@@ -466,7 +380,7 @@ const updateDealerProfile = async (req, res) => {
     let dealer = await DealerModel.findByIdAndUpdate(
       id,
       { $set: updates },
-      { new: true }
+      { new: true },
     );
 
     return res.status(200).json({
@@ -517,10 +431,10 @@ const createPropsal = async (req, res) => {
 
     let createCustomer = await CustomerModel.findOne({ email });
 
-    // if (createCustomer)
-    //   return res
-    //     .status(409)
-    //     .json({ success: false, message: "Email already Exist" });
+    if (createCustomer)
+      return res
+        .status(409)
+        .json({ success: false, message: "Email already Exist" });
 
     //first create customer
 
@@ -538,11 +452,9 @@ const createPropsal = async (req, res) => {
         name: customerName,
         email,
         phone,
-        address
+        address,
       });
     }
-
-
 
     //  create propsal
 
@@ -553,7 +465,7 @@ const createPropsal = async (req, res) => {
     }).select("_id name");
 
     findComponent = names.map((item) =>
-      findComponent.find((v) => v.name === item)
+      findComponent.find((v) => v.name === item),
     );
 
     let finalComponent = components.map((item, idx) => {
@@ -598,7 +510,6 @@ const createPropsal = async (req, res) => {
 
 const editProposal = async (req, res) => {
   try {
-
     let {
       propId,
       name,
@@ -620,7 +531,7 @@ const editProposal = async (req, res) => {
       return res.status(400).json({ success: false, message: "Id not found" });
 
     let Prop = await ProposalModel.findOne({ _id: propId }).populate(
-      "customerId"
+      "customerId",
     );
 
     let customer = await CustomerModel.findOne({ _id: Prop?.customerId?._id });
@@ -670,7 +581,7 @@ const editProposal = async (req, res) => {
     }).select("_id name");
 
     findComponent = names.map((item) =>
-      findComponent.find((v) => v.name.trim() === item.trim())
+      findComponent.find((v) => v.name.trim() === item.trim()),
     );
 
     let finalComponent = components.map((item, idx) => {
@@ -802,7 +713,6 @@ const editProposal = async (req, res) => {
 //   }
 // };
 
-
 const getProposal = async (req, res) => {
   try {
     let { dealerId } = req.params;
@@ -814,7 +724,7 @@ const getProposal = async (req, res) => {
 
     let customersProposal = await CustomerModel.aggregate([
       {
-        $match: { dealerId: new mongoose.Types.ObjectId(dealerId) }
+        $match: { dealerId: new mongoose.Types.ObjectId(dealerId) },
       },
 
       // ================= PROPOSALS =================
@@ -825,16 +735,16 @@ const getProposal = async (req, res) => {
           pipeline: [
             {
               $match: {
-                $expr: { $eq: ["$customerId", "$$customerId"] }
-              }
+                $expr: { $eq: ["$customerId", "$$customerId"] },
+              },
             },
             {
               $lookup: {
                 from: "materials",
                 localField: "material.mId",
                 foreignField: "_id",
-                as: "materialData"
-              }
+                as: "materialData",
+              },
             },
             {
               $addFields: {
@@ -852,23 +762,23 @@ const getProposal = async (req, res) => {
                                 $filter: {
                                   input: "$materialData",
                                   as: "md",
-                                  cond: { $eq: ["$$md._id", "$$mat.mId"] }
-                                }
+                                  cond: { $eq: ["$$md._id", "$$mat.mId"] },
+                                },
                               },
-                              0
-                            ]
-                          }
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
+                              0,
+                            ],
+                          },
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
             },
-            { $project: { materialData: 0 } }
+            { $project: { materialData: 0 } },
           ],
-          as: "proposalsData"
-        }
+          as: "proposalsData",
+        },
       },
 
       // ================= PANELS =================
@@ -894,8 +804,8 @@ const getProposal = async (req, res) => {
           pipeline: [
             {
               $match: {
-                $expr: { $eq: ["$customerId", "$$customerId"] }
-              }
+                $expr: { $eq: ["$customerId", "$$customerId"] },
+              },
             },
 
             // Panel
@@ -904,8 +814,8 @@ const getProposal = async (req, res) => {
                 from: "panels",
                 localField: "selectedPanels.panelId",
                 foreignField: "_id",
-                as: "panelInfo"
-              }
+                as: "panelInfo",
+              },
             },
 
             // Technology
@@ -914,8 +824,8 @@ const getProposal = async (req, res) => {
                 from: "technologies",
                 localField: "selectedPanels.technologyId",
                 foreignField: "_id",
-                as: "technologyInfo"
-              }
+                as: "technologyInfo",
+              },
             },
 
             // Constructive
@@ -924,8 +834,8 @@ const getProposal = async (req, res) => {
                 from: "constructives",
                 localField: "selectedPanels.constructiveId",
                 foreignField: "_id",
-                as: "constructiveInfo"
-              }
+                as: "constructiveInfo",
+              },
             },
 
             // Watt
@@ -934,8 +844,8 @@ const getProposal = async (req, res) => {
                 from: "panelwatts",
                 localField: "selectedPanels.wattId",
                 foreignField: "_id",
-                as: "wattInfo"
-              }
+                as: "wattInfo",
+              },
             },
 
             // Merge all inner data back into selectedPanels
@@ -955,11 +865,11 @@ const getProposal = async (req, res) => {
                                 $filter: {
                                   input: "$panelInfo",
                                   as: "p",
-                                  cond: { $eq: ["$$p._id", "$$sp.panelId"] }
-                                }
+                                  cond: { $eq: ["$$p._id", "$$sp.panelId"] },
+                                },
                               },
-                              0
-                            ]
+                              0,
+                            ],
                           },
                           technology: {
                             $arrayElemAt: [
@@ -967,11 +877,13 @@ const getProposal = async (req, res) => {
                                 $filter: {
                                   input: "$technologyInfo",
                                   as: "t",
-                                  cond: { $eq: ["$$t._id", "$$sp.technologyId"] }
-                                }
+                                  cond: {
+                                    $eq: ["$$t._id", "$$sp.technologyId"],
+                                  },
+                                },
                               },
-                              0
-                            ]
+                              0,
+                            ],
                           },
                           constructive: {
                             $arrayElemAt: [
@@ -979,11 +891,13 @@ const getProposal = async (req, res) => {
                                 $filter: {
                                   input: "$constructiveInfo",
                                   as: "c",
-                                  cond: { $eq: ["$$c._id", "$$sp.constructiveId"] }
-                                }
+                                  cond: {
+                                    $eq: ["$$c._id", "$$sp.constructiveId"],
+                                  },
+                                },
                               },
-                              0
-                            ]
+                              0,
+                            ],
                           },
                           watt: {
                             $arrayElemAt: [
@@ -991,18 +905,18 @@ const getProposal = async (req, res) => {
                                 $filter: {
                                   input: "$wattInfo",
                                   as: "w",
-                                  cond: { $eq: ["$$w._id", "$$sp.wattId"] }
-                                }
+                                  cond: { $eq: ["$$w._id", "$$sp.wattId"] },
+                                },
                               },
-                              0
-                            ]
-                          }
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
+                              0,
+                            ],
+                          },
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
             },
 
             {
@@ -1010,18 +924,15 @@ const getProposal = async (req, res) => {
                 panelInfo: 0,
                 technologyInfo: 0,
                 constructiveInfo: 0,
-                wattInfo: 0
-              }
-            }
+                wattInfo: 0,
+              },
+            },
           ],
-          as: "panelData"
-        }
+          as: "panelData",
+        },
       },
-      { $sort: { _id: -1 } }
+      { $sort: { _id: -1 } },
     ]);
-
-
-    // console.log("customersProposal : ", customersProposal)
 
     return res.status(200).json({ success: true, customersProposal });
   } catch (er) {
@@ -1036,7 +947,7 @@ const generateProposal = async (req, res) => {
     let { propId } = req.params;
 
     let Proposal = await ProposalModel.findOne({ _id: propId }).populate(
-      "dealerId customerId"
+      "dealerId customerId",
     );
 
     // const apiData = req.body;
@@ -1061,7 +972,8 @@ const generateProposal = async (req, res) => {
       [
         "1.",
         // `${Proposal?.customerId?.address} (order capacity-${apiData?.customer?.capacity})`,
-        `Supply,Installation and Commissioning of ${apiData?.customer?.capacity?.split("watts")[0] / 1000
+        `Supply,Installation and Commissioning of ${
+          apiData?.customer?.capacity?.split("watts")[0] / 1000
         } kw Solar Power Plant at (${Proposal?.customerId?.address})`,
         `${(Proposal?.rate).toString()} Rs/watts`,
         `${(Proposal?.price).toString()} Rs`,
@@ -1252,15 +1164,15 @@ const generateProposal = async (req, res) => {
 };
 
 const generatePanelPropsal = async (req, res) => {
-
-  let { dealerId,
+  let {
+    dealerId,
     customerName,
     email,
     phone,
     address,
     gst,
     termsAndConditions,
-    selectedPanel
+    selectedPanel,
   } = req.body;
 
   // console.log("req.body : ", req.body)
@@ -1268,30 +1180,42 @@ const generatePanelPropsal = async (req, res) => {
   //   address, gst, termsAndConditions, selectedPanel
   // )
   try {
-
-    if (!dealerId || !customerName || !email || !phone || !address || !gst || !termsAndConditions || !selectedPanel) {
+    if (
+      !dealerId ||
+      !customerName ||
+      !email ||
+      !phone ||
+      !address ||
+      !gst ||
+      !termsAndConditions ||
+      !selectedPanel
+    ) {
       return res.status(404).json({
         success: false,
-        message: "All fields are required..(delarId,customerName,emal,phone,rate,address,gst,term & condition and Panel..)"
-      })
+        message:
+          "All fields are required..(delarId,customerName,emal,phone,rate,address,gst,term & condition and Panel..)",
+      });
     }
     email = email.toLowerCase().trim();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     gst = Number.parseFloat(gst);
-    phone = Number(phone)
+    phone = Number(phone);
 
     if (!mongoose.Types.ObjectId.isValid(dealerId)) {
       return res.status(400).json({ message: "Invalid dealerId" });
     }
 
     for (const panel of selectedPanel) {
-      if (!mongoose.Types.ObjectId.isValid(panel.panelId ||
-        !mongoose.Types.ObjectId.isValid(panel.technologyId) ||
-        !mongoose.Types.ObjectId.isValid(panel.constructiveId) ||
-        !mongoose.Types.ObjectId.isValid(panel.wattId)
-      )) {
+      if (
+        !mongoose.Types.ObjectId.isValid(
+          panel.panelId ||
+            !mongoose.Types.ObjectId.isValid(panel.technologyId) ||
+            !mongoose.Types.ObjectId.isValid(panel.constructiveId) ||
+            !mongoose.Types.ObjectId.isValid(panel.wattId),
+        )
+      ) {
         return res.status(400).json({
-          message: "Invalid ObjectId in selectedPanel"
+          message: "Invalid ObjectId in selectedPanel",
         });
       }
     }
@@ -1299,27 +1223,24 @@ const generatePanelPropsal = async (req, res) => {
     if (!emailRegex.test(email)) {
       return res.status(400).json({
         success: false,
-        message: "Invaild email format.."
-      })
-    }
-
-    if (typeof (phone) !== "number" || typeof (gst) !== "number") {
-      return res.status(400).json({
-        success: false,
-        message: "gst and phone number must be Type Number..."
-      })
-    }
-
-
-    const wattIds = selectedPanel.map(p => p.wattId);
-    const uniqueWattIds = new Set(wattIds);
-    if (wattIds.length !== uniqueWattIds.size) {
-      return res.status(400).json({
-        message: "Duplicate wattId found in selectedPanel"
+        message: "Invaild email format..",
       });
     }
 
+    if (typeof phone !== "number" || typeof gst !== "number") {
+      return res.status(400).json({
+        success: false,
+        message: "gst and phone number must be Type Number...",
+      });
+    }
 
+    const wattIds = selectedPanel.map((p) => p.wattId);
+    const uniqueWattIds = new Set(wattIds);
+    if (wattIds.length !== uniqueWattIds.size) {
+      return res.status(400).json({
+        message: "Duplicate wattId found in selectedPanel",
+      });
+    }
 
     let createCustomer = await CustomerModel.findOne({ email });
 
@@ -1329,7 +1250,7 @@ const generatePanelPropsal = async (req, res) => {
         name: customerName,
         email,
         phone,
-        address
+        address,
       });
     }
 
@@ -1337,22 +1258,23 @@ const generatePanelPropsal = async (req, res) => {
     // console.log("client Id : ", clientId);
     // console.log("create Customer: ", createCustomer);
 
-    const panelPropsalExits = await PanelModel.findOne({ customerId: clientId });
+    const panelPropsalExits = await PanelModel.findOne({
+      customerId: clientId,
+    });
     // console.log("panelPropsalExits : ", panelPropsalExits)
     if (panelPropsalExits) {
       return res.status(400).json({
         success: false,
-        message: "Panel proposal already exists for this employee."
-      })
+        message: "Panel proposal already exists for this employee.",
+      });
     }
 
     // calculate final price
     // store panel propsal data in PanelModel : dealerId,clientId,tax,termsAndConditions,selectedPanel,final Price
 
-
     const finalPrice = selectedPanel.reduce((total, item) => {
       return total + Number(item.totalPrice || 0) + Number(item.gstAmount || 0);
-    }, 0)
+    }, 0);
 
     // console.log("finalPrice : ", finalPrice)
     const createPanelPropsal = await PanelModel.create({
@@ -1361,66 +1283,76 @@ const generatePanelPropsal = async (req, res) => {
       gst,
       termsAndConditions,
       selectedPanels: selectedPanel,
-      finalPrice
-    })
+      finalPrice,
+    });
     // console.log("createPanelPropsal : ", createPanelPropsal)
-
 
     return res.status(201).json({
       success: true,
-      message: "Panel created successfully. You can now view the panel proposal PDF."
-    })
-
+      message:
+        "Panel created successfully. You can now view the panel proposal PDF.",
+    });
   } catch (error) {
     // console.log("error : ",error);
 
     return res.status(500).json({
       success: false,
-      message: error?.message || "Internal Server Error.."
-    })
+      message: error?.message || "Internal Server Error..",
+    });
   }
-
-}
+};
 
 const updatePanelPropsal = async (req, res) => {
-  let { dealerId,
+  let {
+    dealerId,
     customerName,
     email,
     phone,
     address,
     gst,
     termsAndConditions,
-    selectedPanel
+    selectedPanel,
   } = req.body;
-
 
   // console.log("req.body ", req.body)
 
   try {
-
-    if (!dealerId || !customerName || !email || !phone || !address || !gst || !termsAndConditions || !selectedPanel) {
+    if (
+      !dealerId ||
+      !customerName ||
+      !email ||
+      !phone ||
+      !address ||
+      !gst ||
+      !termsAndConditions ||
+      !selectedPanel
+    ) {
       return res.status(404).json({
         success: false,
-        message: "All fields are required..(delarId,customerName,emal,phone,rate,address,gst,term & condition and Panel..)"
-      })
+        message:
+          "All fields are required..(delarId,customerName,emal,phone,rate,address,gst,term & condition and Panel..)",
+      });
     }
     email = email.toLowerCase().trim();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     gst = Number.parseFloat(gst);
-    phone = Number(phone)
+    phone = Number(phone);
 
     if (!mongoose.Types.ObjectId.isValid(dealerId)) {
       return res.status(400).json({ message: "Invalid dealerId" });
     }
 
     for (const panel of selectedPanel) {
-      if (!mongoose.Types.ObjectId.isValid(panel.panelId ||
-        !mongoose.Types.ObjectId.isValid(panel.technologyId) ||
-        !mongoose.Types.ObjectId.isValid(panel.constructiveId) ||
-        !mongoose.Types.ObjectId.isValid(panel.wattId)
-      )) {
+      if (
+        !mongoose.Types.ObjectId.isValid(
+          panel.panelId ||
+            !mongoose.Types.ObjectId.isValid(panel.technologyId) ||
+            !mongoose.Types.ObjectId.isValid(panel.constructiveId) ||
+            !mongoose.Types.ObjectId.isValid(panel.wattId),
+        )
+      ) {
         return res.status(400).json({
-          message: "Invalid ObjectId in selectedPanel"
+          message: "Invalid ObjectId in selectedPanel",
         });
       }
     }
@@ -1428,102 +1360,99 @@ const updatePanelPropsal = async (req, res) => {
     if (!emailRegex.test(email)) {
       return res.status(400).json({
         success: false,
-        message: "Invaild email format.."
-      })
-    }
-
-    if (typeof (phone) !== "number" || typeof (gst) !== "number") {
-      return res.status(400).json({
-        success: false,
-        message: "gst and phone number must be Type Number..."
-      })
-    }
-
-
-    const wattIds = selectedPanel.map(p => p.wattId);
-    const uniqueWattIds = new Set(wattIds);
-    if (wattIds.length !== uniqueWattIds.size) {
-      return res.status(400).json({
-        message: "Duplicate wattId found in selectedPanel"
+        message: "Invaild email format..",
       });
     }
 
+    if (typeof phone !== "number" || typeof gst !== "number") {
+      return res.status(400).json({
+        success: false,
+        message: "gst and phone number must be Type Number...",
+      });
+    }
+
+    const wattIds = selectedPanel.map((p) => p.wattId);
+    const uniqueWattIds = new Set(wattIds);
+    if (wattIds.length !== uniqueWattIds.size) {
+      return res.status(400).json({
+        message: "Duplicate wattId found in selectedPanel",
+      });
+    }
 
     const empExits = await CustomerModel.findOne({ email });
     // console.log("empExits", empExits)
     if (!empExits) {
       return res.status(409).json({
         success: false,
-        message: "Client not exists that you want to update. "
-      })
+        message: "Client not exists that you want to update. ",
+      });
     }
 
-
-    // update the client work pending 
+    // update the client work pending
 
     //  console.log("customerName : ",customerName)
-    let createCustomer = await CustomerModel.findByIdAndUpdate(empExits?._id, {
-      dealerId,
-      name: customerName,
-      email,
-      phone,
-      address,
-    }, { new: true });
+    let createCustomer = await CustomerModel.findByIdAndUpdate(
+      empExits?._id,
+      {
+        dealerId,
+        name: customerName,
+        email,
+        phone,
+        address,
+      },
+      { new: true },
+    );
 
     // console.log("createCustomer : ", createCustomer)
 
-
     const clientId = createCustomer?._id;
-
 
     // console.log("client Id : ", clientId);
     // console.log("create Customer: ", createCustomer);
 
-
-
-    const panelPropsalExits = await PanelModel.findOne({ customerId: clientId });
+    const panelPropsalExits = await PanelModel.findOne({
+      customerId: clientId,
+    });
     // console.log("panelPropsalExits : ", panelPropsalExits);
     if (!panelPropsalExits) {
       return res.status(400).json({
         success: false,
-        message: "Panel proposal not exists for this employee."
-      })
+        message: "Panel proposal not exists for this employee.",
+      });
     }
 
     const finalPrice = selectedPanel.reduce((total, item) => {
       return total + Number(item.totalPrice || 0) + Number(item.gstAmount || 0);
-    }, 0)
+    }, 0);
 
     // console.log("finalPrice : ", finalPrice)
 
-    const createPanelPropsal = await PanelModel.findByIdAndUpdate(panelPropsalExits?._id, {
-      dealerId,
-      customerId: clientId,
-      gst,
-      termsAndConditions,
-      selectedPanels: selectedPanel,
-      finalPrice
-
-    }, { new: true })
+    const createPanelPropsal = await PanelModel.findByIdAndUpdate(
+      panelPropsalExits?._id,
+      {
+        dealerId,
+        customerId: clientId,
+        gst,
+        termsAndConditions,
+        selectedPanels: selectedPanel,
+        finalPrice,
+      },
+      { new: true },
+    );
 
     // console.log("createPanelPropsal : ", createPanelPropsal)
     return res.status(201).json({
       success: true,
-      message: "Panel Proposal update successfully. You can now view Updated  panel proposal PDF."
-    })
-
+      message:
+        "Panel Proposal update successfully. You can now view Updated  panel proposal PDF.",
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error?.message || "Internal Server Error.."
-    })
+      message: error?.message || "Internal Server Error..",
+    });
   }
-
-
-}
-
-
-
+};
 
 module.exports = {
   loginDealer,
@@ -1535,5 +1464,5 @@ module.exports = {
   generateProposal,
   editProposal,
   generatePanelPropsal,
-  updatePanelPropsal
+  updatePanelPropsal,
 };
