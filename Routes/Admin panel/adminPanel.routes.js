@@ -66,4 +66,6 @@ panelRouter.get("/adminDashBoardData", adminDashBoardData);
 panelRouter.get('/excel-download', adminAuth, ExcelDownload);
 panelRouter.get('/getCustomerData', adminAuth, getCustomerData);
 
+panelRouter.get('/excel-download',adminAuth,ExcelDownload);
+
 module.exports = panelRouter

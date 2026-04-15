@@ -132,16 +132,20 @@ const registerDealer = async (req, res) => {
         .json({ success: false, message: "Dealer Already Exist" });
 
     let token = crypto.randomBytes(20).toString("hex");
+    let v=null;
+    console.log("dealer,",isDealerExist);
 
     //  check if dealer already exist but is not active
     if (isDealerExist && !isDealerExist.isActive) {
+      console.log("this is if")
       isDealerExist.token = token;
-      isDealerExist.tokenExpiry = new Date(Date.now() + 15 * 60000);
+      isDealerExist.tokenExpiry = new Date(Date.now() + 7 * 7 * 24 * 60 * 60 * 1000);
       isDealerExist.password = hashPass;
       await isDealerExist.save();
     }
     //  create fresh dealer
     else {
+      console.log("this is else")
       if (req.file) {
         await fsp.mkdir(folder, { recursive: true });
 
@@ -160,9 +164,11 @@ const registerDealer = async (req, res) => {
 
         // companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
         companyLogo = `http://localhost:1008/dealer_logo/${img}`;
+        // companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
+        companyLogo = `http://localhost:1008/dealer_logo/${img}`;
       }
 
-     const v= await DealerModel.create({
+       v= await DealerModel.create({
         firstName,
         lastName,
         email,
@@ -362,8 +368,8 @@ const updateDealerProfile = async (req, res) => {
 
       let newImagePath = path.join("Dealer_Logo", imgUrlName);
 
-      // let companyLogo = `http://localhost:1008/dealer_logo/${
-      let companyLogo = `https://gautamsolar.us/Dealer_Logo/${imgUrlName}`;
+      let companyLogo = `http://localhost:1008/dealer_logo/${imgUrlName}`
+      // let companyLogo = `https://gautamsolar.us/Dealer_Logo/${imgUrlName}`;
 
       let buf = req.file.buffer;
       await sharp(buf)
@@ -730,7 +736,7 @@ const getProposal = async (req, res) => {
       // ================= PROPOSALS =================
       {
         $lookup: {
-          from: "proposals",
+          from: "proposals", 
           let: { customerId: "$_id" },
           pipeline: [
             {
