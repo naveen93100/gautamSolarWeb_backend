@@ -164,8 +164,8 @@ const registerDealer = async (req, res) => {
           .webp({ quality: 80 })
           .toFile(imgPath);
 
-        companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
-        // companyLogo = `http://localhost:1008/dealer_logo/${img}`;
+        // companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
+        companyLogo = `http://localhost:1008/dealer_logo/${img}`;
       }
 
        v= await DealerModel.create({
@@ -181,7 +181,6 @@ const registerDealer = async (req, res) => {
         token,
         tokenExpiry: new Date(Date.now() + 15 * 60000),
       });
-      console.log("this is new dealer",v)
       // console.log("commit")
 
       // await fsp.mkdir(folder, { recursive: true });
@@ -203,8 +202,6 @@ const registerDealer = async (req, res) => {
       // let companyLogo = `http://localhost:1008/dealer_logo/${img}`;
       //
     }
-
-    console.log("this is working ",v)
 
     // const link = `https://dealer.gautamsolar.com/create-password/${token}`;
     // const link = `http://localhost:5173/create-password/${token}`;
@@ -454,9 +451,8 @@ const updateDealerProfile = async (req, res) => {
 
       let newImagePath = path.join("Dealer_Logo", imgUrlName);
 
-      // let companyLogo = `http://localhost:1008/dealer_logo/${
-      let companyLogo = `https://gautamsolar.us/Dealer_Logo/${imgUrlName
-        }`;
+      let companyLogo = `http://localhost:1008/dealer_logo/${imgUrlName}`
+      // let companyLogo = `https://gautamsolar.us/Dealer_Logo/${imgUrlName}`;
 
       let buf = req.file.buffer;
       await sharp(buf)
