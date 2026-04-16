@@ -9,13 +9,20 @@ const customerSchema = mongoose.Schema(
     name: String,
     email: {
       type: String,
-      unique:true,
+      required: true,
+      lowercase: true,
+      trim: true,
+      // unique:true,
     },
     phone: Number,
     address: String,
   },
-  { timestamps: true }
+
+  { timestamps: true },
 );
 
+
+customerSchema.index({ dealerId: 1, email: 1 }, { unique: true });
+
 const CustomerModel = mongoose.model("Customer", customerSchema);
-module.exports= CustomerModel;
+module.exports = CustomerModel;

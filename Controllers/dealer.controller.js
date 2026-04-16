@@ -132,20 +132,22 @@ const registerDealer = async (req, res) => {
         .json({ success: false, message: "Dealer Already Exist" });
 
     let token = crypto.randomBytes(20).toString("hex");
-    let v=null;
-    console.log("dealer,",isDealerExist);
+    let v = null;
+    console.log("dealer,", isDealerExist);
 
     //  check if dealer already exist but is not active
     if (isDealerExist && !isDealerExist.isActive) {
-      console.log("this is if")
+      console.log("this is if");
       isDealerExist.token = token;
-      isDealerExist.tokenExpiry = new Date(Date.now() + 7 * 7 * 24 * 60 * 60 * 1000);
+      isDealerExist.tokenExpiry = new Date(
+        Date.now() + 7 * 7 * 24 * 60 * 60 * 1000,
+      );
       isDealerExist.password = hashPass;
       await isDealerExist.save();
     }
     //  create fresh dealer
     else {
-      console.log("this is else")
+      console.log("this is else");
       if (req.file) {
         await fsp.mkdir(folder, { recursive: true });
 
@@ -168,7 +170,7 @@ const registerDealer = async (req, res) => {
         companyLogo = `http://localhost:1008/dealer_logo/${img}`;
       }
 
-       v= await DealerModel.create({
+      v = await DealerModel.create({
         firstName,
         lastName,
         email,
@@ -183,7 +185,7 @@ const registerDealer = async (req, res) => {
         tokenExpiry: new Date(Date.now() + 15 * 60000),
       });
 
-      console.log("THis is new Dealer:",v);
+      console.log("THis is new Dealer:", v);
 
       // await fsp.mkdir(folder, { recursive: true });
 
@@ -368,7 +370,7 @@ const updateDealerProfile = async (req, res) => {
 
       let newImagePath = path.join("Dealer_Logo", imgUrlName);
 
-      let companyLogo = `http://localhost:1008/dealer_logo/${imgUrlName}`
+      let companyLogo = `http://localhost:1008/dealer_logo/${imgUrlName}`;
       // let companyLogo = `https://gautamsolar.us/Dealer_Logo/${imgUrlName}`;
 
       let buf = req.file.buffer;
@@ -411,108 +413,111 @@ const updateDealerProfile = async (req, res) => {
   }
 };
 
-const createPropsal = async (req, res) => {
-  try {
-    // let error = validate(req.body);
+// const createPropsal = async (req, res) => {
 
-    // if (error.length >= 1) {
-    //   return res.status(400).json({ success: false, message: error[0].er });
-    // }
+//   try {
+//     // let error = validate(req.body);
 
-    let {
-      dealerId,
-      customerName,
-      email,
-      phone,
-      rate,
-      address,
-      orderCapacity,
-      termsAndConditions,
-      components,
-      tax,
-    } = req.body;
-    email = email.toLowerCase();
+//     // if (error.length >= 1) {
+//     //   return res.status(400).json({ success: false, message: error[0].er });
+//     // }
 
-    tax = Number.parseFloat(tax);
+//     let {
+//       dealerId,
+//       customerName,
+//       email,
+//       phone,
+//       rate,
+//       address,
+//       orderCapacity,
+//       termsAndConditions,
+//       components,
+//       tax,
+//     } = req.body;
+//     email = email.toLowerCase();
 
-    let createCustomer = await CustomerModel.findOne({ email });
+//     tax = Number.parseFloat(tax);
 
-    if (createCustomer)
-      return res
-        .status(409)
-        .json({ success: false, message: "Email already Exist" });
+//     let createCustomer = await CustomerModel.findOne({ email });
 
-    //first create customer
+//     if (createCustomer)
+//       return res
+//         .status(409)
+//         .json({ success: false, message: "Email already Exist" });
 
-    // let createCustomer = await CustomerModel.create({
-    //   dealerId,
-    //   name: customerName,
-    //   email,
-    //   phone,
-    //   address,
-    // });
+//     //first create customer
 
-    if (!createCustomer) {
-      createCustomer = await CustomerModel.create({
-        dealerId,
-        name: customerName,
-        email,
-        phone,
-        address,
-      });
-    }
+//     // let createCustomer = await CustomerModel.create({
+//     //   dealerId,
+//     //   name: customerName,
+//     //   email,
+//     //   phone,
+//     //   address,
+//     // });
 
-    //  create propsal
+//     if (!createCustomer) {
+//       createCustomer = await CustomerModel.create({
+//         dealerId,
+//         name: customerName,
+//         email,
+//         phone,
+//         address,
+//       });
+//     }
 
-    let names = components.map((item) => item.name);
+//     //  create propsal
 
-    let findComponent = await MaterialModel.find({
-      name: { $in: names },
-    }).select("_id name");
+//     let names = components.map((item) => item.name);
 
-    findComponent = names.map((item) =>
-      findComponent.find((v) => v.name === item),
-    );
+//     let findComponent = await MaterialModel.find({
+//       name: { $in: names },
+//     }).select("_id name");
 
-    let finalComponent = components.map((item, idx) => {
-      if (item.name === findComponent[idx]?.name) {
-        return {
-          mId: findComponent[idx]?._id,
-          quantity: item.qty,
-          isActive: true,
-        };
-      }
-    });
+//     findComponent = names.map((item) =>
+//       findComponent.find((v) => v.name === item),
+//     );
 
-    const price = orderCapacity * 1000 * rate;
-    const gstAmt = (price * tax) / 100;
-    const finalAmt = price + gstAmt;
+//     let finalComponent = components.map((item, idx) => {
+//       if (item.name === findComponent[idx]?.name) {
+//         return {
+//           mId: findComponent[idx]?._id,
+//           quantity: item.qty,
+//           isActive: true,
+//         };
+//       }
+//     });
 
-    let createProposal = new ProposalModel({
-      dealerId,
-      customerId: createCustomer._id,
-      rate: Number(rate),
-      orderCapacity: Number(orderCapacity) * 1000,
-      termsAndConditions,
-      material: finalComponent,
-      price,
-      gstAmt,
-      finalPrice: finalAmt,
-      tax: tax,
-    });
+//     const price = orderCapacity * 1000 * rate;
+//     const gstAmt = (price * tax) / 100;
+//     const finalAmt = price + gstAmt;
 
-    await createProposal.save();
-    await createProposal.populate("customerId");
+//     let createProposal = new ProposalModel({
+//       dealerId,
+//       customerId: createCustomer._id,
+//       rate: Number(rate),
+//       orderCapacity: Number(orderCapacity) * 1000,
+//       termsAndConditions,
+//       material: finalComponent,
+//       price,
+//       gstAmt,
+//       finalPrice: finalAmt,
+//       tax: tax,
+//     });
 
-    return res
-      .status(200)
-      .json({ success: true, message: "Proposal Created ", createProposal });
-  } catch (er) {
-    return res
-      .status(500)
-      .json({ success: false, message: er.message || "Internal Error" });
-  }
-};
+//     await createProposal.save();
+//     await createProposal.populate("customerId");
+
+//     return res
+//       .status(200)
+//       .json({ success: true, message: "Proposal Created ", createProposal });
+//   } catch (er) {
+//     return res
+//       .status(500)
+//       .json({ success: false, message: er.message || "Internal Error" });
+//   }
+// };
+
+// -------------------------------------------------------------
 
 const editProposal = async (req, res) => {
   try {
@@ -719,234 +724,235 @@ const editProposal = async (req, res) => {
 //   }
 // };
 
-const getProposal = async (req, res) => {
-  try {
-    let { dealerId } = req.params;
+// -----------------------------------------
+// const getProposal = async (req, res) => {
+//   try {
+//     let { dealerId } = req.params;
 
-    if (!dealerId)
-      return res
-        .status(400)
-        .json({ success: false, message: "Dealer Id not found" });
+//     if (!dealerId)
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "Dealer Id not found" });
 
-    let customersProposal = await CustomerModel.aggregate([
-      {
-        $match: { dealerId: new mongoose.Types.ObjectId(dealerId) },
-      },
+//     let customersProposal = await CustomerModel.aggregate([
+//       {
+//         $match: { dealerId: new mongoose.Types.ObjectId(dealerId) },
+//       },
 
-      // ================= PROPOSALS =================
-      {
-        $lookup: {
-          from: "proposals", 
-          let: { customerId: "$_id" },
-          pipeline: [
-            {
-              $match: {
-                $expr: { $eq: ["$customerId", "$$customerId"] },
-              },
-            },
-            {
-              $lookup: {
-                from: "materials",
-                localField: "material.mId",
-                foreignField: "_id",
-                as: "materialData",
-              },
-            },
-            {
-              $addFields: {
-                material: {
-                  $map: {
-                    input: "$material",
-                    as: "mat",
-                    in: {
-                      $mergeObjects: [
-                        "$$mat",
-                        {
-                          materialData: {
-                            $arrayElemAt: [
-                              {
-                                $filter: {
-                                  input: "$materialData",
-                                  as: "md",
-                                  cond: { $eq: ["$$md._id", "$$mat.mId"] },
-                                },
-                              },
-                              0,
-                            ],
-                          },
-                        },
-                      ],
-                    },
-                  },
-                },
-              },
-            },
-            { $project: { materialData: 0 } },
-          ],
-          as: "proposalsData",
-        },
-      },
+//       // ================= PROPOSALS =================
+//       {
+//         $lookup: {
+//           from: "proposals",
+//           let: { customerId: "$_id" },
+//           pipeline: [
+//             {
+//               $match: {
+//                 $expr: { $eq: ["$customerId", "$$customerId"] },
+//               },
+//             },
+//             {
+//               $lookup: {
+//                 from: "materials",
+//                 localField: "material.mId",
+//                 foreignField: "_id",
+//                 as: "materialData",
+//               },
+//             },
+//             {
+//               $addFields: {
+//                 material: {
+//                   $map: {
+//                     input: "$material",
+//                     as: "mat",
+//                     in: {
+//                       $mergeObjects: [
+//                         "$$mat",
+//                         {
+//                           materialData: {
+//                             $arrayElemAt: [
+//                               {
+//                                 $filter: {
+//                                   input: "$materialData",
+//                                   as: "md",
+//                                   cond: { $eq: ["$$md._id", "$$mat.mId"] },
+//                                 },
+//                               },
+//                               0,
+//                             ],
+//                           },
+//                         },
+//                       ],
+//                     },
+//                   },
+//                 },
+//               },
+//             },
+//             { $project: { materialData: 0 } },
+//           ],
+//           as: "proposalsData",
+//         },
+//       },
 
-      // ================= PANELS =================
-      // {
-      //   $lookup: {
-      //     from: "panelmodels",   // collection name (mongoose lowercases)
-      //     let: { customerId: "$_id" },
-      //     pipeline: [
-      //       {
-      //         $match: {
-      //           $expr: { $eq: ["$customerId", "$$customerId"] }
-      //         }
-      //       }
-      //     ],
-      //     as: "panelData"
-      //   }
-      // },
-      // ================= PANELS =================
-      {
-        $lookup: {
-          from: "panelmodels",
-          let: { customerId: "$_id" },
-          pipeline: [
-            {
-              $match: {
-                $expr: { $eq: ["$customerId", "$$customerId"] },
-              },
-            },
+//       // ================= PANELS =================
+//       // {
+//       //   $lookup: {
+//       //     from: "panelmodels",   // collection name (mongoose lowercases)
+//       //     let: { customerId: "$_id" },
+//       //     pipeline: [
+//       //       {
+//       //         $match: {
+//       //           $expr: { $eq: ["$customerId", "$$customerId"] }
+//       //         }
+//       //       }
+//       //     ],
+//       //     as: "panelData"
+//       //   }
+//       // },
+//       // ================= PANELS =================
+//       {
+//         $lookup: {
+//           from: "panelmodels",
+//           let: { customerId: "$_id" },
+//           pipeline: [
+//             {
+//               $match: {
+//                 $expr: { $eq: ["$customerId", "$$customerId"] },
+//               },
+//             },
 
-            // Panel
-            {
-              $lookup: {
-                from: "panels",
-                localField: "selectedPanels.panelId",
-                foreignField: "_id",
-                as: "panelInfo",
-              },
-            },
+//             // Panel
+//             {
+//               $lookup: {
+//                 from: "panels",
+//                 localField: "selectedPanels.panelId",
+//                 foreignField: "_id",
+//                 as: "panelInfo",
+//               },
+//             },
 
-            // Technology
-            {
-              $lookup: {
-                from: "technologies",
-                localField: "selectedPanels.technologyId",
-                foreignField: "_id",
-                as: "technologyInfo",
-              },
-            },
+//             // Technology
+//             {
+//               $lookup: {
+//                 from: "technologies",
+//                 localField: "selectedPanels.technologyId",
+//                 foreignField: "_id",
+//                 as: "technologyInfo",
+//               },
+//             },
 
-            // Constructive
-            {
-              $lookup: {
-                from: "constructives",
-                localField: "selectedPanels.constructiveId",
-                foreignField: "_id",
-                as: "constructiveInfo",
-              },
-            },
+//             // Constructive
+//             {
+//               $lookup: {
+//                 from: "constructives",
+//                 localField: "selectedPanels.constructiveId",
+//                 foreignField: "_id",
+//                 as: "constructiveInfo",
+//               },
+//             },
 
-            // Watt
-            {
-              $lookup: {
-                from: "panelwatts",
-                localField: "selectedPanels.wattId",
-                foreignField: "_id",
-                as: "wattInfo",
-              },
-            },
+//             // Watt
+//             {
+//               $lookup: {
+//                 from: "panelwatts",
+//                 localField: "selectedPanels.wattId",
+//                 foreignField: "_id",
+//                 as: "wattInfo",
+//               },
+//             },
 
-            // Merge all inner data back into selectedPanels
-            {
-              $addFields: {
-                selectedPanels: {
-                  $map: {
-                    input: "$selectedPanels",
-                    as: "sp",
-                    in: {
-                      $mergeObjects: [
-                        "$$sp",
-                        {
-                          panelType: {
-                            $arrayElemAt: [
-                              {
-                                $filter: {
-                                  input: "$panelInfo",
-                                  as: "p",
-                                  cond: { $eq: ["$$p._id", "$$sp.panelId"] },
-                                },
-                              },
-                              0,
-                            ],
-                          },
-                          technology: {
-                            $arrayElemAt: [
-                              {
-                                $filter: {
-                                  input: "$technologyInfo",
-                                  as: "t",
-                                  cond: {
-                                    $eq: ["$$t._id", "$$sp.technologyId"],
-                                  },
-                                },
-                              },
-                              0,
-                            ],
-                          },
-                          constructive: {
-                            $arrayElemAt: [
-                              {
-                                $filter: {
-                                  input: "$constructiveInfo",
-                                  as: "c",
-                                  cond: {
-                                    $eq: ["$$c._id", "$$sp.constructiveId"],
-                                  },
-                                },
-                              },
-                              0,
-                            ],
-                          },
-                          watt: {
-                            $arrayElemAt: [
-                              {
-                                $filter: {
-                                  input: "$wattInfo",
-                                  as: "w",
-                                  cond: { $eq: ["$$w._id", "$$sp.wattId"] },
-                                },
-                              },
-                              0,
-                            ],
-                          },
-                        },
-                      ],
-                    },
-                  },
-                },
-              },
-            },
+//             // Merge all inner data back into selectedPanels
+//             {
+//               $addFields: {
+//                 selectedPanels: {
+//                   $map: {
+//                     input: "$selectedPanels",
+//                     as: "sp",
+//                     in: {
+//                       $mergeObjects: [
+//                         "$$sp",
+//                         {
+//                           panelType: {
+//                             $arrayElemAt: [
+//                               {
+//                                 $filter: {
+//                                   input: "$panelInfo",
+//                                   as: "p",
+//                                   cond: { $eq: ["$$p._id", "$$sp.panelId"] },
+//                                 },
+//                               },
+//                               0,
+//                             ],
+//                           },
+//                           technology: {
+//                             $arrayElemAt: [
+//                               {
+//                                 $filter: {
+//                                   input: "$technologyInfo",
+//                                   as: "t",
+//                                   cond: {
+//                                     $eq: ["$$t._id", "$$sp.technologyId"],
+//                                   },
+//                                 },
+//                               },
+//                               0,
+//                             ],
+//                           },
+//                           constructive: {
+//                             $arrayElemAt: [
+//                               {
+//                                 $filter: {
+//                                   input: "$constructiveInfo",
+//                                   as: "c",
+//                                   cond: {
+//                                     $eq: ["$$c._id", "$$sp.constructiveId"],
+//                                   },
+//                                 },
+//                               },
+//                               0,
+//                             ],
+//                           },
+//                           watt: {
+//                             $arrayElemAt: [
+//                               {
+//                                 $filter: {
+//                                   input: "$wattInfo",
+//                                   as: "w",
+//                                   cond: { $eq: ["$$w._id", "$$sp.wattId"] },
+//                                 },
+//                               },
+//                               0,
+//                             ],
+//                           },
+//                         },
+//                       ],
+//                     },
+//                   },
+//                 },
+//               },
+//             },
 
-            {
-              $project: {
-                panelInfo: 0,
-                technologyInfo: 0,
-                constructiveInfo: 0,
-                wattInfo: 0,
-              },
-            },
-          ],
-          as: "panelData",
-        },
-      },
-      { $sort: { _id: -1 } },
-    ]);
+//             {
+//               $project: {
+//                 panelInfo: 0,
+//                 technologyInfo: 0,
+//                 constructiveInfo: 0,
+//                 wattInfo: 0,
+//               },
+//             },
+//           ],
+//           as: "panelData",
+//         },
+//       },
+//       { $sort: { _id: -1 } },
+//     ]);
 
-    return res.status(200).json({ success: true, customersProposal });
-  } catch (er) {
-    return res
-      .status(500)
-      .json({ success: false, message: er.message || "Internal Error" });
-  }
-};
+//     return res.status(200).json({ success: true, customersProposal });
+//   } catch (er) {
+//     return res
+//       .status(500)
+//       .json({ success: false, message: er.message || "Internal Error" });
+//   }
+// };
 
 const generateProposal = async (req, res) => {
   try {
@@ -1169,6 +1175,7 @@ const generateProposal = async (req, res) => {
   }
 };
 
+//   panel proposal
 const generatePanelPropsal = async (req, res) => {
   let {
     dealerId,
@@ -1267,6 +1274,7 @@ const generatePanelPropsal = async (req, res) => {
     const panelPropsalExits = await PanelModel.findOne({
       customerId: clientId,
     });
+
     // console.log("panelPropsalExits : ", panelPropsalExits)
     if (panelPropsalExits) {
       return res.status(400).json({
@@ -1460,15 +1468,550 @@ const updatePanelPropsal = async (req, res) => {
   }
 };
 
+// ----------new 
+const createCustomer = async (req, res) => {
+  try {
+    const { dealerId, name, email, phone, address } = req.body;
+
+    if (!name || !email || !phone || !address)
+      return res.status(400).json({
+        success: false,
+        message:
+          "Missing required fields. Please fill in all the details before proceeding.",
+      });
+
+    if (!mongoose.isValidObjectId(dealerId))
+      return res.status(400).json({
+        success: false,
+        message:
+          "The provided dealer ID is not valid. Please check and try again.",
+      });
+
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email))
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid email address.",
+      });
+
+    const newCustomer = await CustomerModel.create({
+      dealerId,
+      name,
+      email,
+      phone,
+      address,
+    });
+
+    return res.status(201).json({ success: true, data: newCustomer });
+  } catch (er) {
+    if (er?.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Customer already exists with this email.",
+      });
+    }
+    return res
+      .status(500)
+      .json({ success: false, message: er?.message, err: er.code });
+  }
+};
+
+const getProposal = async (req, res) => {
+  try {
+    let { dealerId } = req.params;
+    let { customerId } = req.body;
+
+    // ================= VALIDATION =================
+    if (
+      !dealerId ||
+      !mongoose.isValidObjectId(dealerId) ||
+      !customerId ||
+      !mongoose.isValidObjectId(customerId)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid dealerId or customerId",
+      });
+    }
+
+    let customersProposal = await CustomerModel.aggregate([
+      {
+        $match: {
+          dealerId: new mongoose.Types.ObjectId(dealerId),
+          _id: new mongoose.Types.ObjectId(customerId),
+        },
+      },
+
+      // ================= PROPOSALS =================
+      {
+        $lookup: {
+          from: "proposals",
+          let: { customerId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$customerId", "$$customerId"] },
+              },
+            },
+            {
+              $lookup: {
+                from: "materials",
+                localField: "material.mId",
+                foreignField: "_id",
+                as: "materialData",
+              },
+            },
+            {
+              $addFields: {
+                material: {
+                  $map: {
+                    input: "$material",
+                    as: "mat",
+                    in: {
+                      $mergeObjects: [
+                        "$$mat",
+                        {
+                          materialData: {
+                            $arrayElemAt: [
+                              {
+                                $filter: {
+                                  input: "$materialData",
+                                  as: "md",
+                                  cond: {
+                                    $eq: ["$$md._id", "$$mat.mId"],
+                                  },
+                                },
+                              },
+                              0,
+                            ],
+                          },
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+            { $project: { materialData: 0 } },
+          ],
+          as: "proposalsData",
+        },
+      },
+
+      // ================= PANELS =================
+      {
+        $lookup: {
+          from: "panelmodels",
+          let: { customerId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$customerId", "$$customerId"] },
+              },
+            },
+
+            // Panel
+            {
+              $lookup: {
+                from: "panels",
+                localField: "selectedPanels.panelId",
+                foreignField: "_id",
+                as: "panelInfo",
+              },
+            },
+
+            // Technology
+            {
+              $lookup: {
+                from: "technologies",
+                localField: "selectedPanels.technologyId",
+                foreignField: "_id",
+                as: "technologyInfo",
+              },
+            },
+
+            // Constructive
+            {
+              $lookup: {
+                from: "constructives",
+                localField: "selectedPanels.constructiveId",
+                foreignField: "_id",
+                as: "constructiveInfo",
+              },
+            },
+
+            // Watt
+            {
+              $lookup: {
+                from: "panelwatts",
+                localField: "selectedPanels.wattId",
+                foreignField: "_id",
+                as: "wattInfo",
+              },
+            },
+
+            // Merge all inner data back into selectedPanels
+            {
+              $addFields: {
+                selectedPanels: {
+                  $map: {
+                    input: "$selectedPanels",
+                    as: "sp",
+                    in: {
+                      $mergeObjects: [
+                        "$$sp",
+                        {
+                          panelType: {
+                            $arrayElemAt: [
+                              {
+                                $filter: {
+                                  input: "$panelInfo",
+                                  as: "p",
+                                  cond: {
+                                    $eq: ["$$p._id", "$$sp.panelId"],
+                                  },
+                                },
+                              },
+                              0,
+                            ],
+                          },
+                          technology: {
+                            $arrayElemAt: [
+                              {
+                                $filter: {
+                                  input: "$technologyInfo",
+                                  as: "t",
+                                  cond: {
+                                    $eq: ["$$t._id", "$$sp.technologyId"],
+                                  },
+                                },
+                              },
+                              0,
+                            ],
+                          },
+                          constructive: {
+                            $arrayElemAt: [
+                              {
+                                $filter: {
+                                  input: "$constructiveInfo",
+                                  as: "c",
+                                  cond: {
+                                    $eq: ["$$c._id", "$$sp.constructiveId"],
+                                  },
+                                },
+                              },
+                              0,
+                            ],
+                          },
+                          watt: {
+                            $arrayElemAt: [
+                              {
+                                $filter: {
+                                  input: "$wattInfo",
+                                  as: "w",
+                                  cond: {
+                                    $eq: ["$$w._id", "$$sp.wattId"],
+                                  },
+                                },
+                              },
+                              0,
+                            ],
+                          },
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+
+            {
+              $project: {
+                panelInfo: 0,
+                technologyInfo: 0,
+                constructiveInfo: 0,
+                wattInfo: 0,
+              },
+            },
+          ],
+          as: "panelData",
+        },
+      },
+
+      { $sort: { _id: -1 } },
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: customersProposal[0] || null, // single customer
+    });
+  } catch (er) {
+    return res.status(500).json({
+      success: false,
+      message: er.message || "Internal Error",
+    });
+  }
+};
+
+const getCustomers=async(req,res)=>{
+   try {
+
+    const {dealerId}=req.body;
+
+    if(!mongoose.isValidObjectId(dealerId)) return res.status(400).json({success:false,message:"Invalid or missing Id"});
+
+    const customer=await CustomerModel.find({dealerId});
+
+    return res.status(200).json({success:true,data:customer});
+    
+   } catch (er) {
+       return res.status(500).json({success:false,message:er?.message});
+   }
+}
+
+// solar power plant proposal
+const createProposal = async (req, res) => {
+  try {
+    let {
+      dealerId,
+      customerId,
+      rate,
+      orderCapacity,
+      termsAndConditions,
+      components,
+      tax,
+    } = req.body;
+
+    tax = Number.parseFloat(tax);
+
+    // check if id's valid mongooseId or not
+    if (
+      !mongoose.isValidObjectId(dealerId) ||
+      !mongoose.isValidObjectId(customerId)
+    )
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid ID provided" });
+
+    //  first find that dealer and customer exist or not
+    const [dealerExist, customerExist] = await Promise.all([
+      DealerModel.findById(dealerId),
+      CustomerModel.findById(customerId),
+    ]);
+
+    if (!dealerExist || !customerExist) {
+      return res.status(404).json({
+        success: false,
+        message: "Dealer or customer not found.",
+      });
+    }
+
+    let names = components.map((item) => item.name);
+
+    let findComponent = await MaterialModel.find({
+      name: { $in: names },
+    }).select("_id name");
+
+    findComponent = names.map((item) =>
+      findComponent.find((v) => v.name === item),
+    );
+
+    let finalComponent = components
+      .map((item, idx) => {
+        if (item.name === findComponent[idx]?.name) {
+          return {
+            mId: findComponent[idx]?._id,
+            quantity: item.qty,
+            isActive: true,
+          };
+        }
+      })
+      .filter(Boolean);
+
+    const numericCapacity = Number(orderCapacity);
+    const numericRate = Number(rate);
+
+    const price = numericCapacity * 1000 * numericRate;
+    const gstAmt = (price * tax) / 100;
+    const finalAmt = price + gstAmt;
+
+    let createProposal = await ProposalModel.create({
+      dealerId,
+      customerId,
+      rate: numericRate,
+      orderCapacity: numericCapacity * 1000,
+      termsAndConditions,
+      material: finalComponent,
+      price,
+      gstAmt,
+      finalPrice: finalAmt,
+      tax: tax,
+    });
+
+    await createProposal.populate("customerId");
+
+    return res
+      .status(201)
+      .json({ success: true, message: "Proposal Created ", createProposal });
+  } catch (er) {
+    return res
+      .status(500)
+      .json({ success: false, message: er.message || "Internal Error" });
+  }
+};
+
+// solar panel proposal
+const createPanelProposal = async (req, res) => {
+  let {
+    dealerId,
+    customerName,
+    email,
+    phone,
+    address,
+    gst,
+    termsAndConditions,
+    selectedPanel,
+  } = req.body;
+
+  // console.log("req.body : ", req.body)
+  // console.log(dealerId, customerName, email, phone, rate,
+  //   address, gst, termsAndConditions, selectedPanel
+  // )
+  try {
+    if (
+      !dealerId ||
+      !customerName ||
+      !email ||
+      !phone ||
+      !address ||
+      !gst ||
+      !termsAndConditions ||
+      !selectedPanel
+    ) {
+      return res.status(404).json({
+        success: false,
+        message:
+          "All fields are required..(delarId,customerName,emal,phone,rate,address,gst,term & condition and Panel..)",
+      });
+    }
+    email = email.toLowerCase().trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    gst = Number.parseFloat(gst);
+    phone = Number(phone);
+
+    if (!mongoose.Types.ObjectId.isValid(dealerId)) {
+      return res.status(400).json({ message: "Invalid dealerId" });
+    }
+
+    for (const panel of selectedPanel) {
+      if (
+        !mongoose.Types.ObjectId.isValid(
+          panel.panelId ||
+            !mongoose.Types.ObjectId.isValid(panel.technologyId) ||
+            !mongoose.Types.ObjectId.isValid(panel.constructiveId) ||
+            !mongoose.Types.ObjectId.isValid(panel.wattId),
+        )
+      ) {
+        return res.status(400).json({
+          message: "Invalid ObjectId in selectedPanel",
+        });
+      }
+    }
+
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invaild email format..",
+      });
+    }
+
+    if (typeof phone !== "number" || typeof gst !== "number") {
+      return res.status(400).json({
+        success: false,
+        message: "gst and phone number must be Type Number...",
+      });
+    }
+
+    const wattIds = selectedPanel.map((p) => p.wattId);
+    const uniqueWattIds = new Set(wattIds);
+    if (wattIds.length !== uniqueWattIds.size) {
+      return res.status(400).json({
+        message: "Duplicate wattId found in selectedPanel",
+      });
+    }
+
+    let createCustomer = await CustomerModel.findOne({ email });
+
+    if (!createCustomer) {
+      createCustomer = await CustomerModel.create({
+        dealerId,
+        name: customerName,
+        email,
+        phone,
+        address,
+      });
+    }
+
+    const clientId = createCustomer?._id;
+    // console.log("client Id : ", clientId);
+    // console.log("create Customer: ", createCustomer);
+
+    const panelPropsalExits = await PanelModel.findOne({
+      customerId: clientId,
+    });
+    
+    // console.log("panelPropsalExits : ", panelPropsalExits)
+    if (panelPropsalExits) {
+      return res.status(400).json({
+        success: false,
+        message: "Panel proposal already exists for this employee.",
+      });
+    }
+
+    // calculate final price
+    // store panel propsal data in PanelModel : dealerId,clientId,tax,termsAndConditions,selectedPanel,final Price
+
+    const finalPrice = selectedPanel.reduce((total, item) => {
+      return total + Number(item.totalPrice || 0) + Number(item.gstAmount || 0);
+    }, 0);
+
+    // console.log("finalPrice : ", finalPrice)
+    const createPanelPropsal = await PanelModel.create({
+      dealerId,
+      customerId: clientId,
+      gst,
+      termsAndConditions,
+      selectedPanels: selectedPanel,
+      finalPrice,
+    });
+    // console.log("createPanelPropsal : ", createPanelPropsal)
+
+    return res.status(201).json({
+      success: true,
+      message:
+        "Panel created successfully. You can now view the panel proposal PDF.",
+    });
+  } catch (error) {
+    // console.log("error : ",error);
+
+    return res.status(500).json({
+      success: false,
+      message: error?.message || "Internal Server Error..",
+    });
+  }
+};
+
 module.exports = {
   loginDealer,
   registerDealer,
   createPassword,
   updateDealerProfile,
-  createPropsal,
+  createProposal,
   getProposal,
   generateProposal,
   editProposal,
   generatePanelPropsal,
   updatePanelPropsal,
+  createCustomer,
+  getCustomers
 };
