@@ -1518,8 +1518,7 @@ const createCustomer = async (req, res) => {
 
 const getProposal = async (req, res) => {
   try {
-    let { dealerId } = req.params;
-    let { customerId } = req.body;
+    let { dealerId,customerId } = req.query;
 
     // ================= VALIDATION =================
     if (
@@ -1862,6 +1861,7 @@ const createProposal = async (req, res) => {
 
 // solar panel proposal
 const createPanelProposal = async (req, res) => {
+
   let {
     dealerId,
     customerName,
