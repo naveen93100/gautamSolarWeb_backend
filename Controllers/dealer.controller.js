@@ -1755,7 +1755,7 @@ const getProposal = async (req, res) => {
 const getCustomers=async(req,res)=>{
    try {
 
-    const {dealerId}=req.body;
+    const {dealerId}=req.query;
 
     if(!mongoose.isValidObjectId(dealerId)) return res.status(400).json({success:false,message:"Invalid or missing Id"});
 
