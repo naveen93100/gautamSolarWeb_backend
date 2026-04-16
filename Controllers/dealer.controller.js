@@ -1516,9 +1516,245 @@ const createCustomer = async (req, res) => {
   }
 };
 
+// const getProposal = async (req, res) => {
+//   try {
+//     let { dealerId,customerId } = req.query;
+
+//     // ================= VALIDATION =================
+//     if (
+//       !dealerId ||
+//       !mongoose.isValidObjectId(dealerId) ||
+//       !customerId ||
+//       !mongoose.isValidObjectId(customerId)
+//     ) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid dealerId or customerId",
+//       });
+//     }
+
+//     let customersProposal = await CustomerModel.aggregate([
+//       {
+//         $match: {
+//           dealerId: new mongoose.Types.ObjectId(dealerId),
+//           _id: new mongoose.Types.ObjectId(customerId),
+//         },
+//       },
+
+//       // ================= PROPOSALS =================
+//       {
+//         $lookup: {
+//           from: "proposals",
+//           let: { customerId: "$_id" },
+//           pipeline: [
+//             {
+//               $match: {
+//                 $expr: { $eq: ["$customerId", "$$customerId"] },
+//               },
+//             },
+//             {
+//               $lookup: {
+//                 from: "materials",
+//                 localField: "material.mId",
+//                 foreignField: "_id",
+//                 as: "materialData",
+//               },
+//             },
+//             {
+//               $addFields: {
+//                 material: {
+//                   $map: {
+//                     input: "$material",
+//                     as: "mat",
+//                     in: {
+//                       $mergeObjects: [
+//                         "$$mat",
+//                         {
+//                           materialData: {
+//                             $arrayElemAt: [
+//                               {
+//                                 $filter: {
+//                                   input: "$materialData",
+//                                   as: "md",
+//                                   cond: {
+//                                     $eq: ["$$md._id", "$$mat.mId"],
+//                                   },
+//                                 },
+//                               },
+//                               0,
+//                             ],
+//                           },
+//                         },
+//                       ],
+//                     },
+//                   },
+//                 },
+//               },
+//             },
+//             { $project: { materialData: 0 } },
+//           ],
+//           as: "proposalsData",
+//         },
+//       },
+
+//       // ================= PANELS =================
+//       {
+//         $lookup: {
+//           from: "panelmodels",
+//           let: { customerId: "$_id" },
+//           pipeline: [
+//             {
+//               $match: {
+//                 $expr: { $eq: ["$customerId", "$$customerId"] },
+//               },
+//             },
+
+//             // Panel
+//             {
+//               $lookup: {
+//                 from: "panels",
+//                 localField: "selectedPanels.panelId",
+//                 foreignField: "_id",
+//                 as: "panelInfo",
+//               },
+//             },
+
+//             // Technology
+//             {
+//               $lookup: {
+//                 from: "technologies",
+//                 localField: "selectedPanels.technologyId",
+//                 foreignField: "_id",
+//                 as: "technologyInfo",
+//               },
+//             },
+
+//             // Constructive
+//             {
+//               $lookup: {
+//                 from: "constructives",
+//                 localField: "selectedPanels.constructiveId",
+//                 foreignField: "_id",
+//                 as: "constructiveInfo",
+//               },
+//             },
+
+//             // Watt
+//             {
+//               $lookup: {
+//                 from: "panelwatts",
+//                 localField: "selectedPanels.wattId",
+//                 foreignField: "_id",
+//                 as: "wattInfo",
+//               },
+//             },
+
+//             // Merge all inner data back into selectedPanels
+//             {
+//               $addFields: {
+//                 selectedPanels: {
+//                   $map: {
+//                     input: "$selectedPanels",
+//                     as: "sp",
+//                     in: {
+//                       $mergeObjects: [
+//                         "$$sp",
+//                         {
+//                           panelType: {
+//                             $arrayElemAt: [
+//                               {
+//                                 $filter: {
+//                                   input: "$panelInfo",
+//                                   as: "p",
+//                                   cond: {
+//                                     $eq: ["$$p._id", "$$sp.panelId"],
+//                                   },
+//                                 },
+//                               },
+//                               0,
+//                             ],
+//                           },
+//                           technology: {
+//                             $arrayElemAt: [
+//                               {
+//                                 $filter: {
+//                                   input: "$technologyInfo",
+//                                   as: "t",
+//                                   cond: {
+//                                     $eq: ["$$t._id", "$$sp.technologyId"],
+//                                   },
+//                                 },
+//                               },
+//                               0,
+//                             ],
+//                           },
+//                           constructive: {
+//                             $arrayElemAt: [
+//                               {
+//                                 $filter: {
+//                                   input: "$constructiveInfo",
+//                                   as: "c",
+//                                   cond: {
+//                                     $eq: ["$$c._id", "$$sp.constructiveId"],
+//                                   },
+//                                 },
+//                               },
+//                               0,
+//                             ],
+//                           },
+//                           watt: {
+//                             $arrayElemAt: [
+//                               {
+//                                 $filter: {
+//                                   input: "$wattInfo",
+//                                   as: "w",
+//                                   cond: {
+//                                     $eq: ["$$w._id", "$$sp.wattId"],
+//                                   },
+//                                 },
+//                               },
+//                               0,
+//                             ],
+//                           },
+//                         },
+//                       ],
+//                     },
+//                   },
+//                 },
+//               },
+//             },
+
+//             {
+//               $project: {
+//                 panelInfo: 0,
+//                 technologyInfo: 0,
+//                 constructiveInfo: 0,
+//                 wattInfo: 0,
+//               },
+//             },
+//           ],
+//           as: "panelData",
+//         },
+//       },
+
+//       { $sort: { _id: -1 } },
+//     ]);
+
+//     return res.status(200).json({
+//       success: true,
+//       data: customersProposal[0] || null, // single customer
+//     });
+//   } catch (er) {
+//     return res.status(500).json({
+//       success: false,
+//       message: er.message || "Internal Error",
+//     });
+//   }
+// };
+
 const getProposal = async (req, res) => {
   try {
-    let { dealerId,customerId } = req.query;
+    let { dealerId, customerId } = req.query;
 
     // ================= VALIDATION =================
     if (
@@ -1533,7 +1769,7 @@ const getProposal = async (req, res) => {
       });
     }
 
-    let customersProposal = await CustomerModel.aggregate([
+    const customersProposal = await CustomerModel.aggregate([
       {
         $match: {
           dealerId: new mongoose.Types.ObjectId(dealerId),
@@ -1552,6 +1788,8 @@ const getProposal = async (req, res) => {
                 $expr: { $eq: ["$customerId", "$$customerId"] },
               },
             },
+
+            // ===== MATERIAL =====
             {
               $lookup: {
                 from: "materials",
@@ -1592,148 +1830,162 @@ const getProposal = async (req, res) => {
               },
             },
             { $project: { materialData: 0 } },
-          ],
-          as: "proposalsData",
-        },
-      },
 
-      // ================= PANELS =================
-      {
-        $lookup: {
-          from: "panelmodels",
-          let: { customerId: "$_id" },
-          pipeline: [
-            {
-              $match: {
-                $expr: { $eq: ["$customerId", "$$customerId"] },
-              },
-            },
-
-            // Panel
+            // ===== PANELS (NOW INSIDE PROPOSAL) =====
             {
               $lookup: {
-                from: "panels",
-                localField: "selectedPanels.panelId",
-                foreignField: "_id",
-                as: "panelInfo",
-              },
-            },
+                from: "panelmodels",
+                let: { customerId: "$customerId" },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $eq: ["$customerId", "$$customerId"],
+                      },
+                    },
+                  },
 
-            // Technology
-            {
-              $lookup: {
-                from: "technologies",
-                localField: "selectedPanels.technologyId",
-                foreignField: "_id",
-                as: "technologyInfo",
-              },
-            },
+                  // Panel
+                  {
+                    $lookup: {
+                      from: "panels",
+                      localField: "selectedPanels.panelId",
+                      foreignField: "_id",
+                      as: "panelInfo",
+                    },
+                  },
 
-            // Constructive
-            {
-              $lookup: {
-                from: "constructives",
-                localField: "selectedPanels.constructiveId",
-                foreignField: "_id",
-                as: "constructiveInfo",
-              },
-            },
+                  // Technology
+                  {
+                    $lookup: {
+                      from: "technologies",
+                      localField: "selectedPanels.technologyId",
+                      foreignField: "_id",
+                      as: "technologyInfo",
+                    },
+                  },
 
-            // Watt
-            {
-              $lookup: {
-                from: "panelwatts",
-                localField: "selectedPanels.wattId",
-                foreignField: "_id",
-                as: "wattInfo",
-              },
-            },
+                  // Constructive
+                  {
+                    $lookup: {
+                      from: "constructives",
+                      localField: "selectedPanels.constructiveId",
+                      foreignField: "_id",
+                      as: "constructiveInfo",
+                    },
+                  },
 
-            // Merge all inner data back into selectedPanels
-            {
-              $addFields: {
-                selectedPanels: {
-                  $map: {
-                    input: "$selectedPanels",
-                    as: "sp",
-                    in: {
-                      $mergeObjects: [
-                        "$$sp",
-                        {
-                          panelType: {
-                            $arrayElemAt: [
+                  // Watt
+                  {
+                    $lookup: {
+                      from: "panelwatts",
+                      localField: "selectedPanels.wattId",
+                      foreignField: "_id",
+                      as: "wattInfo",
+                    },
+                  },
+
+                  // Merge panel data
+                  {
+                    $addFields: {
+                      selectedPanels: {
+                        $map: {
+                          input: "$selectedPanels",
+                          as: "sp",
+                          in: {
+                            $mergeObjects: [
+                              "$$sp",
                               {
-                                $filter: {
-                                  input: "$panelInfo",
-                                  as: "p",
-                                  cond: {
-                                    $eq: ["$$p._id", "$$sp.panelId"],
-                                  },
+                                panelType: {
+                                  $arrayElemAt: [
+                                    {
+                                      $filter: {
+                                        input: "$panelInfo",
+                                        as: "p",
+                                        cond: {
+                                          $eq: [
+                                            "$$p._id",
+                                            "$$sp.panelId",
+                                          ],
+                                        },
+                                      },
+                                    },
+                                    0,
+                                  ],
+                                },
+                                technology: {
+                                  $arrayElemAt: [
+                                    {
+                                      $filter: {
+                                        input: "$technologyInfo",
+                                        as: "t",
+                                        cond: {
+                                          $eq: [
+                                            "$$t._id",
+                                            "$$sp.technologyId",
+                                          ],
+                                        },
+                                      },
+                                    },
+                                    0,
+                                  ],
+                                },
+                                constructive: {
+                                  $arrayElemAt: [
+                                    {
+                                      $filter: {
+                                        input: "$constructiveInfo",
+                                        as: "c",
+                                        cond: {
+                                          $eq: [
+                                            "$$c._id",
+                                            "$$sp.constructiveId",
+                                          ],
+                                        },
+                                      },
+                                    },
+                                    0,
+                                  ],
+                                },
+                                watt: {
+                                  $arrayElemAt: [
+                                    {
+                                      $filter: {
+                                        input: "$wattInfo",
+                                        as: "w",
+                                        cond: {
+                                          $eq: [
+                                            "$$w._id",
+                                            "$$sp.wattId",
+                                          ],
+                                        },
+                                      },
+                                    },
+                                    0,
+                                  ],
                                 },
                               },
-                              0,
-                            ],
-                          },
-                          technology: {
-                            $arrayElemAt: [
-                              {
-                                $filter: {
-                                  input: "$technologyInfo",
-                                  as: "t",
-                                  cond: {
-                                    $eq: ["$$t._id", "$$sp.technologyId"],
-                                  },
-                                },
-                              },
-                              0,
-                            ],
-                          },
-                          constructive: {
-                            $arrayElemAt: [
-                              {
-                                $filter: {
-                                  input: "$constructiveInfo",
-                                  as: "c",
-                                  cond: {
-                                    $eq: ["$$c._id", "$$sp.constructiveId"],
-                                  },
-                                },
-                              },
-                              0,
-                            ],
-                          },
-                          watt: {
-                            $arrayElemAt: [
-                              {
-                                $filter: {
-                                  input: "$wattInfo",
-                                  as: "w",
-                                  cond: {
-                                    $eq: ["$$w._id", "$$sp.wattId"],
-                                  },
-                                },
-                              },
-                              0,
                             ],
                           },
                         },
-                      ],
+                      },
                     },
                   },
-                },
-              },
-            },
 
-            {
-              $project: {
-                panelInfo: 0,
-                technologyInfo: 0,
-                constructiveInfo: 0,
-                wattInfo: 0,
+                  {
+                    $project: {
+                      panelInfo: 0,
+                      technologyInfo: 0,
+                      constructiveInfo: 0,
+                      wattInfo: 0,
+                    },
+                  },
+                ],
+                as: "panelData",
               },
             },
           ],
-          as: "panelData",
+          as: "proposalsData",
         },
       },
 
@@ -1742,7 +1994,7 @@ const getProposal = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      data: customersProposal[0] || null, // single customer
+      data: customersProposal[0] || null,
     });
   } catch (er) {
     return res.status(500).json({
@@ -1751,7 +2003,6 @@ const getProposal = async (req, res) => {
     });
   }
 };
-
 const getCustomers=async(req,res)=>{
    try {
 
