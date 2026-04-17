@@ -1488,7 +1488,7 @@ const createCustomer = async (req, res) => {
       });
 
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    const phoneRegex=/^\d{10}$/;
+    const phoneRegex = /^\d{10}$/;
 
     if (!emailRegex.test(email))
       return res.status(400).json({
@@ -1496,10 +1496,11 @@ const createCustomer = async (req, res) => {
         message: "Please enter a valid email address.",
       });
 
-      if(!phoneRegex.test(phone)){
-           return res.status(400).json({success:false,message:'Invalid phone number!'})
-      }
-
+    if (!phoneRegex.test(phone)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid phone number!" });
+    }
 
     const newCustomer = await CustomerModel.create({
       dealerId,
@@ -1523,16 +1524,70 @@ const createCustomer = async (req, res) => {
   }
 };
 
-const editCustomer=async(req,res)=>{
-   try {
-     
+const editCustomer = async (req, res) => {
+  try {
+    const { customerId } = req.params;
+    const { name, email, phone, address } = req.body;
 
-   } catch (er) {
-      return res.status(500).json({success:false,message:er?.message});
-   }
-}
+    if (!mongoose.isValidObjectId(customerId))
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid CustomerId!" });
 
+    let updateData = {};
 
+    if (name && name.trim()) {
+      updateData.name = name.trim();
+    }
+
+    if (email) {
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(email))
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid Email!" });
+
+      updateData.email = email.toLowerCase().trim();
+    }
+
+    if (phone) {
+      const phoneRegex = /^\d{10}$/;
+      if (!phoneRegex.test(phone))
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid Phone Number!" });
+      updateData.phone = phone;
+    }
+
+    if (address) {
+      updateData.address = address;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: "No valid fields to update" });
+    }
+
+    // find if customer Exist
+    const customer = await CustomerModel.findOneAndUpdate(
+      { _id: customerId },
+      { $set: updateData },
+      { new: true },
+    );
+
+    if (!customer)
+      return res
+        .status(404)
+        .json({ success: false, message: "Customer not found" });
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Updated", data: customer });
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+};
 
 // const getProposal = async (req, res) => {
 //   try {
@@ -2239,7 +2294,6 @@ const getCustomers = async (req, res) => {
   }
 };
 
-
 // solar power plant proposal
 const createProposal = async (req, res) => {
   try {
@@ -2331,12 +2385,54 @@ const createProposal = async (req, res) => {
   }
 };
 
+const deleteProposal = async (req, res) => {
+  try {
+    const { proposalId, type } = req.body;
+
+    if (!mongoose.isValidObjectId(proposalId))
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid ProposalId" });
+
+    if (!type)
+      return res
+        .status(400)
+        .json({ success: false, message: "Type is not provided" });
+
+    const modelType = {
+      powerplant: ProposalModel,
+      solarpanel: PanelModel,
+    };
+    
+    const Model = modelType[type];
+
+    if (!Model) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid Proposal Type" });
+    }
+
+    const proposal = await Model.findByIdAndDelete(proposalId);
+
+    if (!proposal)
+      return res
+        .status(404)
+        .json({ success: false, message: "Proposal not found!" });
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Proposal Deleted!" });
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+};
+
 // solar panel proposal
 const createPanelProposal = async (req, res) => {
-
   try {
-    let { dealerId, customerId, gst, termsAndConditions, selectedPanel } = req.body;
-    
+    let { dealerId, customerId, gst, termsAndConditions, selectedPanel } =
+      req.body;
+
     if (!dealerId || !gst || !termsAndConditions || !selectedPanel) {
       return res.status(404).json({
         success: false,
@@ -2344,9 +2440,8 @@ const createPanelProposal = async (req, res) => {
           "All fields are required..(delarId,customerId,gst,term & condition and Panel..)",
       });
     }
-  
 
-     gst = Number.parseFloat(gst);
+    gst = Number.parseFloat(gst);
 
     if (!mongoose.Types.ObjectId.isValid(dealerId)) {
       return res.status(400).json({ message: "Invalid dealerId" });
@@ -2383,7 +2478,6 @@ const createPanelProposal = async (req, res) => {
       });
     }
 
-
     // calculate final price
     // store panel propsal data in PanelModel : dealerId,clientId,tax,termsAndConditions,selectedPanel,final Price
 
@@ -2394,13 +2488,12 @@ const createPanelProposal = async (req, res) => {
     // console.log("finalPrice : ", finalPrice)
     const createPanelPropsal = await PanelModel.create({
       dealerId,
-      customerId: clientId,
+      customerId,
       gst,
       termsAndConditions,
       selectedPanels: selectedPanel,
       finalPrice,
     });
-  
 
     return res.status(201).json({
       success: true,
@@ -2417,8 +2510,6 @@ const createPanelProposal = async (req, res) => {
   }
 };
 
-
-
 module.exports = {
   loginDealer,
   registerDealer,
@@ -2431,5 +2522,8 @@ module.exports = {
   generatePanelPropsal,
   updatePanelPropsal,
   createCustomer,
+  editCustomer,
   getCustomers,
+  createPanelProposal,
+  deleteProposal,
 };
