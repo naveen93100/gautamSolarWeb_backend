@@ -1500,7 +1500,7 @@ const createCustomer = async (req, res) => {
            return res.status(400).json({success:false,message:'Invalid phone number!'})
       }
 
-      
+
     const newCustomer = await CustomerModel.create({
       dealerId,
       name,
@@ -1522,6 +1522,17 @@ const createCustomer = async (req, res) => {
       .json({ success: false, message: er?.message, err: er.code });
   }
 };
+
+const editCustomer=async(req,res)=>{
+   try {
+     
+
+   } catch (er) {
+      return res.status(500).json({success:false,message:er?.message});
+   }
+}
+
+
 
 // const getProposal = async (req, res) => {
 //   try {
@@ -2228,6 +2239,7 @@ const getCustomers = async (req, res) => {
   }
 };
 
+
 // solar power plant proposal
 const createProposal = async (req, res) => {
   try {
@@ -2371,10 +2383,6 @@ const createPanelProposal = async (req, res) => {
       });
     }
 
-    const panelPropsalExits = await PanelModel.findOne({
-      customerId: clientId,
-    });
-
 
     // calculate final price
     // store panel propsal data in PanelModel : dealerId,clientId,tax,termsAndConditions,selectedPanel,final Price
@@ -2408,6 +2416,8 @@ const createPanelProposal = async (req, res) => {
     });
   }
 };
+
+
 
 module.exports = {
   loginDealer,

@@ -46,8 +46,9 @@ router.put("/updatePanelProposal", updatePanelPropsal);
 // ---------------------------
 
 router.post('/create-customer',createCustomer);
+
 // create power plant proposal
-router.post('/create-proposal',createProposal)
+router.post('/create-powerPlant-proposal',createProposal)
 
 // get all proposal
 router.get("/get-proposal", getProposal);
