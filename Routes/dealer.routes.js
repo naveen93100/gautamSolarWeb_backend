@@ -49,6 +49,7 @@ router.post('/create-customer',createCustomer);
 // create power plant proposal
 router.post('/create-proposal',createProposal)
 
+// get all proposal
 router.get("/get-proposal", getProposal);
 router.get("/get-customers", getCustomers);
 
