@@ -14,6 +14,8 @@ const {
   editCustomer,
   createPanelProposal,
   deleteProposal,
+  editPowerPlant,
+  editPanelProposal,
 } = require("../Controllers/dealer.controller.js");
 const path = require("path");
 
@@ -39,7 +41,6 @@ router.patch("/edit-proposal", upload.none(), verifyToken, editProposal);
 
 router.get("/downloadPropsoal/:propId", generateProposal);
 
-router.patch("/:id", upload.single("image"), updateDealerProfile);
 
 router.post("/createPanelPropsal", generatePanelPropsal);
 router.put("/updatePanelProposal", updatePanelPropsal);
@@ -54,7 +55,11 @@ router.patch('/edit-customer/:customerId',editCustomer) // need to set token
 
 // create power plant proposal
 router.post('/create-powerPlant-proposal',createProposal)  // need to set token
+
+router.patch('/edit-powerplant-proposal',editPowerPlant);
+
 router.post('/create-solarPanel-proposal',createPanelProposal);  // need to set token
+router.patch('/edit-solarPanel-proposal',editPanelProposal);
 
 router.delete('/delete-proposal',deleteProposal) //need to set token
 
@@ -62,6 +67,10 @@ router.delete('/delete-proposal',deleteProposal) //need to set token
 // get all proposal
 router.get("/get-proposal", getProposal);  // need to set token
 router.get("/get-customers", getCustomers);  // need to set token
+
+
+router.patch("/:id", upload.single("image"), updateDealerProfile);
+
 
 
 

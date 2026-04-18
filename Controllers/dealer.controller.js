@@ -1307,7 +1307,6 @@ const generatePanelPropsal = async (req, res) => {
         "Panel created successfully. You can now view the panel proposal PDF.",
     });
   } catch (error) {
-    // console.log("error : ",error);
 
     return res.status(500).json({
       success: false,
@@ -1590,7 +1589,7 @@ const editCustomer = async (req, res) => {
     return res
       .status(200)
       .json({ success: true, message: "Updated", data: customer });
-      
+
   } catch (er) {
 
     if (er.code === 11000) {
@@ -2399,47 +2398,83 @@ const createProposal = async (req, res) => {
   }
 };
 
-const deleteProposal = async (req, res) => {
+const editPowerPlant = async (req, res) => {
   try {
-    const { proposalId, type } = req.body;
+    let {
+      propId,
+      rate,
+      orderCapacity,
+      components,
+      tax,
+      termsAndConditions,
+    } = req.body;
 
-    if (!mongoose.isValidObjectId(proposalId))
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid ProposalId" });
+    orderCapacity = Number(orderCapacity);
+    tax = Number.parseFloat(tax);
+    rate = Number(rate);
 
-    if (!type)
-      return res
-        .status(400)
-        .json({ success: false, message: "Type is not provided" });
+    if (!propId||!mongoose.isValidObjectId(propId))
+      return res.status(400).json({ success: false, message: "Invalid or missing Id" });
 
-    const modelType = {
-      powerplant: ProposalModel,
-      solarpanel: PanelModel,
-    };
+    let Prop = await ProposalModel.findOne({ _id: propId });
 
-    const Model = modelType[type];
+    if(!Prop) return res.status(404).json({success:false,message:"Power Plant Proposal not found!"});
 
-    if (!Model) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid Proposal Type" });
+  
+    let propUpdates = {};
+
+    let names = components.map((item) =>{
+        return  item?.materialData?.name?.trim()
+      }) 
+
+    let findComponent = await MaterialModel.find({
+      name: { $in: names },
+    }).select("_id name");
+
+    findComponent = names.map((item) =>{
+     return findComponent.find((v) => v?.name === item)
+    });
+
+
+    let finalComponent = components.map((item, idx) => {
+      if (item?.materialData?.name === findComponent[idx]?.name) {
+        return {
+          mId: findComponent[idx]?._id,
+          quantity: item.quantity,
+          isActive: true,
+        };
+      }
+    });
+
+    const price = orderCapacity * 1000 * rate;
+    const gstAmt = (price * tax) / 100;
+
+    propUpdates.rate = rate;
+    propUpdates.orderCapacity = orderCapacity * 1000;
+    propUpdates.termsAndConditions = termsAndConditions;
+
+    propUpdates.tax = tax;
+    propUpdates.price = price;
+
+    propUpdates.gstAmt = (price * tax) / 100;
+    propUpdates.finalPrice = price + gstAmt;
+
+
+    propUpdates.material = finalComponent;
+
+    if (Object.keys(propUpdates).length >= 1) {
+      Prop.set(propUpdates);
+      await Prop.save();
     }
 
-    const proposal = await Model.findByIdAndDelete(proposalId);
-
-    if (!proposal)
-      return res
-        .status(404)
-        .json({ success: false, message: "Proposal not found!" });
-
-    return res
-      .status(200)
-      .json({ success: true, message: "Proposal Deleted!" });
+    return res.status(200).json({ success: true, message: "Proposal Updated" });
   } catch (er) {
-    return res.status(500).json({ success: false, message: er?.message });
+    return res
+      .status(500)
+      .json({ success: false, message: er?.message || "Internal Error" });
   }
 };
+
 
 // solar panel proposal
 const createPanelProposal = async (req, res) => {
@@ -2493,7 +2528,6 @@ const createPanelProposal = async (req, res) => {
     }
 
     // calculate final price
-    // store panel propsal data in PanelModel : dealerId,clientId,tax,termsAndConditions,selectedPanel,final Price
 
     const finalPrice = selectedPanel.reduce((total, item) => {
       return total + Number(item.totalPrice || 0) + Number(item.gstAmount || 0);
@@ -2524,6 +2558,139 @@ const createPanelProposal = async (req, res) => {
   }
 };
 
+const editPanelProposal = async (req, res) => {
+  
+  try {
+    let {
+      gst,
+      termsAndConditions,
+      selectedPanel,
+    } = req.body;
+
+    if (
+     
+      !gst ||
+      !termsAndConditions ||
+      !selectedPanel
+    ) {
+      return res.status(404).json({
+        success: false,
+        message:
+          "All fields are required..(rate,gst,term & condition and Panel..)",
+      });
+    }
+
+    gst = Number.parseFloat(gst);
+
+    for (const panel of selectedPanel) {
+      if (
+        !mongoose.Types.ObjectId.isValid(
+          panel.panelId ||
+            !mongoose.Types.ObjectId.isValid(panel.technologyId) ||
+            !mongoose.Types.ObjectId.isValid(panel.constructiveId) ||
+            !mongoose.Types.ObjectId.isValid(panel.wattId),
+        )
+      ) {
+        return res.status(400).json({
+          message: "Invalid ObjectId in selectedPanel",
+        });
+      }
+    }
+
+
+    if ( typeof gst !== "number") {
+      return res.status(400).json({
+        success: false,
+        message: "gst must be Type Number...",
+      });
+    }
+
+    const wattIds = selectedPanel.map((p) => p.wattId);
+    const uniqueWattIds = new Set(wattIds);
+    if (wattIds.length !== uniqueWattIds.size) {
+      return res.status(400).json({
+        message: "Duplicate wattId found in selectedPanel",
+      });
+    }
+
+ 
+   
+    const finalPrice = selectedPanel.reduce((total, item) => {
+      return total + Number(item.totalPrice || 0) + Number(item.gstAmount || 0);
+    }, 0);
+
+    // console.log("finalPrice : ", finalPrice)
+
+    const createPanelPropsal = await PanelModel.findByIdAndUpdate(
+      panelPropsalExits?._id,
+      {
+        dealerId,
+        customerId: clientId,
+        gst,
+        termsAndConditions,
+        selectedPanels: selectedPanel,
+        finalPrice,
+      },
+      { new: true },
+    );
+
+   
+    return res.status(201).json({
+      success: true,
+      message:
+        "Panel Proposal update successfully. You can now view Updated  panel proposal PDF.",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error?.message || "Internal Server Error..",
+    });
+  }
+};
+
+
+const deleteProposal = async (req, res) => {
+  try {
+    const { proposalId, type } = req.body;
+
+    if (!mongoose.isValidObjectId(proposalId))
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid ProposalId" });
+
+    if (!type)
+      return res
+        .status(400)
+        .json({ success: false, message: "Type is not provided" });
+
+    const modelType = {
+      powerplant: ProposalModel,
+      solarpanel: PanelModel,
+    };
+
+    const Model = modelType[type];
+
+    if (!Model) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid Proposal Type" });
+    }
+
+    const proposal = await Model.findByIdAndDelete(proposalId);
+
+    if (!proposal)
+      return res
+        .status(404)
+        .json({ success: false, message: "Proposal not found!" });
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Proposal Deleted!" });
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+};
+
 module.exports = {
   loginDealer,
   registerDealer,
@@ -2540,4 +2707,6 @@ module.exports = {
   getCustomers,
   createPanelProposal,
   deleteProposal,
+  editPowerPlant,
+  editPanelProposal
 };
