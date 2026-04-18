@@ -1536,6 +1536,15 @@ const editCustomer = async (req, res) => {
 
     let updateData = {};
 
+    const customerExist = await CustomerModel.findById(customerId).lean();
+
+    if (!customerExist)
+      return res
+        .status(404)
+        .json({ success: false, message: "Customer not found!" });
+
+    let dealerId = customerExist.dealerId;
+
     if (name && name.trim()) {
       updateData.name = name.trim();
     }
@@ -1547,7 +1556,10 @@ const editCustomer = async (req, res) => {
           .status(400)
           .json({ success: false, message: "Invalid Email!" });
 
-      updateData.email = email.toLowerCase().trim();
+      const normalizeEmail = email.toLowerCase().trim();
+      if (normalizeEmail !== customerExist.email) {
+        updateData.email = normalizeEmail;
+      }
     }
 
     if (phone) {
@@ -1569,22 +1581,24 @@ const editCustomer = async (req, res) => {
         .json({ success: false, message: "No valid fields to update" });
     }
 
-    // find if customer Exist
     const customer = await CustomerModel.findOneAndUpdate(
-      { _id: customerId },
+      { _id: customerId, dealerId },
       { $set: updateData },
       { new: true },
     );
 
-    if (!customer)
-      return res
-        .status(404)
-        .json({ success: false, message: "Customer not found" });
-
     return res
       .status(200)
       .json({ success: true, message: "Updated", data: customer });
+      
   } catch (er) {
+
+    if (er.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: "This email is already in use! try different one",
+      });
+    }
     return res.status(500).json({ success: false, message: er?.message });
   }
 };
@@ -2403,7 +2417,7 @@ const deleteProposal = async (req, res) => {
       powerplant: ProposalModel,
       solarpanel: PanelModel,
     };
-    
+
     const Model = modelType[type];
 
     if (!Model) {
