@@ -166,7 +166,7 @@ const registerDealer = async (req, res) => {
         // companyLogo = `http://localhost:1008/dealer_logo/${img}`;
       }
 
-      v = await DealerModel.create({
+      await DealerModel.create({
         firstName,
         lastName,
         email,
