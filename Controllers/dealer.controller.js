@@ -132,12 +132,10 @@ const registerDealer = async (req, res) => {
         .json({ success: false, message: "Dealer Already Exist" });
 
     let token = crypto.randomBytes(20).toString("hex");
-    let v = null;
-    console.log("dealer,", isDealerExist);
 
     //  check if dealer already exist but is not active
     if (isDealerExist && !isDealerExist.isActive) {
-      console.log("this is if");
+     
       isDealerExist.token = token;
       isDealerExist.tokenExpiry = new Date(
         Date.now() + 7 * 7 * 24 * 60 * 60 * 1000,
@@ -147,7 +145,7 @@ const registerDealer = async (req, res) => {
     }
     //  create fresh dealer
     else {
-      console.log("this is else");
+     
       if (req.file) {
         await fsp.mkdir(folder, { recursive: true });
 
@@ -164,10 +162,8 @@ const registerDealer = async (req, res) => {
           .webp({ quality: 80 })
           .toFile(imgPath);
 
-        // companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
-        companyLogo = `http://localhost:1008/dealer_logo/${img}`;
-        // companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
-        companyLogo = `http://localhost:1008/dealer_logo/${img}`;
+        companyLogo = `https://gautamsolar.us/Dealer_Logo/${img}`;
+        // companyLogo = `http://localhost:1008/dealer_logo/${img}`;
       }
 
       v = await DealerModel.create({
@@ -184,8 +180,6 @@ const registerDealer = async (req, res) => {
         isActive: true,
         tokenExpiry: new Date(Date.now() + 15 * 60000),
       });
-
-      console.log("THis is new Dealer:", v);
 
       // await fsp.mkdir(folder, { recursive: true });
 
@@ -370,8 +364,8 @@ const updateDealerProfile = async (req, res) => {
 
       let newImagePath = path.join("Dealer_Logo", imgUrlName);
 
-      let companyLogo = `http://localhost:1008/dealer_logo/${imgUrlName}`;
-      // let companyLogo = `https://gautamsolar.us/Dealer_Logo/${imgUrlName}`;
+      // let companyLogo = `http://localhost:1008/dealer_logo/${imgUrlName}`;
+      let companyLogo = `https://gautamsolar.us/Dealer_Logo/${imgUrlName}`;
 
       let buf = req.file.buffer;
       await sharp(buf)
