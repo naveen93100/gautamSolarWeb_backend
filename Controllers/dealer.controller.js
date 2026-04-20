@@ -1299,7 +1299,8 @@ const generatePanelPropsal = async (req, res) => {
       selectedPanels: selectedPanel,
       finalPrice,
     });
-    // console.log("createPanelPropsal : ", createPanelPropsal)
+  
+
 
     return res.status(201).json({
       success: true,
@@ -1466,6 +1467,7 @@ const updatePanelPropsal = async (req, res) => {
     });
   }
 };
+
 
 // ----------new
 const createCustomer = async (req, res) => {
@@ -2413,23 +2415,24 @@ const editPowerPlant = async (req, res) => {
     tax = Number.parseFloat(tax);
     rate = Number(rate);
 
+
     if (!propId||!mongoose.isValidObjectId(propId))
       return res.status(400).json({ success: false, message: "Invalid or missing Id" });
 
     let Prop = await ProposalModel.findOne({ _id: propId });
 
     if(!Prop) return res.status(404).json({success:false,message:"Power Plant Proposal not found!"});
-
   
     let propUpdates = {};
 
     let names = components.map((item) =>{
-        return  item?.materialData?.name?.trim()
+        return  item?.name?.trim()
       }) 
 
     let findComponent = await MaterialModel.find({
       name: { $in: names },
     }).select("_id name");
+
 
     findComponent = names.map((item) =>{
      return findComponent.find((v) => v?.name === item)
@@ -2437,15 +2440,14 @@ const editPowerPlant = async (req, res) => {
 
 
     let finalComponent = components.map((item, idx) => {
-      if (item?.materialData?.name === findComponent[idx]?.name) {
+      if (item?.name === findComponent[idx]?.name) {
         return {
           mId: findComponent[idx]?._id,
-          quantity: item.quantity,
+          quantity: item.qty,
           isActive: true,
         };
       }
     });
-
     const price = orderCapacity * 1000 * rate;
     const gstAmt = (price * tax) / 100;
 
@@ -2562,6 +2564,7 @@ const editPanelProposal = async (req, res) => {
   
   try {
     let {
+      propId,
       gst,
       termsAndConditions,
       selectedPanel,
@@ -2576,7 +2579,7 @@ const editPanelProposal = async (req, res) => {
       return res.status(404).json({
         success: false,
         message:
-          "All fields are required..(rate,gst,term & condition and Panel..)",
+          "All fields are required..(gst,term & condition and Panel..)",
       });
     }
 
@@ -2607,25 +2610,22 @@ const editPanelProposal = async (req, res) => {
 
     const wattIds = selectedPanel.map((p) => p.wattId);
     const uniqueWattIds = new Set(wattIds);
+
     if (wattIds.length !== uniqueWattIds.size) {
       return res.status(400).json({
         message: "Duplicate wattId found in selectedPanel",
       });
     }
 
- 
-   
     const finalPrice = selectedPanel.reduce((total, item) => {
       return total + Number(item.totalPrice || 0) + Number(item.gstAmount || 0);
     }, 0);
 
-    // console.log("finalPrice : ", finalPrice)
-
-    const createPanelPropsal = await PanelModel.findByIdAndUpdate(
-      panelPropsalExits?._id,
+    
+     console.log(selectedPanel)
+    const updatePanelProposal = await PanelModel.findByIdAndUpdate(
+       propId,
       {
-        dealerId,
-        customerId: clientId,
         gst,
         termsAndConditions,
         selectedPanels: selectedPanel,
@@ -2634,11 +2634,10 @@ const editPanelProposal = async (req, res) => {
       { new: true },
     );
 
-   
     return res.status(201).json({
       success: true,
       message:
-        "Panel Proposal update successfully. You can now view Updated  panel proposal PDF.",
+        "Panel Proposal update successfully. You can now view Updated  panel proposal PDF."
     });
   } catch (error) {
     return res.status(500).json({
@@ -2690,6 +2689,8 @@ const deleteProposal = async (req, res) => {
     return res.status(500).json({ success: false, message: er?.message });
   }
 };
+
+
 
 module.exports = {
   loginDealer,

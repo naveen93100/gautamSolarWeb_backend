@@ -59,7 +59,8 @@ router.post('/create-powerPlant-proposal',createProposal)  // need to set token
 router.patch('/edit-powerplant-proposal',editPowerPlant);
 
 router.post('/create-solarPanel-proposal',createPanelProposal);  // need to set token
-router.patch('/edit-solarPanel-proposal',editPanelProposal);
+
+router.put('/edit-solarPanel-proposal',editPanelProposal);
 
 router.delete('/delete-proposal',deleteProposal) //need to set token
 
