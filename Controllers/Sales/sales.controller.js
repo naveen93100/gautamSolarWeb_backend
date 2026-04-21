@@ -1,9 +1,8 @@
 const { default: mongoose } = require("mongoose");
 const Sales = require("../../Models/Sales/sales.schema");
 const jwt = require("jsonwebtoken");
-const bcrypt=require('bcrypt');
+const bcrypt = require("bcrypt");
 const SalesCustomer = require("../../Models/Sales/sales.customer.schema");
-
 
 const salesLogin = async (req, res) => {
   try {
@@ -68,7 +67,9 @@ const logout = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    return res.status(200).json({success:false,message:"Logout successfully!"});
+    return res
+      .status(200)
+      .json({ success: false, message: "Logout successfully!" });
   } catch (er) {
     return res.status(500).json({ success: false, message: er?.message });
   }
@@ -76,63 +77,80 @@ const logout = async (req, res) => {
 
 const createClient = async (req, res) => {
   try {
-    let { salesId, name, email, phone, address, companyName, gst } = req.body;
+    let { salesId, name, email, phone, address, companyName, gstin } = req.body;
 
     if (!mongoose.isValidObjectId(salesId))
       return res
         .status(400)
         .json({ success: false, message: "Invalid or missing sales id" });
 
-       let data={};
-       
-       if(name&&name.trim()){
-           data.name=name.trim();
-       }
+    let data = {};
+    if (name && name.trim()) {
+      data.name = name.trim();
+    }
 
-       if(email){
-           email=email.trim().toLowerCase();
-           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-           if(!emailRegex.test(email)) return res.status(400).json({success:false,message:"Invalid email Address!"});
-           data.email=email;
-       }
+    if (email) {
+      email = email.trim().toLowerCase();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email))
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid email Address!" });
+      data.email = email;
+    }
 
-       if(address){
-          address=address.trim();
-          data.address=address;
-       }
+    if (address) {
+      address = address.trim();
+      data.address = address;
+    }
 
-       phone=phone.replace(/\D/g, "");
-       gst=gst.trim().toUpperCase();
-       companyName=companyName.trim();
+    phone = (phone || "").replace(/\D/g, "");
+    gstin = (gstin || "").trim().toUpperCase();
+    companyName = (companyName || "").trim();
 
-       if(!phone||!companyName||!gst) return res.status(400).json({success:false,message:"Phone,companyName and Gst is required!"});
+    //    phone.replace(/\D/g, "");
+    //    gstin=gstin.trim().toUpperCase();
+    //    companyName=companyName.trim();
 
+    if (!phone || !companyName || !gstin)
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Phone,companyName and gstin is required!",
+        });
 
-       let phoneRegex=/^[6-9]\d{9}$/
-       let gstRegex=/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/
+    let phoneRegex = /^[6-9]\d{9}$/;
+    let gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 
+    if (!phoneRegex.test(phone))
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid phone number!" });
+    if (!gstRegex.test(gstin))
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid gst number!" });
 
-       if(!phoneRegex.test(phone)) return res.status(400).json({success:false,message:"Invalid phone number!"});
-       if(!gstRegex.test(gst)) return res.status(400).json({success:false,message:"Invalid Gst number!"});
-        
+    data.phone = phone;
+    data.gstin = gstin;
+    data.companyName = companyName;
+    data.salesPersonId = salesId;
 
-        data.phone=phone;
-        data.gst=gst;
-        data.companyName=companyName;
-        data.salesPersonId=salesId;
+    const createCustomer = await SalesCustomer.create(data);
 
-
-      const createCustomer=await SalesCustomer.create(data);
-
-      if(!createCustomer) return res.status(400).json({success:false,message:"Error while saving data"});
-      return res.status(201).json({success:true,message:"Customer Created!"});
-
-
-
+    if (!createCustomer)
+      return res
+        .status(400)
+        .json({ success: false, message: "Error while saving data" });
+    return res
+      .status(201)
+      .json({ success: true, message: "Customer Created!" });
   } catch (er) {
-     
-    if(er?.code === 11000){
-        return res.status(409).json({success:false,message:'Phone Number already exist!'});
+    if (er?.code === 11000) {
+      return res
+        .status(409)
+        .json({ success: false, message: "Phone Number already exist!" });
     }
 
     return res.status(500).json({ success: false, message: er?.message });
@@ -299,5 +317,5 @@ module.exports = {
   updateSalesAccount,
   toggleSalesStatus,
   salesLogin,
-  logout
+  logout,
 };
