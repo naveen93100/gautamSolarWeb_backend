@@ -1,6 +1,7 @@
 const { default: mongoose } = require("mongoose");
 const Sales = require("../../Models/Sales/sales.schema");
 
+// admin functions
 const createSalesPerson = async (req, res) => {
   try {
     const { name, email, phone, password } = req.body;
@@ -67,7 +68,7 @@ const updateSalesAccount = async (req, res) => {
           message: "Invalid email format",
         });
       }
-      
+
       if (email !== salesAccount.email) {
         newData.email = email;
       }
@@ -113,6 +114,44 @@ const getSalesPersonList = async (req, res) => {
   }
 };
 
+const toggleSalesStatus = async (req, res) => {
+  try {
+    const { salesId, isActive } = req.body;
+
+    if (!mongoose.isValidObjectId(salesId))
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid or missing Id" });
+
+    if (typeof isActive !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        message: "isActive must be true or false",
+      });
+    }
+
+    let sales = await Sales.findOneAndUpdate(
+      { _id: salesId },
+      { $set: isActive },
+      { new: true },
+    );
+
+    if (!sales) {
+      return res.status(404).json({
+        success: false,
+        message: "Sales person not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Account ${isActive === true ? "Activated" : "De-Activated"}`,
+    });
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+};
+
 const createClient = async (req, res) => {
   try {
     const { salesId, name, email, phone, address, companyName, gst } = req.body;
@@ -126,9 +165,12 @@ const createClient = async (req, res) => {
   }
 };
 
+// ------------------------
+
 module.exports = {
   createSalesPerson,
   getSalesPersonList,
   createClient,
   updateSalesAccount,
+  toggleSalesStatus,
 };

@@ -4,15 +4,18 @@ const {
   getSalesPersonList,
   createClient,
   updateSalesAccount,
+  toggleSalesStatus,
 } = require("../Controllers/Sales/sales.controller.js");
 
 const router = Router();
 
+// admin routes
 router.get('/',getSalesPersonList); // need to add adminAuth middleware here 
 router.post("/create-account", createSalesPerson);
 
 router.patch("/update-account",updateSalesAccount);
+router.post("/toggle-account",toggleSalesStatus);
 
 router.post('/create-client',createClient);
-
+// ---------------------------------
 module.exports = router;
