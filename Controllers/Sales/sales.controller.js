@@ -132,7 +132,7 @@ const toggleSalesStatus = async (req, res) => {
 
     let sales = await Sales.findOneAndUpdate(
       { _id: salesId },
-      { $set: isActive },
+      { $set: {isActive} },
       { new: true },
     );
 
