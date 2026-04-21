@@ -24,7 +24,7 @@ const salesCustomerSchema=new Schema({
     }, 
     address:{
         type:String,
-        required:true
+        // required:true
     },
     companyName:{
         type:String,

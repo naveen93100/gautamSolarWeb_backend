@@ -1,5 +1,143 @@
 const { default: mongoose } = require("mongoose");
 const Sales = require("../../Models/Sales/sales.schema");
+const jwt = require("jsonwebtoken");
+const bcrypt=require('bcrypt');
+const SalesCustomer = require("../../Models/Sales/sales.customer.schema");
+
+
+const salesLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password)
+      return res
+        .status(400)
+        .json({ success: false, message: "Email and Password not provided" });
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email))
+      return res.status(400).json({ success: "Invalid email type!" });
+
+    const salesPerson = await Sales.findOne({ email }).select("+password");
+
+    if (!salesPerson)
+      return res
+        .status(404)
+        .json({ success: false, message: "Account Not found!" });
+
+    if (!salesPerson.isActive)
+      return res
+        .status(400)
+        .json({ success: false, message: "Account is De-Activated" });
+
+    let comparePass = await bcrypt.compare(password, salesPerson.password);
+
+    if (!comparePass)
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid email or password" });
+
+    let token = jwt.sign(
+      { id: salesPerson._id, email: salesPerson.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" },
+    );
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Login successfully!" });
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+};
+
+const logout = async (req, res) => {
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({success:false,message:"Logout successfully!"});
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+};
+
+const createClient = async (req, res) => {
+  try {
+    let { salesId, name, email, phone, address, companyName, gst } = req.body;
+
+    if (!mongoose.isValidObjectId(salesId))
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid or missing sales id" });
+
+       let data={};
+       
+       if(name&&name.trim()){
+           data.name=name.trim();
+       }
+
+       if(email){
+           email=email.trim().toLowerCase();
+           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+           if(!emailRegex.test(email)) return res.status(400).json({success:false,message:"Invalid email Address!"});
+           data.email=email;
+       }
+
+       if(address){
+          address=address.trim();
+          data.address=address;
+       }
+
+       phone=phone.replace(/\D/g, "");
+       gst=gst.trim().toUpperCase();
+       companyName=companyName.trim();
+
+       if(!phone||!companyName||!gst) return res.status(400).json({success:false,message:"Phone,companyName and Gst is required!"});
+
+
+       let phoneRegex=/^[6-9]\d{9}$/
+       let gstRegex=/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/
+
+
+       if(!phoneRegex.test(phone)) return res.status(400).json({success:false,message:"Invalid phone number!"});
+       if(!gstRegex.test(gst)) return res.status(400).json({success:false,message:"Invalid Gst number!"});
+        
+
+        data.phone=phone;
+        data.gst=gst;
+        data.companyName=companyName;
+        data.salesPersonId=salesId;
+
+
+      const createCustomer=await SalesCustomer.create(data);
+
+      if(!createCustomer) return res.status(400).json({success:false,message:"Error while saving data"});
+      return res.status(201).json({success:true,message:"Customer Created!"});
+
+
+
+  } catch (er) {
+     
+    if(er?.code === 11000){
+        return res.status(409).json({success:false,message:'Phone Number already exist!'});
+    }
+
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+};
 
 // admin functions
 const createSalesPerson = async (req, res) => {
@@ -132,7 +270,7 @@ const toggleSalesStatus = async (req, res) => {
 
     let sales = await Sales.findOneAndUpdate(
       { _id: salesId },
-      { $set: {isActive} },
+      { $set: { isActive } },
       { new: true },
     );
 
@@ -152,19 +290,6 @@ const toggleSalesStatus = async (req, res) => {
   }
 };
 
-const createClient = async (req, res) => {
-  try {
-    const { salesId, name, email, phone, address, companyName, gst } = req.body;
-
-    if (!mongoose.isValidObjectId(salesId))
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid or missing sales id" });
-  } catch (er) {
-    return res.status(500).json({ success: false, message: er?.message });
-  }
-};
-
 // ------------------------
 
 module.exports = {
@@ -173,4 +298,6 @@ module.exports = {
   createClient,
   updateSalesAccount,
   toggleSalesStatus,
+  salesLogin,
+  logout
 };
