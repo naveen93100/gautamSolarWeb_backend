@@ -1004,6 +1004,7 @@ const updatePanelWatt = async (req, res) => {
 };
 
 const createAdmin = async (req, res) => {
+  
   let { email, password, role } = req.body;
   email = email?.toLowerCase().trim();
 

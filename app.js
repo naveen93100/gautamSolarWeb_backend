@@ -6,6 +6,7 @@ const { connect } = require("./db.config");
 const { UserRouter } = require("./Routes/admin.routes");
 const MediaRouter = require("./Routes/media.routes.js");
 const DealerRouter = require("./Routes/dealer.routes.js");
+const SalesRouter=require('./Routes/sales.routes.js');
 const nodemailer = require("nodemailer");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -406,6 +407,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/dealer", DealerRouter);
+app.use('/api/sales',SalesRouter);
 
 app.use("/admin", UserRouter);
 app.use("/media", MediaRouter);
