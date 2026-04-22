@@ -52,7 +52,7 @@ const salesLogin = async (req, res) => {
 
     return res
       .status(200)
-      .json({ success: true, message: "Login successfully!" });
+      .json({ success: true, message: "Login successfully!",data:{_id:salesPerson._id,name:salesPerson.name,email:salesPerson.email,phone:salesPerson.phone},token });
   } catch (er) {
     return res.status(500).json({ success: false, message: er?.message });
   }
@@ -64,7 +64,7 @@ const logout = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "none",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      // maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     return res
