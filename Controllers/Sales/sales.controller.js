@@ -241,7 +241,7 @@ const updateClient = async (req, res) => {
 
     data.phone = phone;
     data.gstin = gstin;
-    companyName = companyName;
+    data.companyName = companyName;
 
     let updateClient = await SalesCustomer.findOneAndUpdate(
       { _id: clientId, salesPersonId: salesId },
