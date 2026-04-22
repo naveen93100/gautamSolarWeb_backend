@@ -77,7 +77,7 @@ const logout = async (req, res) => {
 
 const createClient = async (req, res) => {
   try {
-    let { salesId, name, email, phone, address, companyName, gstin } = req.body;
+    let { salesId, fullName, email, phone, address, companyName, gstin } = req.body;
 
     if (!mongoose.isValidObjectId(salesId))
       return res
@@ -85,8 +85,8 @@ const createClient = async (req, res) => {
         .json({ success: false, message: "Invalid or missing sales id" });
 
     let data = {};
-    if (name && name.trim()) {
-      data.name = name.trim();
+    if (fullName && fullName.trim()) {
+      data.fullName = fullName.trim();
     }
 
     if (email) {
@@ -163,7 +163,7 @@ const getClient=async(req,res)=>{
      if(!mongoose.isValidObjectId(salesId)) return res.status(400).json({success:false,message:"Invalid or missing Id"});
 
      let sales=await SalesCustomer.find({salesPersonId:salesId});
-     return res.status(200).json({success:true,sales})
+     return res.status(200).json({success:true,sales})   
 
    } catch (er) {
        return res.status(500).json({success:false,message:er?.message});
