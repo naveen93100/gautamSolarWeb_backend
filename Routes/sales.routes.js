@@ -13,6 +13,11 @@ const {
 
 const router = Router();
 
+
+// 
+router.post("/create-proposal",createSalesProposal);
+
+// 
 router.post('/login',salesLogin);
 router.post('/logout',logout);
 // need to create a auth middleware to check if sales person is login or not
