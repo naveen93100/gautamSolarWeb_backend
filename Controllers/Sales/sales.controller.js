@@ -52,7 +52,17 @@ const salesLogin = async (req, res) => {
 
     return res
       .status(200)
-      .json({ success: true, message: "Login successfully!",data:{_id:salesPerson._id,name:salesPerson.name,email:salesPerson.email,phone:salesPerson.phone},token });
+      .json({
+        success: true,
+        message: "Login successfully!",
+        data: {
+          _id: salesPerson._id,
+          name: salesPerson.name,
+          email: salesPerson.email,
+          phone: salesPerson.phone,
+        },
+        token,
+      });
   } catch (er) {
     return res.status(500).json({ success: false, message: er?.message });
   }
@@ -77,7 +87,8 @@ const logout = async (req, res) => {
 
 const createClient = async (req, res) => {
   try {
-    let { salesId, fullName, email, phone, address, companyName, gstin } = req.body;
+    let { salesId, fullName, email, phone, address, companyName, gstin } =
+      req.body;
 
     if (!mongoose.isValidObjectId(salesId))
       return res
@@ -113,12 +124,10 @@ const createClient = async (req, res) => {
     //    companyName=companyName.trim();
 
     if (!phone || !companyName || !gstin)
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Phone,companyName and gstin is required!",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Phone,companyName and gstin is required!",
+      });
 
     let phoneRegex = /^[6-9]\d{9}$/;
     let gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
@@ -145,30 +154,129 @@ const createClient = async (req, res) => {
         .json({ success: false, message: "Error while saving data" });
     return res
       .status(201)
-      .json({ success: true, message: "Customer Created!" });
+      .json({
+        success: true,
+        message: "Customer Created!",
+        data: { ...createCustomer },
+      });
   } catch (er) {
     if (er?.code === 11000) {
       return res
         .status(409)
-        .json({ success: false, message: "Phone or Gstin Number already exist!"});
+        .json({
+          success: false,
+          message: "Phone or Gstin Number already exist!",
+        });
     }
 
     return res.status(500).json({ success: false, message: er?.message });
   }
 };
 
-const getClient=async(req,res)=>{
-   try {
-     const {salesId}=req.params;
-     if(!mongoose.isValidObjectId(salesId)) return res.status(400).json({success:false,message:"Invalid or missing Id"});
+const updateClient = async (req, res) => {
+  try {
+    let {
+      salesId,
+      clientId,
+      fullName,
+      email,
+      companyName,
+      gstin,
+      address,
+      phone,
+    } = req.body;
 
-     let sales=await SalesCustomer.find({salesPersonId:salesId});
-     return res.status(200).json({success:true,sales})   
+    if (
+      !mongoose.isValidObjectId(salesId) ||
+      !mongoose.isValidObjectId(clientId)
+    )
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Invalid or missing salesId or clientId!",
+        });
 
-   } catch (er) {
-       return res.status(500).json({success:false,message:er?.message});
-   }
-}
+    let data = {};
+
+    if (fullName && fullName.trim()) {
+      data.fullName = fullName;
+    }
+    //  required phone,gstin,companyName
+
+    if (email) {
+      email = email.trim().toLowerCase();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email))
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid email" });
+      data.email = email;
+    }
+
+    if (address) {
+      address = address.trim();
+      data.address = address;
+    }
+
+    phone = (phone || "").replace(/\D/g, "");
+    gstin = (gstin || "").trim().toUpperCase();
+    companyName = (companyName || "").trim();
+
+    if (!phone || !gstin || !companyName)
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Please Provide this field (phone,gstin,companyName)!",
+        });
+
+    let phoneRegex = /^[6-9]\d{9}$/;
+    let gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
+    if (!phoneRegex.test(phone) || !gstRegex.test(gstin))
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid or Missing phone or gstin" });
+
+    data.phone = phone;
+    data.gstin = gstin;
+    companyName = companyName;
+
+    let updateClient = await SalesCustomer.findOneAndUpdate(
+      { _id: clientId, salesPersonId: salesId },
+      { $set: data },
+      { new: true },
+    );
+
+    return res.status(200).json({success:true,message:"Client Updated!"});
+  } catch (er) {
+    if (er?.code === 11000) {
+      return res
+        .status(409)
+        .json({
+          success: false,
+          message: "Phone and Gstin Already exist!Use different one",
+        });
+    }
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+};
+
+const getClient = async (req, res) => {
+  try {
+    const { salesId } = req.params;
+    if (!mongoose.isValidObjectId(salesId))
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid or missing Id" });
+
+    let sales = await SalesCustomer.find({ salesPersonId: salesId });
+    return res.status(200).json({ success: true, sales });
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+};
 
 // admin functions
 const createSalesPerson = async (req, res) => {
@@ -331,5 +439,6 @@ module.exports = {
   toggleSalesStatus,
   salesLogin,
   logout,
-  getClient
+  getClient,
+  updateClient
 };

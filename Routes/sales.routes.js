@@ -8,6 +8,7 @@ const {
   salesLogin,
   logout,
   getClient,
+  updateClient,
 } = require("../Controllers/Sales/sales.controller.js");
 
 const router = Router();
@@ -18,6 +19,7 @@ router.post('/logout',logout);
 
 router.post('/create-client',createClient);
 router.get("/get-client/:salesId",getClient);
+router.patch('/update-client',updateClient);
 
 
 
