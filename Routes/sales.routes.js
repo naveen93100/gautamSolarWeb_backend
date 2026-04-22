@@ -7,6 +7,7 @@ const {
   toggleSalesStatus,
   salesLogin,
   logout,
+  getClient,
 } = require("../Controllers/Sales/sales.controller.js");
 
 const router = Router();
@@ -14,7 +15,9 @@ const router = Router();
 router.post('/login',salesLogin);
 router.post('/logout',logout);
 // need to create a auth middleware to check if sales person is login or not
+
 router.post('/create-client',createClient);
+router.get("/get-client/:salesId",getClient);
 
 
 

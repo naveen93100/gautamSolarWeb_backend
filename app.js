@@ -47,6 +47,7 @@ const Supplier = require("./Models/Supplier.schema.js");
 const multer = require("multer");
 const { rejects } = require("assert");
 const panelRouter = require("./Routes/Admin panel/adminPanel.routes.js");
+const SalesCustomer = require("./Models/Sales/sales.customer.schema.js");
 // const seedData = require("./seed.js");
 
 const storage = multer.memoryStorage();
@@ -416,14 +417,16 @@ app.use("/galo_admin", GaloRouter);
 
 app.use("/adminPanel", panelRouter);
 
+
 app.listen(process.env.PORT, async () => {
   try {
+    // await SalesCustomer.syncIndexes();
     await connect;
     console.log(
       `App is running on PORT ${process.env.PORT}, ${process.env.MONGO_URI}`,
     );
     // await seedData();
   } catch (err) {
-    console.log(err);
+    console.log(err); 
   }
 });

@@ -150,12 +150,25 @@ const createClient = async (req, res) => {
     if (er?.code === 11000) {
       return res
         .status(409)
-        .json({ success: false, message: "Phone Number already exist!" });
+        .json({ success: false, message: "Phone or Gstin Number already exist!"});
     }
 
     return res.status(500).json({ success: false, message: er?.message });
   }
 };
+
+const getClient=async(req,res)=>{
+   try {
+     const {salesId}=req.params;
+     if(!mongoose.isValidObjectId(salesId)) return res.status(400).json({success:false,message:"Invalid or missing Id"});
+
+     let sales=await SalesCustomer.find({salesPersonId:salesId});
+     return res.status(200).json({success:true,sales})
+
+   } catch (er) {
+       return res.status(500).json({success:false,message:er?.message});
+   }
+}
 
 // admin functions
 const createSalesPerson = async (req, res) => {
@@ -318,4 +331,5 @@ module.exports = {
   toggleSalesStatus,
   salesLogin,
   logout,
+  getClient
 };

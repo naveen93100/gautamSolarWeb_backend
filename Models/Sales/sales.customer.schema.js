@@ -9,7 +9,6 @@ const salesCustomerSchema=new Schema({
     },
     fullName:{
         type:String,
-        // required:true,
         trim:true
     },
     email:{
@@ -38,6 +37,7 @@ const salesCustomerSchema=new Schema({
 },{timestamps:true});
 
 salesCustomerSchema.index({salesPersonId:1,phone:1},{unique:true});
+salesCustomerSchema.index({salesPersonId:1,gstin:1},{unique:true});
 
 const SalesCustomer=model('SalesCustomer',salesCustomerSchema);
 module.exports=SalesCustomer
