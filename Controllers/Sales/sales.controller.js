@@ -463,5 +463,6 @@ module.exports = {
   salesLogin,
   logout,
   getClient,
-  updateClient
+  updateClient,
+  createSalesProposal
 };

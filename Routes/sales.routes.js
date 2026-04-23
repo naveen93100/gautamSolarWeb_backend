@@ -9,6 +9,7 @@ const {
   logout,
   getClient,
   updateClient,
+  createSalesProposal,
 } = require("../Controllers/Sales/sales.controller.js");
 
 const router = Router();
