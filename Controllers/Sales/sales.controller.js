@@ -3,21 +3,96 @@ const Sales = require("../../Models/Sales/sales.schema");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const SalesCustomer = require("../../Models/Sales/sales.customer.schema");
+const SalesPanel=require("../../Models/Sales/sales.panel.schema");
+
+const createSalesProposal = async (req, res) => {
+  try {
+    let { salesId, clientId, gst, termsAndConditions, selectedPanels } =
+      req.body;
+
+    if (
+      !mongoose.isValidObjectId(salesId) ||
+      !mongoose.isValidObjectId(clientId)
+    )
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or missing sales or client Id",
+      });
+
+    if (typeof gst !== "number")
+      return res.status(400).json({ success: false, message: "Invalid Gst!" });
+
+    let numericGst = Number.parseFloat(gst);
+
+    if (
+      !numericGst ||
+      !termsAndConditions ||
+      !Array.isArray(selectedPanels) ||
+      selectedPanels.length === 0
+    )
+      return res.status(400).json({
+        success: false,
+        message:
+          "GST , terms & conditions, and at least one selected panel are required.",
+      });
+
+    for (const panel of selectedPanels) {
+      if (
+        !mongoose.Types.ObjectId.isValid(
+          panel.panelId ||
+            !mongoose.Types.ObjectId.isValid(panel.technologyId) ||
+            !mongoose.Types.ObjectId.isValid(panel.constructiveId) ||
+            !mongoose.Types.ObjectId.isValid(panel.wattId),
+        )
+      ) {
+        return res.status(400).json({
+          message: "Invalid ObjectId in selectedPanel",
+        });
+      }
+    }
+
+    // here check first if salesPerson and client exist 
+      
+    const wattIds = selectedPanels.map((p) => p.wattId);
+
+    const uniqueWattIds = new Set(wattIds);
+    if (wattIds.length !== uniqueWattIds.size) {
+      return res.status(400).json({
+        message: "Duplicate wattId found in selectedPanel",
+      });
+    }
 
 
+     const finalPrice = selectedPanels.reduce((total, item) => {
+          return total + Number(item.totalPrice || 0) + Number(item.gstAmount || 0);
+        }, 0);
+    
+        const PanelPropsal = await SalesPanel.create({
+          salesId,
+          clientId,
+          gst,
+          termsAndConditions,
+          selectedPanels,
+          finalPrice,
+        });
 
+        return res.status(201).json({success:true,message:"Proposal Created!",data:PanelPropsal});
 
-const createSalesProposal=async(req,res)=>{
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+};
+
+const getClientProposals=async(req,res)=>{
    try {
-     
-    let {salesId,clientId,gst,termsAndConditions,selectedPanels}=req.body;
+     const {clientId}=req.params;
+    //  console.log(req.sales)
 
-    if(!mongoose.isValidObjectId(salesId)||!mongoose.isValidObjectId(clientId)) return res.status(400).json({success:false,message:"Invalid or missing sales or client Id"});
+     if(!mongoose.isValidObjectId(clientId)) return res.status(400).json({success:false,message:"Invalid or missing ClientId"});
 
-    let numericGst=Number.parseInt(gst);
- 
-    if(!numbericGst||!termsAndConditions||!Array.isArray(selectedPanels)||selectedPanels.length===0) return res.status(400).json({success:false,message:""})
+     const proposal=await SalesPanel.find({clientId});
 
+     return res.status(200).json({success:true,message:proposal});
 
 
    } catch (er) {
@@ -25,7 +100,7 @@ const createSalesProposal=async(req,res)=>{
    }
 }
 
-// 
+//
 
 const salesLogin = async (req, res) => {
   try {
@@ -73,19 +148,17 @@ const salesLogin = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Login successfully!",
-        data: {
-          _id: salesPerson._id,
-          name: salesPerson.name,
-          email: salesPerson.email,
-          phone: salesPerson.phone,
-        },
-        token,
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Login successfully!",
+      data: {
+        _id: salesPerson._id,
+        name: salesPerson.name,
+        email: salesPerson.email,
+        phone: salesPerson.phone,
+      },
+      token,
+    });
   } catch (er) {
     return res.status(500).json({ success: false, message: er?.message });
   }
@@ -175,21 +248,17 @@ const createClient = async (req, res) => {
       return res
         .status(400)
         .json({ success: false, message: "Error while saving data" });
-    return res
-      .status(201)
-      .json({
-        success: true,
-        message: "Customer Created!",
-        data: { ...createCustomer },
-      });
+    return res.status(201).json({
+      success: true,
+      message: "Customer Created!",
+      data: { ...createCustomer },
+    });
   } catch (er) {
     if (er?.code === 11000) {
-      return res
-        .status(409)
-        .json({
-          success: false,
-          message: "Phone or Gstin Number already exist!",
-        });
+      return res.status(409).json({
+        success: false,
+        message: "Phone or Gstin Number already exist!",
+      });
     }
 
     return res.status(500).json({ success: false, message: er?.message });
@@ -213,12 +282,10 @@ const updateClient = async (req, res) => {
       !mongoose.isValidObjectId(salesId) ||
       !mongoose.isValidObjectId(clientId)
     )
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Invalid or missing salesId or clientId!",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or missing salesId or clientId!",
+      });
 
     let data = {};
 
@@ -247,12 +314,10 @@ const updateClient = async (req, res) => {
     companyName = (companyName || "").trim();
 
     if (!phone || !gstin || !companyName)
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Please Provide this field (phone,gstin,companyName)!",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Please Provide this field (phone,gstin,companyName)!",
+      });
 
     let phoneRegex = /^[6-9]\d{9}$/;
     let gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
@@ -272,15 +337,13 @@ const updateClient = async (req, res) => {
       { new: true },
     );
 
-    return res.status(200).json({success:true,message:"Client Updated!"});
+    return res.status(200).json({ success: true, message: "Client Updated!" });
   } catch (er) {
     if (er?.code === 11000) {
-      return res
-        .status(409)
-        .json({
-          success: false,
-          message: "Phone and Gstin Already exist!Use different one",
-        });
+      return res.status(409).json({
+        success: false,
+        message: "Phone and Gstin Already exist!Use different one",
+      });
     }
     return res.status(500).json({ success: false, message: er?.message });
   }
@@ -464,5 +527,6 @@ module.exports = {
   logout,
   getClient,
   updateClient,
-  createSalesProposal
+  createSalesProposal,
+  getClientProposals
 };

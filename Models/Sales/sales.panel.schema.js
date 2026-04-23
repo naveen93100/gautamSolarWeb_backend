@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
-const panelSchema = new mongoose.Schema({
-    salerId: {
+const salesPanelSchema = new mongoose.Schema({
+    salesId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Sales"
     },
@@ -60,5 +60,5 @@ const panelSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-const PanelModel = mongoose.model("PanelModel", panelSchema);
+const PanelModel = mongoose.model("SalesPanel", salesPanelSchema);
 module.exports = PanelModel;

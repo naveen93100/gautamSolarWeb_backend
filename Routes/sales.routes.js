@@ -10,13 +10,16 @@ const {
   getClient,
   updateClient,
   createSalesProposal,
+  getClientProposals,
 } = require("../Controllers/Sales/sales.controller.js");
+const salesAuth = require("../Middleware/salesAuth.js");
 
 const router = Router();
 
 
 // 
 router.post("/create-proposal",createSalesProposal);
+router.get("/get-proposals/:clientId",salesAuth,getClientProposals)
 
 // 
 router.post('/login',salesLogin);
