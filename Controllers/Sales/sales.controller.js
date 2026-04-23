@@ -3,7 +3,7 @@ const Sales = require("../../Models/Sales/sales.schema");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const SalesCustomer = require("../../Models/Sales/sales.customer.schema");
-const SalesPanel=require("../../Models/Sales/sales.panel.schema");
+const SalesPanel = require("../../Models/Sales/sales.panel.schema");
 
 const createSalesProposal = async (req, res) => {
   try {
@@ -51,8 +51,8 @@ const createSalesProposal = async (req, res) => {
       }
     }
 
-    // here check first if salesPerson and client exist 
-      
+    // here check first if salesPerson and client exist
+
     const wattIds = selectedPanels.map((p) => p.wattId);
 
     const uniqueWattIds = new Set(wattIds);
@@ -62,47 +62,111 @@ const createSalesProposal = async (req, res) => {
       });
     }
 
+    const finalPrice = selectedPanels.reduce((total, item) => {
+      return total + Number(item.totalPrice || 0) + Number(item.gstAmount || 0);
+    }, 0);
 
-     const finalPrice = selectedPanels.reduce((total, item) => {
-          return total + Number(item.totalPrice || 0) + Number(item.gstAmount || 0);
-        }, 0);
-    
-        const PanelPropsal = await SalesPanel.create({
-          salesId,
-          clientId,
-          gst,
-          termsAndConditions,
-          selectedPanels,
-          finalPrice,
-        });
+    const PanelPropsal = await SalesPanel.create({
+      salesId,
+      clientId,
+      gst,
+      termsAndConditions,
+      selectedPanels,
+      finalPrice,
+    });
 
-        return res.status(201).json({success:true,message:"Proposal Created!",data:PanelPropsal});
-
+    return res
+      .status(201)
+      .json({
+        success: true,
+        message: "Proposal Created!",
+        data: PanelPropsal,
+      });
   } catch (er) {
     return res.status(500).json({ success: false, message: er?.message });
   }
 };
 
-const getClientProposals=async(req,res)=>{
-   try {
-     const {clientId}=req.params;
+const getClientProposals = async (req, res) => {
+  try {
+    const { clientId } = req.params;
 
-     if(!mongoose.isValidObjectId(clientId)) return res.status(400).json({success:false,message:"Invalid or missing ClientId"});
+    if (!mongoose.isValidObjectId(clientId))
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid or missing ClientId" });
 
-     const proposal=await SalesPanel.find({clientId}).populate('clientId salesId').populate({path:'selectedPanels',populate:[
-        {path:"wattId"},
-        {path:"panelId"},
-        {path:"constructiveId"},
-        {path:"technologyId"},
-     ]});
+    const proposal = await SalesPanel.find({ clientId })
+      .populate("clientId salesId")
+      .populate({
+        path: "selectedPanels",
+        populate: [
+          { path: "wattId" },
+          { path: "panelId" },
+          { path: "constructiveId" },
+          { path: "technologyId" },
+        ],
+      });
 
-     return res.status(200).json({success:true,data:proposal});
+    return res.status(200).json({ success: true, data: proposal });
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+};
+
+const deleteProposal = async (req, res) => {
+  try {
+    const { propId } = req.params;
+
+    if (!mongoose.isValidObjectId(propId))
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid or missing Proposal Id" });
+
+    let deletedProposal = await SalesPanel.findByIdAndDelete(propId);
+
+    if (!deletedProposal)
+      return res
+        .status(404)
+        .json({ success: false, message: "Proposal Not found" });
+    return res
+      .status(200)
+      .json({ success: false, message: "Proposal Deleted!" });
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+};
+
+const updateSalesProposal = async (req, res) => {
+  try {
+    let { propId, gst, termsAndConditions, selectedPanels } = req.body;
+
+    const isValid =
+      mongoose.Types.ObjectId.isValid(propId) &&
+      String(new mongoose.Types.ObjectId(propId)) === propId;
+
+    if (!isValid) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid ProposalId",
+      });
+    }
+          
+    let numericGst=Number.parseFloat(gst);
+
+    if(numericGst!==NaN){
+      console.log("asdfsdf")
+    } 
+
+    // if(!numericGst||!termsAndConditions||!Array.isArray(selectedPanels)||!selectedPanels.length===0) return res.status(400).json({success:false,message:""})
+    console.log(numericGst)
 
 
-   } catch (er) {
-      return res.status(500).json({success:false,message:er?.message});
-   }
-}
+    return res.status(200).json({ success: true, message: "working" });
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+};
 
 //
 
@@ -532,5 +596,7 @@ module.exports = {
   getClient,
   updateClient,
   createSalesProposal,
-  getClientProposals
+  getClientProposals,
+  deleteProposal,
+  updateSalesProposal,
 };

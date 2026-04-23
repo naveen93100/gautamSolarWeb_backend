@@ -11,6 +11,8 @@ const {
   updateClient,
   createSalesProposal,
   getClientProposals,
+  deleteProposal,
+  updateSalesProposal,
 } = require("../Controllers/Sales/sales.controller.js");
 const salesAuth = require("../Middleware/salesAuth.js");
 
@@ -20,7 +22,8 @@ const router = Router();
 // 
 router.post("/create-proposal",createSalesProposal);
 router.get("/get-proposals/:clientId",salesAuth,getClientProposals)
-
+router.delete('/delete-proposal/:propId',deleteProposal);
+router.put("/update-proposal",updateSalesProposal)
 // 
 router.post('/login',salesLogin);
 router.post('/logout',logout);
