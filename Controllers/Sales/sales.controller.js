@@ -86,13 +86,12 @@ const createSalesProposal = async (req, res) => {
 const getClientProposals=async(req,res)=>{
    try {
      const {clientId}=req.params;
-    //  console.log(req.sales)
 
      if(!mongoose.isValidObjectId(clientId)) return res.status(400).json({success:false,message:"Invalid or missing ClientId"});
 
      const proposal=await SalesPanel.find({clientId});
 
-     return res.status(200).json({success:true,message:proposal});
+     return res.status(200).json({success:true,data:proposal});
 
 
    } catch (er) {
@@ -144,7 +143,7 @@ const salesLogin = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
