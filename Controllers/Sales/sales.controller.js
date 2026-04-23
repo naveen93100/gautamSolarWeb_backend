@@ -89,7 +89,12 @@ const getClientProposals=async(req,res)=>{
 
      if(!mongoose.isValidObjectId(clientId)) return res.status(400).json({success:false,message:"Invalid or missing ClientId"});
 
-     const proposal=await SalesPanel.find({clientId}).populate('clientId salesId');
+     const proposal=await SalesPanel.find({clientId}).populate('clientId salesId').populate({path:'selectedPanels',populate:[
+        {path:"wattId"},
+        {path:"panelId"},
+        {path:"constructiveId"},
+        {path:"technologyId"},
+     ]});
 
      return res.status(200).json({success:true,data:proposal});
 
