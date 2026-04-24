@@ -4,54 +4,77 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const SalesCustomer = require("../../Models/Sales/sales.customer.schema");
 const SalesPanel = require("../../Models/Sales/sales.panel.schema");
+const salesPropValidator = require("../../Validators/Sales.validator");
 
 const createSalesProposal = async (req, res) => {
   try {
-    let { salesId, clientId, gst, termsAndConditions, selectedPanels } =
-      req.body;
+    // let { salesId, clientId, gst, termsAndConditions, selectedPanels } =
+    //   req.body;
 
-    if (
-      !mongoose.isValidObjectId(salesId) ||
-      !mongoose.isValidObjectId(clientId)
-    )
-      return res.status(400).json({
-        success: false,
-        message: "Invalid or missing sales or client Id",
+    // if (
+    //   !mongoose.isValidObjectId(salesId) ||
+    //   !mongoose.isValidObjectId(clientId)
+    // )
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Invalid or missing sales or client Id",
+    //   });
+
+    // if (typeof gst !== "number")
+    //   return res.status(400).json({ success: false, message: "Invalid Gst!" });
+
+    // let numericGst = Number.parseFloat(gst);
+
+    // if (
+    //   !numericGst ||
+    //   !termsAndConditions ||
+    //   !Array.isArray(selectedPanels) ||
+    //   selectedPanels.length === 0
+    // )
+    //   return res.status(400).json({
+    //     success: false,
+    //     message:
+    //       "GST , terms & conditions, and at least one selected panel are required.",
+    //   });
+
+    // for (const panel of selectedPanels) {
+    //   if (
+    //     !mongoose.Types.ObjectId.isValid(
+    //       panel.panelId ||
+    //         !mongoose.Types.ObjectId.isValid(panel.technologyId) ||
+    //         !mongoose.Types.ObjectId.isValid(panel.constructiveId) ||
+    //         !mongoose.Types.ObjectId.isValid(panel.wattId),
+    //     )
+    //   ) {
+    //     return res.status(400).json({
+    //       message: "Invalid ObjectId in selectedPanel",
+    //     });
+    //   }
+    // }
+
+    const result=salesPropValidator.safeParse(req.body)
+
+      if (!result.success) {
+      const message = [];
+      result.error.issues.forEach((err) => {
+        let v;
+        if(err.path.length>=2){
+            v =err.path[err.path.length-1] ;
+          }
+        else{
+          v = err.path.join(".");
+        }
+        message.push({message:err.message});
       });
 
-    if (typeof gst !== "number")
-      return res.status(400).json({ success: false, message: "Invalid Gst!" });
-
-    let numericGst = Number.parseFloat(gst);
-
-    if (
-      !numericGst ||
-      !termsAndConditions ||
-      !Array.isArray(selectedPanels) ||
-      selectedPanels.length === 0
-    )
       return res.status(400).json({
         success: false,
-        message:
-          "GST , terms & conditions, and at least one selected panel are required.",
+        message,
       });
-
-    for (const panel of selectedPanels) {
-      if (
-        !mongoose.Types.ObjectId.isValid(
-          panel.panelId ||
-            !mongoose.Types.ObjectId.isValid(panel.technologyId) ||
-            !mongoose.Types.ObjectId.isValid(panel.constructiveId) ||
-            !mongoose.Types.ObjectId.isValid(panel.wattId),
-        )
-      ) {
-        return res.status(400).json({
-          message: "Invalid ObjectId in selectedPanel",
-        });
-      }
     }
 
-    // here check first if salesPerson and client exist
+    const {salesId,clientId,gst,termsAndConditions,selectedPanels}=result.data;
+
 
     const wattIds = selectedPanels.map((p) => p.wattId);
 
@@ -75,13 +98,11 @@ const createSalesProposal = async (req, res) => {
       finalPrice,
     });
 
-    return res
-      .status(201)
-      .json({
-        success: true,
-        message: "Proposal Created!",
-        data: PanelPropsal,
-      });
+    return res.status(201).json({
+      success: true,
+      message: "Proposal Created!",
+      data: PanelPropsal,
+    });
   } catch (er) {
     return res.status(500).json({ success: false, message: er?.message });
   }
@@ -129,9 +150,10 @@ const deleteProposal = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "Proposal Not found" });
+
     return res
       .status(200)
-      .json({ success: false, message: "Proposal Deleted!" });
+      .json({ success: true, message: "Proposal Deleted!" });
   } catch (er) {
     return res.status(500).json({ success: false, message: er?.message });
   }
@@ -139,30 +161,51 @@ const deleteProposal = async (req, res) => {
 
 const updateSalesProposal = async (req, res) => {
   try {
-    let { propId, gst, termsAndConditions, selectedPanels } = req.body;
 
-    const isValid =
-      mongoose.Types.ObjectId.isValid(propId) &&
-      String(new mongoose.Types.ObjectId(propId)) === propId;
+    const result = salesPropValidator.safeParse(req.body);
 
-    if (!isValid) {
+     if (!result.success) {
+      const message = [];
+      result.error.issues.forEach((err) => {
+        let v;
+        if(err.path.length>=2){
+            v =err.path[err.path.length-1] ;
+          }
+        else{
+          v = err.path.join(".");
+        }
+        message.push({message:err.message});
+      });
+
       return res.status(400).json({
         success: false,
-        message: "Invalid ProposalId",
+        message,
       });
     }
-          
-    let numericGst=Number.parseFloat(gst);
 
-    if(numericGst!==NaN){
-      console.log("asdfsdf")
-    } 
+    const {propId,gst,termsAndConditions,selectedPanels}=result.data;
 
-    // if(!numericGst||!termsAndConditions||!Array.isArray(selectedPanels)||!selectedPanels.length===0) return res.status(400).json({success:false,message:""})
-    console.log(numericGst)
+    const wattIds = selectedPanels.map((p) => p.wattId);
 
+    const uniqueWattIds = new Set(wattIds);
+    if (wattIds.length !== uniqueWattIds.size) {
+      return res.status(400).json({
+        message: "Duplicate wattId found in selectedPanel",
+      });
+    }
 
-    return res.status(200).json({ success: true, message: "working" });
+    const finalPrice = selectedPanels.reduce((total, item) => {
+      return total + Number(item.totalPrice || 0) + Number(item.gstAmount || 0);
+    }, 0);
+
+    const data={finalPrice,...result.data};
+
+    let updatedProposal=await SalesPanel.findByIdAndUpdate(propId,{$set:data},{new:true});
+
+    if(!updatedProposal) return res.status(404).json({success:false,message:"Proposal not found!"});
+
+    return res.status(200).json({success:true,message:"Proposal Updated successfully!",data:updatedProposal});
+
   } catch (er) {
     return res.status(500).json({ success: false, message: er?.message });
   }

@@ -57,8 +57,8 @@ app.use((req, res, next) => {
   const now = new Date();
   const istTime = new Date(now.getTime() + 5.5 * 60 * 60 * 1000) // Convert to IST
     .toISOString()
-    .replace("T", " ") // Replace "T" with space for readability
-    .replace("Z", " IST"); // Add "IST" at the end
+    .replace("T", " ") 
+    .replace("Z", " IST");
 
   console.log(`[${istTime}] ${req.method} ${req.url}`);
 
