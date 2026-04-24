@@ -56,4 +56,10 @@ const salesProposalSchema = z.object({
     .min(1, "At least one panel is required"),
 });
 
+// salesId, fullName, email, phone, address, companyName, gstin
+const createProposalSchema=z.object({
+   salesId:objectIdSchema('SalesId'),
+   fullName:z.string()
+})
+
 module.exports = salesProposalSchema;

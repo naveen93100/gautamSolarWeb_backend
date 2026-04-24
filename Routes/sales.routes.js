@@ -20,16 +20,16 @@ const router = Router();
 
 
 // 
-router.post("/create-proposal",createSalesProposal);
+router.post("/create-proposal",salesAuth,createSalesProposal);
 router.get("/get-proposals/:clientId",salesAuth,getClientProposals)
-router.delete('/delete-proposal/:propId',deleteProposal);
-router.put("/update-proposal",updateSalesProposal)
+router.delete('/delete-proposal/:propId',salesAuth,deleteProposal);
+router.put("/update-proposal",salesAuth,updateSalesProposal)
 // 
 router.post('/login',salesLogin);
 router.post('/logout',logout);
 // need to create a auth middleware to check if sales person is login or not
 
-router.post('/create-client',createClient);
+router.post('/create-client',salesAuth,createClient);
 router.get("/get-client/:salesId",getClient);
 router.patch('/update-client',updateClient);
 
