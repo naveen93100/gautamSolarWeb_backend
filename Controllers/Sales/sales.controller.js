@@ -4,7 +4,11 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const SalesCustomer = require("../../Models/Sales/sales.customer.schema");
 const SalesPanel = require("../../Models/Sales/sales.panel.schema");
-const salesPropValidator = require("../../Validators/Sales.validator");
+const {
+  salesProposalSchema,
+  createClientSchema,
+  updateClientSchema,
+} = require("../../Validators/Sales.validator");
 
 const createSalesProposal = async (req, res) => {
   try {
@@ -52,19 +56,18 @@ const createSalesProposal = async (req, res) => {
     //   }
     // }
 
-    const result=salesPropValidator.safeParse(req.body)
+    const result = salesProposalSchema.safeParse(req.body);
 
-      if (!result.success) {
+    if (!result.success) {
       const message = [];
       result.error.issues.forEach((err) => {
         let v;
-        if(err.path.length>=2){
-            v =err.path[err.path.length-1] ;
-          }
-        else{
+        if (err.path.length >= 2) {
+          v = err.path[err.path.length - 1];
+        } else {
           v = err.path.join(".");
         }
-        message.push({message:err.message});
+        message.push({ message: err.message });
       });
 
       return res.status(400).json({
@@ -73,8 +76,8 @@ const createSalesProposal = async (req, res) => {
       });
     }
 
-    const {salesId,clientId,gst,termsAndConditions,selectedPanels}=result.data;
-
+    const { salesId, clientId, gst, termsAndConditions, selectedPanels } =
+      result.data;
 
     const wattIds = selectedPanels.map((p) => p.wattId);
 
@@ -161,20 +164,12 @@ const deleteProposal = async (req, res) => {
 
 const updateSalesProposal = async (req, res) => {
   try {
+    const result = salesProposalSchema.safeParse(req.body);
 
-    const result = salesPropValidator.safeParse(req.body);
-
-     if (!result.success) {
+    if (!result.success) {
       const message = [];
       result.error.issues.forEach((err) => {
-        let v;
-        if(err.path.length>=2){
-            v =err.path[err.path.length-1] ;
-          }
-        else{
-          v = err.path.join(".");
-        }
-        message.push({message:err.message});
+        message.push({ message: err.message });
       });
 
       return res.status(400).json({
@@ -183,7 +178,7 @@ const updateSalesProposal = async (req, res) => {
       });
     }
 
-    const {propId,gst,termsAndConditions,selectedPanels}=result.data;
+    const { propId, gst, termsAndConditions, selectedPanels } = result.data;
 
     const wattIds = selectedPanels.map((p) => p.wattId);
 
@@ -198,14 +193,24 @@ const updateSalesProposal = async (req, res) => {
       return total + Number(item.totalPrice || 0) + Number(item.gstAmount || 0);
     }, 0);
 
-    const data={finalPrice,...result.data};
+    const data = { finalPrice, ...result.data };
 
-    let updatedProposal=await SalesPanel.findByIdAndUpdate(propId,{$set:data},{new:true});
+    let updatedProposal = await SalesPanel.findByIdAndUpdate(
+      propId,
+      { $set: data },
+      { new: true },
+    );
 
-    if(!updatedProposal) return res.status(404).json({success:false,message:"Proposal not found!"});
+    if (!updatedProposal)
+      return res
+        .status(404)
+        .json({ success: false, message: "Proposal not found!" });
 
-    return res.status(200).json({success:true,message:"Proposal Updated successfully!",data:updatedProposal});
-
+    return res.status(200).json({
+      success: true,
+      message: "Proposal Updated successfully!",
+      data: updatedProposal,
+    });
   } catch (er) {
     return res.status(500).json({ success: false, message: er?.message });
   }
@@ -294,71 +299,93 @@ const logout = async (req, res) => {
 
 const createClient = async (req, res) => {
   try {
-    let { salesId, fullName, email, phone, address, companyName, gstin } =
-      req.body;
+    // let { salesId, fullName, email, phone, address, companyName, gstin } =
+    //   req.body;
 
-    if (!mongoose.isValidObjectId(salesId))
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid or missing sales id" });
+    // if (!mongoose.isValidObjectId(salesId))
+    //   return res
+    //     .status(400)
+    //     .json({ success: false, message: "Invalid or missing sales id" });
 
-    let data = {};
-    if (fullName && fullName.trim()) {
-      data.fullName = fullName.trim();
-    }
+    // let data = {};
+    // if (fullName && fullName.trim()) {
+    //   data.fullName = fullName.trim();
+    // }
 
-    if (email) {
-      email = email.trim().toLowerCase();
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email))
-        return res
-          .status(400)
-          .json({ success: false, message: "Invalid email Address!" });
-      data.email = email;
-    }
+    // if (email) {
+    //   email = email.trim().toLowerCase();
+    //   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    //   if (!emailRegex.test(email))
+    //     return res
+    //       .status(400)
+    //       .json({ success: false, message: "Invalid email Address!" });
+    //   data.email = email;
+    // }
 
-    if (address) {
-      address = address.trim();
-      data.address = address;
-    }
+    // if (address) {
+    //   address = address.trim();
+    //   data.address = address;
+    // }
 
-    phone = (phone || "").replace(/\D/g, "");
-    gstin = (gstin || "").trim().toUpperCase();
-    companyName = (companyName || "").trim();
+    // phone = (phone || "").replace(/\D/g, "");
+    // gstin = (gstin || "").trim().toUpperCase();
+    // companyName = (companyName || "").trim();
 
-    //    phone.replace(/\D/g, "");
-    //    gstin=gstin.trim().toUpperCase();
-    //    companyName=companyName.trim();
+    // //    phone.replace(/\D/g, "");
+    // //    gstin=gstin.trim().toUpperCase();
+    // //    companyName=companyName.trim();
 
-    if (!phone || !companyName || !gstin)
-      return res.status(400).json({
-        success: false,
-        message: "Phone,companyName and gstin is required!",
+    // if (!phone || !companyName || !gstin)
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Phone,companyName and gstin is required!",
+    //   });
+
+    // let phoneRegex = /^[6-9]\d{9}$/;
+    // let gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
+    // if (!phoneRegex.test(phone))
+    //   return res
+    //     .status(400)
+    //     .json({ success: false, message: "Invalid phone number!" });
+    // if (!gstRegex.test(gstin))
+    //   return res
+    //     .status(400)
+    //     .json({ success: false, message: "Invalid gst number!" });
+
+    // data.phone = phone;
+    // data.gstin = gstin;
+    // data.companyName = companyName;
+    // data.salesPersonId = salesId;
+
+    // if (!createCustomer)
+    //   return res
+    //     .status(400)
+    //     .json({ success: false, message: "Error while saving data" });
+
+    const result = createClientSchema.safeParse(req.body);
+
+    if (!result.success) {
+      const message = [];
+      result.error.issues.forEach((err) => {
+        message.push({ message: err.message });
       });
 
-    let phoneRegex = /^[6-9]\d{9}$/;
-    let gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+      return res.status(400).json({
+        success: false,
+        message,
+      });
+    }
 
-    if (!phoneRegex.test(phone))
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid phone number!" });
-    if (!gstRegex.test(gstin))
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid gst number!" });
+    const { salesId, ...rest } = result.data;
 
-    data.phone = phone;
-    data.gstin = gstin;
-    data.companyName = companyName;
-    data.salesPersonId = salesId;
+    const data = {
+      ...rest,
+      salesPersonId: salesId,
+    };
 
     const createCustomer = await SalesCustomer.create(data);
 
-    if (!createCustomer)
-      return res
-        .status(400)
-        .json({ success: false, message: "Error while saving data" });
     return res.status(201).json({
       success: true,
       message: "Customer Created!",
@@ -368,83 +395,100 @@ const createClient = async (req, res) => {
     if (er?.code === 11000) {
       return res.status(409).json({
         success: false,
-        message: "Phone or Gstin Number already exist!",
+        message: [{ message: "Phone or Gstin Number already exist!" }],
       });
     }
 
-    return res.status(500).json({ success: false, message: er?.message });
+    return res
+      .status(500)
+      .json({ success: false, message: [{ message: er?.message }] });
   }
 };
 
 const updateClient = async (req, res) => {
   try {
-    let {
-      salesId,
-      clientId,
-      fullName,
-      email,
-      companyName,
-      gstin,
-      address,
-      phone,
-    } = req.body;
+    // let {
+    //   salesId,
+    //   clientId,
+    //   fullName,
+    //   email,
+    //   companyName,
+    //   gstin,
+    //   address,
+    //   phone,
+    // } = req.body;
 
-    if (
-      !mongoose.isValidObjectId(salesId) ||
-      !mongoose.isValidObjectId(clientId)
-    )
-      return res.status(400).json({
-        success: false,
-        message: "Invalid or missing salesId or clientId!",
+    // if (
+    //   !mongoose.isValidObjectId(salesId) ||
+    //   !mongoose.isValidObjectId(clientId)
+    // )
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Invalid or missing salesId or clientId!",
+    //   });
+
+    // let data = {};
+
+    // if (fullName && fullName.trim()) {
+    //   data.fullName = fullName;
+    // }
+
+    // if (email) {
+    //   email = email.trim().toLowerCase();
+    //   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    //   if (!emailRegex.test(email))
+    //     return res
+    //       .status(400)
+    //       .json({ success: false, message: "Invalid email" });
+    //   data.email = email;
+    // }
+
+    // if (address) {
+    //   address = address.trim();
+    //   data.address = address;
+    // }
+
+    // phone = (phone || "").replace(/\D/g, "");
+    // gstin = (gstin || "").trim().toUpperCase();
+    // companyName = (companyName || "").trim();
+
+    // if (!phone || !gstin || !companyName)
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Please Provide this field (phone,gstin,companyName)!",
+    //   });
+
+    // let phoneRegex = /^[6-9]\d{9}$/;
+    // let gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
+    // if (!phoneRegex.test(phone) || !gstRegex.test(gstin))
+    //   return res
+    //     .status(400)
+    //     .json({ success: false, message: "Invalid or Missing phone or gstin" });
+
+    // data.phone = phone;
+    // data.gstin = gstin;
+    // data.companyName = companyName;
+
+    let result = updateClientSchema.safeParse(req.body);
+
+    if (!result.success) {
+      const message = [];
+      result.error.issues.forEach((err) => {
+        message.push({ message: err.message });
       });
 
-    let data = {};
-
-    if (fullName && fullName.trim()) {
-      data.fullName = fullName;
-    }
-    //  required phone,gstin,companyName
-
-    if (email) {
-      email = email.trim().toLowerCase();
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email))
-        return res
-          .status(400)
-          .json({ success: false, message: "Invalid email" });
-      data.email = email;
-    }
-
-    if (address) {
-      address = address.trim();
-      data.address = address;
-    }
-
-    phone = (phone || "").replace(/\D/g, "");
-    gstin = (gstin || "").trim().toUpperCase();
-    companyName = (companyName || "").trim();
-
-    if (!phone || !gstin || !companyName)
       return res.status(400).json({
         success: false,
-        message: "Please Provide this field (phone,gstin,companyName)!",
+        message,
       });
+    }
 
-    let phoneRegex = /^[6-9]\d{9}$/;
-    let gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-
-    if (!phoneRegex.test(phone) || !gstRegex.test(gstin))
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid or Missing phone or gstin" });
-
-    data.phone = phone;
-    data.gstin = gstin;
-    data.companyName = companyName;
+    let { clientId, salesId, ...rest } = result.data;
 
     let updateClient = await SalesCustomer.findOneAndUpdate(
       { _id: clientId, salesPersonId: salesId },
-      { $set: data },
+      { $set: rest },
       { new: true },
     );
 
@@ -453,10 +497,14 @@ const updateClient = async (req, res) => {
     if (er?.code === 11000) {
       return res.status(409).json({
         success: false,
-        message: "Phone and Gstin Already exist!Use different one",
+        message: [
+          { message: "Phone or Gstin Already exist!Use different one" },
+        ],
       });
     }
-    return res.status(500).json({ success: false, message: er?.message });
+    return res
+      .status(500)
+      .json({ success: false, message: [{ message: er?.message }] });
   }
 };
 

@@ -21,6 +21,7 @@ const { templatePdfBytes } = require("../cache/templateChache.js");
 const dealerTransporter = require("../utils/mailer.js");
 const MaterialModel = require("../Models/material.schema.js");
 const PanelModel = require("../Models/panelSchema.js");
+const { createClientSchema } = require("../Validators/Dealer.validator.js");
 
 const loginDealer = async (req, res) => {
   try {
@@ -1468,54 +1469,61 @@ const createCustomer = async (req, res) => {
   try {
     const { dealerId, name, email, phone, address } = req.body;
 
-    if (!name || !email || !phone || !address)
-      return res.status(400).json({
-        success: false,
-        message:
-          "Missing required fields. Please fill in all the details before proceeding.",
-      });
+    // if (!name || !email || !phone || !address)
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: 
+    //       "Missing required fields. Please fill in all the details before proceeding.",
+    //   });
 
-    if (!mongoose.isValidObjectId(dealerId))
-      return res.status(400).json({
-        success: false,
-        message:
-          "The provided dealer ID is not valid. Please check and try again.",
-      });
+    // if (!mongoose.isValidObjectId(dealerId))
+    //   return res.status(400).json({
+    //     success: false,
+    //     message:
+    //       "The provided dealer ID is not valid. Please check and try again.",
+    //   });
 
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    const phoneRegex = /^\d{10}$/;
+    // const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    // const phoneRegex = /^\d{10}$/;
 
-    if (!emailRegex.test(email))
-      return res.status(400).json({
-        success: false,
-        message: "Please enter a valid email address.",
-      });
+    // if (!emailRegex.test(email))
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Please enter a valid email address.",
+    //   });
 
-    if (!phoneRegex.test(phone)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid phone number!" });
+    // if (!phoneRegex.test(phone)) {
+    //   return res
+    //     .status(400)
+    //     .json({ success: false, message: "Invalid phone number!" });
+    // }
+
+    
+    const result=createClientSchema.safeParse(req.body);
+    
+    if(!result?.success){
+      let message=[];
+      result.error.issues.forEach((er)=>{
+        message.push({message:er?.message})
+      })
+      
+      return res.status(400).json({success:false,message});
     }
 
-    const newCustomer = await CustomerModel.create({
-      dealerId,
-      name,
-      email,
-      phone,
-      address,
-    });
 
-    return res.status(201).json({ success: true, data: newCustomer });
+    const newCustomer = await CustomerModel.create(result.data);
+
+    return res.status(201).json({ success: true, newCustomer});
   } catch (er) {
     if (er?.code === 11000) {
       return res.status(409).json({
         success: false,
-        message: "Customer already exists with this email.",
+        message: [{message:"Customer already exists with this email."}],
       });
     }
     return res
       .status(500)
-      .json({ success: false, message: er?.message, err: er.code });
+      .json({ success: false, message: [{message:er?.message}] });
   }
 };
 

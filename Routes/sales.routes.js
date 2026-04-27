@@ -27,12 +27,12 @@ router.put("/update-proposal",salesAuth,updateSalesProposal)
 // 
 router.post('/login',salesLogin);
 router.post('/logout',logout);
+
 // need to create a auth middleware to check if sales person is login or not
 
 router.post('/create-client',salesAuth,createClient);
 router.get("/get-client/:salesId",getClient);
 router.patch('/update-client',updateClient);
-
 
 
 
