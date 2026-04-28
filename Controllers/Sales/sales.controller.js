@@ -130,7 +130,7 @@ const getClientProposals = async (req, res) => {
           { path: "constructiveId" },
           { path: "technologyId" },
         ],
-      });
+      }).sort({createdAt:-1}).lean();
 
     return res.status(200).json({ success: true, data: proposal });
   } catch (er) {
