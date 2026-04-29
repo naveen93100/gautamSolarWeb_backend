@@ -7,7 +7,7 @@ const adminAuth = async (req, res, next) => {
         if (!token) {
             return res.status(404).json({
                 success: false,
-                message: "No token provide.."
+                message: "Unauthorized.."
             })
         }
         const decode = jwt.verify(token, process.env.JWT_SECRET);
