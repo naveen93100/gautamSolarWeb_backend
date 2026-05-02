@@ -1004,7 +1004,6 @@ const updatePanelWatt = async (req, res) => {
 };
 
 const createAdmin = async (req, res) => {
-  
   let { email, password, role } = req.body;
   email = email?.toLowerCase().trim();
 
@@ -1049,10 +1048,12 @@ const createAdmin = async (req, res) => {
       role,
     });
 
+    adminData.password = undefined;
+
     return res.status(201).json({
       success: true,
       message: "Admin created successfully...",
-      admin: adminData,
+      data: adminData,
     });
   } catch (error) {
     // console.log("Error : ", error);
@@ -1063,9 +1064,60 @@ const createAdmin = async (req, res) => {
   }
 };
 
+const toggleAdmin = async (req, res) => {
+  try {
+    const { adminId, isActive } = req.body;
+
+    if (!mongoose.isValidObjectId(adminId))
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid AdminId" });
+
+    if (typeof isActive === "string") {
+      const value = isActive.trim().toLowerCase();
+
+      if (value === "true") isActive = true;
+      else if (value === "false") isActive = false;
+      else {
+        return res.status(400).json({
+          success: false,
+          message: "'isActive' must be a boolean value (true or false).",
+        });
+      }
+    }
+
+    if (typeof isActive !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        message: "'isActive' must be a boolean value (true or false).",
+      });
+    }
+
+    const updatedAdmin = await Admin.findByIdAndUpdate(
+      adminId,
+      { $set: { isActive } },
+      { new: true, runValidators: true },
+    );
+
+    if (!updatedAdmin) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin not found.",
+      });
+
+      return res.status(200).json({success:true,message:`Account ${isActive?'Activated':'De-Activated'} successfully`});
+    }
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+};
+
 const getAdmin = async (req, res) => {
   try {
-    const allData = await Admin.find();
+    const allData = await Admin.find()
+      .select("-password")
+      .sort({ role: -1 })
+      .lean();
     return res.status(200).json({
       success: true,
       data: allData,
@@ -1113,6 +1165,14 @@ const loginAdmin = async (req, res) => {
         message: "Invalid email or password",
       });
     }
+
+    if (!admin.isActive) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Your account is currently inactive. Please contact the super admin to activate your account.",
+      });
+    }
     // console.log("Admin : ", admin);
 
     const match = await bcrypt.compare(password, admin.password);
@@ -1127,7 +1187,7 @@ const loginAdmin = async (req, res) => {
       {
         adminId: admin._id,
         email: admin.email,
-        role: "admin",
+        role: admin.role,
       },
 
       process.env.JWT_SECRET,
@@ -1138,20 +1198,30 @@ const loginAdmin = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      // sameSite: "none",
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.cookie("role", admin?.role, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      // sameSite: "none",
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
+
+    let data = {
+      adminId: admin._id,
+      email: admin.email,
+      role: admin.role,
+    };
 
     return res.status(200).json({
       success: true,
       message: "Admin Login successfully..",
+      token,
+      data,
     });
   } catch (error) {
     return res.status(500).json({
@@ -1167,7 +1237,8 @@ const logoutAdmin = async (req, res) => {
     res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      // sameSite: "none",
+      sameSite: "lax",
     });
 
     res.clearCookie("role", {
@@ -1389,4 +1460,5 @@ module.exports = {
   updatePanelWatt,
   ExcelDownload,
   getCustomerData,
+  toggleAdmin,
 };

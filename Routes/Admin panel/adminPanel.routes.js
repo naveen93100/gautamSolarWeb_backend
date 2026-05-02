@@ -23,10 +23,12 @@ const { createPanel,
     togglePanelWatt,
     updatePanelWatt,
     ExcelDownload,
-    getCustomerData
+    getCustomerData,
+    toggleAdmin
 } = require("../../Controllers/proposalAdmin/adminPannel.controller.js");
 const adminAuth = require("../../Middleware/adminAuth.js");
 const uploadImgPath = require("../../Middleware/panalImgWattMulter.js");
+const allowRole = require("../../Middleware/allowRole.js");
 
 
 // panel routes
@@ -55,9 +57,12 @@ panelRouter.get("/getPanelWatt", getPanelWatt)
 panelRouter.put("/togglePanelWatt", adminAuth, togglePanelWatt)
 panelRouter.put("/updatePanelWatt", adminAuth, uploadImgPath.array("imgWatt", 2), updatePanelWatt)
 
+
 // admin
-panelRouter.post("/createAdmin", createAdmin)
-panelRouter.get("/getAdmin", getAdmin)
+panelRouter.post("/createAdmin",adminAuth,allowRole(['super_admin']), createAdmin);
+panelRouter.post('/toggle-admin',adminAuth,allowRole(['super_admin'],toggleAdmin));
+
+panelRouter.get("/getAdmin",adminAuth,allowRole(['super_admin']),getAdmin)
 panelRouter.post("/loginAdmin", loginAdmin)
 panelRouter.get("/logoutAdmin", adminAuth, logoutAdmin)
 

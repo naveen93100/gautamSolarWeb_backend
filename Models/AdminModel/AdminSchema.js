@@ -19,6 +19,10 @@ const adminSchema = new mongoose.Schema({
         enum: ["super_admin", "admin"],
         default: "admin"
     },
+    isActive:{
+        type:Boolean,
+        default:true
+    }
 }, { timestamps: true });
 
 const Admin = mongoose.model("Admin", adminSchema);
