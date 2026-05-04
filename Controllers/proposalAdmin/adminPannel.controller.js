@@ -13,6 +13,9 @@ const xlxs = require("xlsx");
 const CustomerModel = require("../../Models/customer.schema");
 const PanelModel = require("../../Models/panelSchema");
 const ProposalModel = require("../../Models/proposal.schema");
+const Sales = require("../../Models/Sales/sales.schema");
+const SalesCustomer = require("../../Models/Sales/sales.customer.schema");
+const SalesPanel = require("../../Models/Sales/sales.panel.schema");
 
 const createPanel = async (req, res) => {
   try {
@@ -1064,6 +1067,46 @@ const createAdmin = async (req, res) => {
   }
 };
 
+const getSalesAllClients = async (req, res) => {
+  try {
+    const { salesId } = req.params;
+
+    if (!mongoose.isValidObjectId(salesId))
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid SalesId" });
+
+    let data = await SalesCustomer.find({ salesPersonId: salesId });
+
+    return res.status(200).json({ success: true, message: "working", data });
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+};
+
+const getSalesClientProposals = async (req, res) => {
+  try {
+    const { salesId, clientId } = req.params;
+
+    if (
+      !mongoose.isValidObjectId(salesId) ||
+      !mongoose.isValidObjectId(clientId)
+    )
+      return res.status(400).json({ success: false, message: "Invalid Id's" });
+
+    const data = await SalesPanel.find({ salesId, clientId }).populate([
+      { path: 'selectedPanels.wattId' ,select:'watt'},
+      { path: 'selectedPanels.constructiveId' ,select:'constructiveType'},
+      { path: 'selectedPanels.technologyId' ,select:'technologyPanel'}, 
+      { path: 'selectedPanels.panelId',select:'panelType' },
+    ]);
+
+    return res.status(200).json({ success: true, data });
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+};
+
 const toggleAdmin = async (req, res) => {
   try {
     const { adminId, isActive } = req.body;
@@ -1105,7 +1148,10 @@ const toggleAdmin = async (req, res) => {
         message: "Admin not found.",
       });
 
-      return res.status(200).json({success:true,message:`Account ${isActive?'Activated':'De-Activated'} successfully`});
+      return res.status(200).json({
+        success: true,
+        message: `Account ${isActive ? "Activated" : "De-Activated"} successfully`,
+      });
     }
   } catch (er) {
     return res.status(500).json({ success: false, message: er?.message });
@@ -1461,4 +1507,6 @@ module.exports = {
   ExcelDownload,
   getCustomerData,
   toggleAdmin,
+  getSalesAllClients,
+  getSalesClientProposals,
 };
