@@ -1108,18 +1108,19 @@ const getSalesClientProposals = async (req, res) => {
 };
 
 // ----------------
-
 const createSuperAdmin = async (req, res) => {
   try {
     let { email, password, role } = req.body;
-    email = email?.toLowerCase().trim();
-
+    
     if (!email || !password) {
       return res.status(400).json({
         success: false,
         message: "Email and Password are required..",
       });
     }
+    email = email?.toLowerCase().trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 
     if (password.length < 6) {
       return res.status(400).json({

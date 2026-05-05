@@ -575,7 +575,7 @@ const createSalesPerson = async (req, res) => {
 
 const updateSalesAccount = async (req, res) => {
   try {
-    let { salesId, name, email, phone } = req.body;
+    let { salesId, name, phone } = req.body;
 
     if (!mongoose.isValidObjectId(salesId))
       return res
@@ -592,22 +592,6 @@ const updateSalesAccount = async (req, res) => {
 
     if (name && name.trim()) {
       newData.name = name.trim();
-    }
-
-    if (email) {
-      email = email.trim().toLowerCase();
-
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid email format",
-        });
-      }
-
-      if (email !== salesAccount.email) {
-        newData.email = email;
-      }
     }
 
     if (phone) {
