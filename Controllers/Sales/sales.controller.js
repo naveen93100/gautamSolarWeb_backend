@@ -130,7 +130,9 @@ const getClientProposals = async (req, res) => {
           { path: "constructiveId" },
           { path: "technologyId" },
         ],
-      }).sort({createdAt:-1}).lean();
+      })
+      .sort({ createdAt: -1 })
+      .lean();
 
     return res.status(200).json({ success: true, data: proposal });
   } catch (er) {
@@ -220,19 +222,16 @@ const updateSalesProposal = async (req, res) => {
 
 const salesLogin = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { userId, password } = req.body;
 
-    if (!email || !password)
+    if (!userId || !password)
       return res
         .status(400)
-        .json({ success: false, message: "Email and Password not provided" });
+        .json({ success: false, message: "userId and Password not provided" });
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    userId = userId.toUpperCase();
 
-    if (!emailRegex.test(email))
-      return res.status(400).json({ success: "Invalid email type!" });
-
-    const salesPerson = await Sales.findOne({ email }).select("+password");
+    const salesPerson = await Sales.findOne({ userId }).select("+password");
 
     if (!salesPerson)
       return res
@@ -252,7 +251,7 @@ const salesLogin = async (req, res) => {
         .json({ success: false, message: "Invalid email or password" });
 
     let token = jwt.sign(
-      { id: salesPerson._id, email: salesPerson.email },
+      { id: salesPerson._id, userId: salesPerson.userId },
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
     );
@@ -271,7 +270,7 @@ const salesLogin = async (req, res) => {
       data: {
         _id: salesPerson._id,
         name: salesPerson.name,
-        email: salesPerson.email,
+        userId: salesPerson.userId,
         phone: salesPerson.phone,
       },
       token,
@@ -528,34 +527,47 @@ const getClient = async (req, res) => {
 // admin functions
 const createSalesPerson = async (req, res) => {
   try {
-    const { name, email, phone, password } = req.body;
+    let { name, phone, password } = req.body;
 
-    if (!name || !email || !phone || !password)
+    if (!name || !phone || !password)
       return res
         .status(400)
         .json({ success: false, message: "Please fill required fields.." });
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    name = name.trim();
     const phoneRegex = /^[6-9]\d{9}$/;
+    const nameRegex = /^[a-zA-Z]+(?:\s[a-zA-Z]+)*$/;
 
-    if (!emailRegex.test(email) || !phoneRegex.test(phone))
+    if (!phoneRegex.test(phone))
       return res
         .status(400)
-        .json({ success: false, message: "Invalid Email or Phone address!" });
+        .json({ success: false, message: "Invalid phone number!" });
+
+    if (!nameRegex.test(name))
+      return res.status(400).json({ success: false, message: "Invalid name" });
 
     const newSalesPerson = await Sales.create({
       name,
-      email,
       phone,
       password,
     });
 
-    return res.status(201).json({ success: true, message: "Account Created" });
+    return res.status(201).json({
+      success: true,
+      message: "Account Created",
+      data: {
+        _id: newSalesPerson._id,
+        name: newSalesPerson.name,
+        phone: newSalesPerson.phone,
+        isActive: newSalesPerson.isActive,
+        userId: newSalesPerson.userId,
+      },
+    });
   } catch (er) {
     if (er?.code === 11000) {
       return res
         .status(409)
-        .json({ success: false, message: "Email Or Phone already exists" });
+        .json({ success: false, message: "userId Or Phone already exists" });
     }
     return res.status(500).json({ success: false, message: er?.message });
   }

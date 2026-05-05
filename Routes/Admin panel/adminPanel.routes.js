@@ -26,7 +26,8 @@ const { createPanel,
     getCustomerData,
     toggleAdmin,
     getSalesAllClients,
-    getSalesClientProposals
+    getSalesClientProposals,
+    createSuperAdmin
 } = require("../../Controllers/proposalAdmin/adminPannel.controller.js");
 const adminAuth = require("../../Middleware/adminAuth.js");
 const uploadImgPath = require("../../Middleware/panalImgWattMulter.js");
@@ -59,10 +60,14 @@ panelRouter.get("/getPanelWatt", getPanelWatt)
 panelRouter.put("/togglePanelWatt", adminAuth, togglePanelWatt)
 panelRouter.put("/updatePanelWatt", adminAuth, uploadImgPath.array("imgWatt", 2), updatePanelWatt)
 
+// ----------------
+
+panelRouter.post('/create-super-admin',createSuperAdmin);
+// ----------------
 
 // admin
 panelRouter.post("/createAdmin",adminAuth,allowRole(['super_admin']), createAdmin);
-panelRouter.post('/toggle-admin',adminAuth,allowRole(['super_admin'],toggleAdmin));
+panelRouter.post('/toggle-admin',adminAuth,allowRole(['super_admin']),toggleAdmin);
 
 panelRouter.get('/sales-client/:salesId',adminAuth,allowRole(['admin','super_admin']),getSalesAllClients);
 panelRouter.get('/sales-client-proposals/:salesId/:clientId',adminAuth,allowRole(['admin','super_admin']),getSalesClientProposals);
@@ -76,6 +81,6 @@ panelRouter.get("/adminDashBoardData", adminDashBoardData);
 panelRouter.get('/excel-download', adminAuth, ExcelDownload);
 panelRouter.get('/getCustomerData', adminAuth, getCustomerData);
 
-panelRouter.get('/excel-download',adminAuth,ExcelDownload);
+// panelRouter.get('/excel-download',adminAuth,ExcelDownload);
 
 module.exports = panelRouter

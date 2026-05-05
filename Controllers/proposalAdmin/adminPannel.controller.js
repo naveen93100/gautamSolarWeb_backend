@@ -1095,10 +1095,10 @@ const getSalesClientProposals = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid Id's" });
 
     const data = await SalesPanel.find({ salesId, clientId }).populate([
-      { path: 'selectedPanels.wattId' ,select:'watt'},
-      { path: 'selectedPanels.constructiveId' ,select:'constructiveType'},
-      { path: 'selectedPanels.technologyId' ,select:'technologyPanel'}, 
-      { path: 'selectedPanels.panelId',select:'panelType' },
+      { path: "selectedPanels.wattId", select: "watt" },
+      { path: "selectedPanels.constructiveId", select: "constructiveType" },
+      { path: "selectedPanels.technologyId", select: "technologyPanel" },
+      { path: "selectedPanels.panelId", select: "panelType" },
     ]);
 
     return res.status(200).json({ success: true, data });
@@ -1107,9 +1107,69 @@ const getSalesClientProposals = async (req, res) => {
   }
 };
 
+// ----------------
+
+const createSuperAdmin = async (req, res) => {
+  try {
+    let { email, password, role } = req.body;
+    email = email?.toLowerCase().trim();
+
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and Password are required..",
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be 6 words long",
+      });
+    }
+
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invaild email format..",
+      });
+    }
+
+    const admin = await Admin.findOne({ email });
+
+    if (admin) {
+      return res.status(409).json({
+        success: false,
+        message: "Admin already exists",
+      });
+    }
+
+    const hashPass = await bcrypt.hash(password, 10);
+    // console.log("hashPass : ", hashPass)
+
+    const adminData = await Admin.create({
+      email,
+      password: hashPass,
+      role,
+    });
+
+    adminData.password = undefined;
+
+    return res.status(201).json({
+      success: true,
+      message: "Admin created successfully...",
+      data: adminData,
+    });
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+};
+
+// ----------------
+
 const toggleAdmin = async (req, res) => {
   try {
-    const { adminId, isActive } = req.body;
+    let { adminId, isActive } = req.body;
 
     if (!mongoose.isValidObjectId(adminId))
       return res
@@ -1509,4 +1569,5 @@ module.exports = {
   toggleAdmin,
   getSalesAllClients,
   getSalesClientProposals,
+  createSuperAdmin
 };
