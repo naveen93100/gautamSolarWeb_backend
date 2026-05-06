@@ -62,7 +62,7 @@ panelRouter.put("/updatePanelWatt", adminAuth, uploadImgPath.array("imgWatt", 2)
 
 // ----------------
 
-panelRouter.post('/create-super-admin',createSuperAdmin);
+// panelRouter.post('/create-super-admin',createSuperAdmin);
 // ----------------
 
 // admin
