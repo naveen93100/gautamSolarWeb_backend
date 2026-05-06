@@ -1266,6 +1266,7 @@ const loginAdmin = async (req, res) => {
     }
 
     const admin = await Admin.findOne({ email });
+    console.log(admin)
     if (!admin) {
       return res.status(401).json({
         success: false,
@@ -1283,6 +1284,7 @@ const loginAdmin = async (req, res) => {
     // console.log("Admin : ", admin);
 
     const match = await bcrypt.compare(password, admin.password);
+    console.log(match);
     if (!match) {
       return res.status(401).json({
         success: false,
