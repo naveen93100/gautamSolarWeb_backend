@@ -1111,7 +1111,7 @@ const getSalesClientProposals = async (req, res) => {
 const createSuperAdmin = async (req, res) => {
   try {
     let { email, password, role } = req.body;
-    
+
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -1120,7 +1120,6 @@ const createSuperAdmin = async (req, res) => {
     }
     email = email?.toLowerCase().trim();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 
     if (password.length < 6) {
       return res.status(400).json({
@@ -1239,17 +1238,19 @@ const getAdmin = async (req, res) => {
 };
 
 const loginAdmin = async (req, res) => {
-  let { email, password } = req.body;
-  email = email?.toLowerCase().trim();
   // console.log("Email ", email);
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   try {
+    let { email, password } = req.body;
+    
     if (!email || !password) {
       return res.status(400).json({
         success: false,
         message: "Email and password are required..",
       });
     }
+
+    email = email?.toLowerCase().trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailRegex.test(email)) {
       return res.status(400).json({
@@ -1266,7 +1267,6 @@ const loginAdmin = async (req, res) => {
     }
 
     const admin = await Admin.findOne({ email });
-    console.log(admin)
     if (!admin) {
       return res.status(401).json({
         success: false,
@@ -1282,12 +1282,9 @@ const loginAdmin = async (req, res) => {
       });
     }
     // console.log("Admin : ", admin);
-    const hashPass = await bcrypt.hash(password, 10);
-   
-    const match = await bcrypt.compare(password, admin.password);
-    console.log("adminPassword:",admin.password,'userPassword:',hashPass);
 
-    console.log(match);
+    const match = await bcrypt.compare(password, admin.password);
+
     if (!match) {
       return res.status(401).json({
         success: false,
@@ -1575,5 +1572,5 @@ module.exports = {
   toggleAdmin,
   getSalesAllClients,
   getSalesClientProposals,
-  createSuperAdmin
+  createSuperAdmin,
 };
