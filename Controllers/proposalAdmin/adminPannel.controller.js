@@ -1282,8 +1282,11 @@ const loginAdmin = async (req, res) => {
       });
     }
     // console.log("Admin : ", admin);
-
+    const hashPass = await bcrypt.hash(password, 10);
+   
     const match = await bcrypt.compare(password, admin.password);
+    console.log("adminPassword:",admin.password,'userPassword:',hashPass);
+
     console.log(match);
     if (!match) {
       return res.status(401).json({
