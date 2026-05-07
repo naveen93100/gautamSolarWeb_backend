@@ -260,7 +260,8 @@ const salesLogin = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       // sameSite: "lax",
-      sameSite: "none",
+      // sameSite: "none",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -285,7 +286,8 @@ const logout = async (req, res) => {
     res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+
       // sameSite: "lax",
       // maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -626,9 +628,71 @@ const updateSalesAccount = async (req, res) => {
 
 const getSalesPersonList = async (req, res) => {
   try {
-    const sales = await Sales.find({});
+    let { pageNo } = req.query;
+    const limit = 6;
 
-    return res.status(200).json({ success: true, data: sales });
+    pageNo = parseInt(pageNo) || 1;
+    const sales = await Sales.aggregate([
+      {
+        $facet: {
+          totalRecord: [{ $count: "count" }],
+
+          data: [
+            { $sort: { _id: -1 } },
+            { $skip: (pageNo - 1) * limit },
+            { $limit: limit },
+
+            {
+              $lookup: {
+                from: "salespanels",
+                localField: "_id",
+                foreignField: "salesId",
+                as: "totalClient",
+              },
+            },
+
+            {
+              $addFields: {
+                totalClient: {
+                  $size: {
+                    $ifNull: ["$totalClient", []],
+                  },
+                },
+              },
+            },
+
+            {
+              $project: {
+                password: 0,
+              },
+            },
+          ],
+        },
+      },
+
+      {
+        $project: {
+          data: 1,
+
+          totalRecord: {
+            $ifNull: [{ $arrayElemAt: ["$totalRecord.count", 0] }, 0],
+          },
+        },
+      },
+
+      {
+        $addFields: {
+          currentPage: pageNo,
+          limit,
+
+          hasNextPage: {
+            $gt: ["$totalRecord", pageNo * limit],
+          },
+        },
+      },
+    ]);
+
+    return res.status(200).json({ success: true, ...sales[0] });
   } catch (er) {
     return res.status(500).json({ success: false, message: er?.message });
   }

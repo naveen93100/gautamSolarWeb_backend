@@ -41,7 +41,7 @@ router.get(
   adminAuth,
   allowRole(["super_admin", "admin"]),
   getSalesPersonList,
-); // need to add adminAuth middleware here
+); 
 router.post(
   "/create-account",
   adminAuth,
