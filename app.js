@@ -6,7 +6,7 @@ const { connect } = require("./db.config");
 const { UserRouter } = require("./Routes/admin.routes");
 const MediaRouter = require("./Routes/media.routes.js");
 const DealerRouter = require("./Routes/dealer.routes.js");
-const SalesRouter=require('./Routes/sales.routes.js');
+const SalesRouter = require("./Routes/sales.routes.js");
 const nodemailer = require("nodemailer");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -57,7 +57,7 @@ app.use((req, res, next) => {
   const now = new Date();
   const istTime = new Date(now.getTime() + 5.5 * 60 * 60 * 1000) // Convert to IST
     .toISOString()
-    .replace("T", " ") 
+    .replace("T", " ")
     .replace("Z", " IST");
 
   console.log(`[${istTime}] ${req.method} ${req.url}`);
@@ -80,7 +80,10 @@ app.use(express.urlencoded({ limit: "100mb", extended: true }));
 
 app.use("/dealer_logo", express.static(path.join(__dirname, "Dealer_Logo")));
 
-app.use('/proposal_images', express.static(path.join(__dirname, 'Proposal_Images')));
+app.use(
+  "/proposal_images",
+  express.static(path.join(__dirname, "Proposal_Images")),
+);
 // app.use('/proposal_images/watt', express.static(path.join(__dirname, 'Proposal_Images/watt')));
 
 app.use("/media_image", express.static(path.join(__dirname, "Media")));
@@ -124,6 +127,83 @@ const transporter1 = nodemailer.createTransport({
   tls: {
     rejectUnauthorized: false,
   },
+});
+
+const sunCoreTransporter = nodemailer.createTransport({
+  host: "smtp.hostinger.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.SUNCORE_MAIL,
+    pass: process.env.SUNCORE_PASS,
+  },
+});
+
+app.post("/suncore-contact", async (req, res) => {
+  try {
+    const { name, email, message } = req.body;
+    const mail = await sunCoreTransporter.sendMail({
+      from: process.env.SUNCORE_MAIL,
+      to: process.env.SUNCORE_MAIL,
+      subject: "New Contact Form Message - Suncore Global",
+      html: `
+        <div style="margin:0;padding:0;background:#f4f4f4;font-family:Arial,sans-serif;">
+          <div style="max-width:600px;margin:30px auto;background:#fff;border-radius:12px;overflow:hidden;">
+            
+            <!-- Header -->
+            <div style="background:#195890;padding:25px;text-align:center;">
+              <h1 style="margin:0;color:#ffb000;">
+                New Contact Message
+              </h1>
+            </div>
+
+            <!-- Content -->
+            <div style="padding:30px;">
+              
+              <div style="margin-bottom:20px;">
+                <p style="margin:0;font-size:14px;color:#888;">Client Name</p>
+                <h3 style="margin:5px 0;color:#195890;">
+                  ${name}
+                </h3>
+              </div>
+
+              <div style="margin-bottom:20px;">
+                <p style="margin:0;font-size:14px;color:#888;">Client Email</p>
+                <h3 style="margin:5px 0;color:#195890;">
+                  ${email}
+                </h3>
+              </div>
+
+              <div>
+                <p style="margin:0 0 10px 0;font-size:14px;color:#888;">
+                  Message
+                </p>
+
+                <div style="background:#f9f9f9;border-left:4px solid #ffb000;padding:15px;border-radius:6px;color:#333;line-height:1.7;">
+                  ${message}
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div style="background:#195890;padding:15px;text-align:center;">
+              <p style="margin:0;color:#fff;font-size:13px;">
+                Suncore Global
+              </p>
+            </div>
+
+          </div>
+        </div>
+      `,
+    });
+    return res.status(200).json({
+      success: true,
+      message: "Message sent successfully",
+    });
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
 });
 
 app.post("/submit-contactus", async (req, res) => {
@@ -408,7 +488,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/dealer", DealerRouter);
-app.use('/api/sales',SalesRouter);
+app.use("/api/sales", SalesRouter);
 
 app.use("/admin", UserRouter);
 app.use("/media", MediaRouter);
@@ -416,7 +496,6 @@ app.use("/media", MediaRouter);
 app.use("/galo_admin", GaloRouter);
 
 app.use("/adminPanel", panelRouter);
-
 
 app.listen(process.env.PORT, async () => {
   try {
@@ -427,6 +506,6 @@ app.listen(process.env.PORT, async () => {
     );
     // await seedData();
   } catch (err) {
-    console.log(err); 
+    console.log(err);
   }
 });

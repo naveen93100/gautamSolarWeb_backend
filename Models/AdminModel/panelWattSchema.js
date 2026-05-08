@@ -24,10 +24,10 @@ const panelWatt = new mongoose.Schema({
         type: Boolean,
         default: true
     },
-    imgWatt: {
-        type: [String], 
-        required: true
-    }
+    // imgWatt: {
+    //     type: [String], 
+    //     required: true
+    // }
 }, { timestamps: true })
 
 const PanelWatt = mongoose.model("PanelWatt", panelWatt);

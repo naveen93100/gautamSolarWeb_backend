@@ -719,29 +719,24 @@ const activeDisableConst = async (req, res) => {
 };
 
 const panelWatt = async (req, res) => {
-  const { panelId, technologyId, constructiveId, watt } = req.body;
-  // console.log("panelId, technologyId, constructiveId, panelWatt : ", panelId, technologyId, constructiveId, watt)
   try {
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ message: "Images required" });
-    }
-    // console.log("files : ", req.files)
-    // const imgWatt = req.files.map(f => f.filename);
-    const files = req.files;
-    const orders = req.body.imgOrder;
+    const { panelId, technologyId, constructiveId, watt } = req.body;
+   
+    // const files = req.files;
+    // const orders = req.body.imgOrder;
 
     // console.log("files :  ", files)
     // console.log("orders : ", orders)
 
-    const orderedImages = files
-      .map((file, i) => ({
-        name: file.filename,
-        order: Array.isArray(orders) ? Number(orders[i]) : Number(orders),
-      }))
-      .sort((a, b) => b.order - a.order)
-      .map((i) => i.name);
+    // const orderedImages = files
+    //   .map((file, i) => ({
+    //     name: file.filename,
+    //     order: Array.isArray(orders) ? Number(orders[i]) : Number(orders),
+    //   }))
+    //   .sort((a, b) => b.order - a.order)
+    //   .map((i) => i.name);
 
-    const imgWatt = orderedImages;
+    // const imgWatt = orderedImages;
 
     //  console.log("imgWatt : ",imgWatt);
 
@@ -757,7 +752,7 @@ const panelWatt = async (req, res) => {
       return res.status(400).json({
         success: false,
         message:
-          "Panel watt is required And it must be number, and uploading a panel watt image is mandatory.",
+          "Panel watt is required And it must be number.",
       });
     }
 
@@ -809,7 +804,7 @@ const panelWatt = async (req, res) => {
       technologyId,
       constructiveId,
       watt: Number.parseInt(watt),
-      imgWatt,
+      // imgWatt,
     });
 
     return res.status(201).json({

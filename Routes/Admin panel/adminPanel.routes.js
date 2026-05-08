@@ -55,10 +55,10 @@ panelRouter.put("/changeStatusConst", adminAuth, activeDisableConst)
 
 // panel Watt
 
-panelRouter.post("/createPanelWatt", adminAuth, uploadImgPath.array("imgWatt", 2), panelWatt)
+panelRouter.post("/createPanelWatt", adminAuth, panelWatt)
 panelRouter.get("/getPanelWatt", getPanelWatt)
 panelRouter.put("/togglePanelWatt", adminAuth, togglePanelWatt)
-panelRouter.put("/updatePanelWatt", adminAuth, uploadImgPath.array("imgWatt", 2), updatePanelWatt)
+panelRouter.put("/updatePanelWatt", adminAuth, updatePanelWatt)
 
 // ----------------
 
@@ -80,7 +80,5 @@ panelRouter.get("/logoutAdmin", adminAuth, logoutAdmin)
 panelRouter.get("/adminDashBoardData", adminDashBoardData);
 panelRouter.get('/excel-download', adminAuth, ExcelDownload);
 panelRouter.get('/getCustomerData', adminAuth, getCustomerData);
-
-// panelRouter.get('/excel-download',adminAuth,ExcelDownload);
 
 module.exports = panelRouter
