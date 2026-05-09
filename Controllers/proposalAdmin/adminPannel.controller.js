@@ -721,24 +721,6 @@ const activeDisableConst = async (req, res) => {
 const panelWatt = async (req, res) => {
   try {
     const { panelId, technologyId, constructiveId, watt } = req.body;
-   
-    // const files = req.files;
-    // const orders = req.body.imgOrder;
-
-    // console.log("files :  ", files)
-    // console.log("orders : ", orders)
-
-    // const orderedImages = files
-    //   .map((file, i) => ({
-    //     name: file.filename,
-    //     order: Array.isArray(orders) ? Number(orders[i]) : Number(orders),
-    //   }))
-    //   .sort((a, b) => b.order - a.order)
-    //   .map((i) => i.name);
-
-    // const imgWatt = orderedImages;
-
-    //  console.log("imgWatt : ",imgWatt);
 
     if (!panelId || !technologyId || !constructiveId) {
       return res.status(400).json({
@@ -747,12 +729,10 @@ const panelWatt = async (req, res) => {
       });
     }
 
-    // console.log(typeof watt);
     if (!watt || typeof Number.parseInt(watt) !== "number") {
       return res.status(400).json({
         success: false,
-        message:
-          "Panel watt is required And it must be number.",
+        message: "Panel watt is required And it must be number.",
       });
     }
 
@@ -1002,11 +982,9 @@ const updatePanelWatt = async (req, res) => {
 };
 
 const createAdmin = async (req, res) => {
-  let { email, password, role } = req.body;
-  email = email?.toLowerCase().trim();
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   try {
+    let { email, password, role } = req.body;
+
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -1014,6 +992,9 @@ const createAdmin = async (req, res) => {
       });
     }
 
+    email = email?.toLowerCase().trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
     if (password.length < 6) {
       return res.status(400).json({
         success: false,
@@ -1236,7 +1217,7 @@ const loginAdmin = async (req, res) => {
   // console.log("Email ", email);
   try {
     let { email, password } = req.body;
-    
+
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -1303,7 +1284,7 @@ const loginAdmin = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       // sameSite: "none",
-      sameSite:process.env.NODE_ENV==='production'?'none':'lax',
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
 
       // sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
@@ -1313,7 +1294,7 @@ const loginAdmin = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       // sameSite: "none",
-      sameSite:process.env.NODE_ENV==='production'?'none':'lax',
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
 
       // sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
@@ -1346,7 +1327,7 @@ const logoutAdmin = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       // sameSite: "none",
-      sameSite:process.env.NODE_ENV==='production'?'none':'lax'
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
 
       // sameSite: "lax",
     });
