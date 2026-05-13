@@ -9,6 +9,8 @@ const DealerModel = require("../../Models/dealer.schema");
 const PanelWatt = require("../../Models/AdminModel/panelWattSchema");
 const path = require("path");
 const fs = require("fs");
+const fsp = require("fs").promises;
+
 const xlxs = require("xlsx");
 const CustomerModel = require("../../Models/customer.schema");
 const PanelModel = require("../../Models/panelSchema");
@@ -16,6 +18,10 @@ const ProposalModel = require("../../Models/proposal.schema");
 const Sales = require("../../Models/Sales/sales.schema");
 const SalesCustomer = require("../../Models/Sales/sales.customer.schema");
 const SalesPanel = require("../../Models/Sales/sales.panel.schema");
+const {
+  createDealerAccountAdminSchema,
+} = require("../../Validators/Common.validator");
+const sharp = require("sharp");
 
 const createPanel = async (req, res) => {
   try {
@@ -994,7 +1000,7 @@ const createAdmin = async (req, res) => {
 
     email = email?.toLowerCase().trim();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
+
     if (password.length < 6) {
       return res.status(400).json({
         success: false,
@@ -1143,6 +1149,99 @@ const createSuperAdmin = async (req, res) => {
 
 // ----------------
 
+const createDealerAccount = async (req, res) => {
+  try {
+    let result = createDealerAccountAdminSchema.safeParse(req.body);
+
+    if (!result.success) {
+      const message = [];
+      result.error.issues.forEach((err) => {
+        let v;
+        if (err.path.length >= 2) {
+          v = err.path[err.path.length - 1];
+        } else {
+          v = err.path.join(".");
+        }
+        message.push({ message: err.message });
+      });
+
+      return res.status(400).json({
+        success: false,
+        message,
+      });
+    }
+
+    let {
+      firstName,
+      lastName,
+      contactNumber,
+      address,
+      gstin,
+      password,
+      companyName,
+      email,
+    } = result.data;
+
+    let companyLogo = null;
+
+    let conditions = [];
+    if (email) conditions.push({ email });
+    if (contactNumber) conditions.push({ contactNumber });
+    if (gstin) conditions.push({ gstin });
+
+    let isDealerExist = await DealerModel.findOne({
+      $or: conditions,
+    });
+
+    if (isDealerExist)
+      return res
+        .status(409)
+        .json({ success: false, message: "Dealer Already Exist" });
+
+    if (req.file) {
+      const folder = path.join("Dealer_Logo");
+
+      await fsp.mkdir(folder, { recursive: true });
+
+      let img = req.file.fieldname + "-" + Date.now() + ".webp";
+      let imgPath = path.join(folder, img);
+
+      let buf = req.file.buffer;
+
+      await sharp(buf)
+        .resize(600, 600, {
+          fit: "inside",
+          withoutEnlargement: true,
+        })
+        .webp({ quality: 80 })
+        .toFile(imgPath);
+
+      companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
+      // companyLogo = `http://localhost:1008/dealer_logo/${img}`;
+    }
+
+    let hashPass = await bcrypt.hash(password, 10);
+
+    await DealerModel.create({
+      firstName,
+      lastName,
+      contactNumber,
+      address,
+      gstin,
+      companyName,
+      email,
+      password: hashPass,
+      companyLogo,
+    });
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Dealer Account Created successfully." });
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+};
+
 const toggleAdmin = async (req, res) => {
   try {
     let { adminId, isActive } = req.body;
@@ -1214,7 +1313,6 @@ const getAdmin = async (req, res) => {
 };
 
 const loginAdmin = async (req, res) => {
-  // console.log("Email ", email);
   try {
     let { email, password } = req.body;
 
@@ -1226,19 +1324,13 @@ const loginAdmin = async (req, res) => {
     }
 
     email = email?.toLowerCase().trim();
+    password = String(password);
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailRegex.test(email)) {
       return res.status(400).json({
         success: false,
         message: "Invaild email format..",
-      });
-    }
-
-    if (password.length < 6) {
-      return res.status(400).json({
-        success: false,
-        message: "Password must be 6 digit..",
       });
     }
 
@@ -1351,18 +1443,13 @@ const logoutAdmin = async (req, res) => {
 const adminDashBoardData = async (req, res) => {
   try {
     const totalPannel = await Panel.find().select("panelType panelActive");
-    const totalDealer = await DealerModel.find().select(
-      " firstName email companyName contactNumber ",
-    );
-
-    // console.log("totalPannel ", totalPannel)
-    // console.log("totalDelaer ", totalDealer)
+    const totalDealer = await DealerModel.find()
+      .select(" firstName email companyName contactNumber ")
+      .sort({ createdAt: -1 });
 
     const totalCustomer = await CustomerModel.find().select(
       "name email dealerId phone",
     );
-
-    // console.log("total proposal create : ", totalCustomer)
 
     return res.status(200).json({
       success: true,
@@ -1555,4 +1642,5 @@ module.exports = {
   getSalesAllClients,
   getSalesClientProposals,
   createSuperAdmin,
+  createDealerAccount,
 };

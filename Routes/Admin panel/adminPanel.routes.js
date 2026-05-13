@@ -27,11 +27,13 @@ const { createPanel,
     toggleAdmin,
     getSalesAllClients,
     getSalesClientProposals,
-    createSuperAdmin
+    createSuperAdmin,
+    createDealerAccount
 } = require("../../Controllers/proposalAdmin/adminPannel.controller.js");
 const adminAuth = require("../../Middleware/adminAuth.js");
 const uploadImgPath = require("../../Middleware/panalImgWattMulter.js");
 const allowRole = require("../../Middleware/allowRole.js");
+const upload = require("../../Middleware/multer.js");
 
 
 // panel routes
@@ -66,6 +68,9 @@ panelRouter.put("/updatePanelWatt", adminAuth, updatePanelWatt)
 // ----------------
 
 // admin
+
+panelRouter.post('/create-dealer-account',upload.single("image"),adminAuth,allowRole(['super_admin']),createDealerAccount);
+
 panelRouter.post("/createAdmin",adminAuth,allowRole(['super_admin']), createAdmin);
 panelRouter.post('/toggle-admin',adminAuth,allowRole(['super_admin']),toggleAdmin);
 
