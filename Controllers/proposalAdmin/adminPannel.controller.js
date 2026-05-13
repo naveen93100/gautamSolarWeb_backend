@@ -1444,7 +1444,7 @@ const adminDashBoardData = async (req, res) => {
   try {
     const totalPannel = await Panel.find().select("panelType panelActive");
     const totalDealer = await DealerModel.find()
-      .select(" firstName email companyName contactNumber ")
+      .select(" firstName email companyName contactNumber createdAt")
       .sort({ createdAt: -1 });
 
     const totalCustomer = await CustomerModel.find().select(
