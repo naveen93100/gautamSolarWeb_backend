@@ -44,17 +44,28 @@ const createSlug = (header) => {
 /** ################################################################### */
 const create = async (req, res) => {
   try {
-    const UUID = req.body.UUID || uuidv4(); // Use provided UUID or generate a new one
-    const { Header, Description, Body, tags } = req.body;
+    const UUID = uuidv4();
+    const { header, description, body, tags, metaTitle, metaDescription } =
+      req.body;
 
-    if (!Header)
+    if (!header)
       return res
         .status(401)
         .json({ success: false, message: "Header is required" });
-    if (!Description)
+    if (!description)
       return res
         .status(401)
         .json({ success: false, message: "Description is required" });
+
+    if (!metaTitle)
+      return res
+        .status(401)
+        .json({ success: false, message: "Meta title is required" });
+
+    if (!metaDescription)
+      return res
+        .status(401)
+        .json({ success: false, message: "Meta Description is required" });
 
     /** Get the file buffer and the file format , because file is store in buffer data **/
     let fileBuffer = req.files?.buffer;
@@ -64,7 +75,6 @@ const create = async (req, res) => {
     if (req.files?.BlogImage) {
       /** Define the folder path **/
       const folderPath = Path.join("Blog_Images");
-
       /** Create the folder if it doesn't exist **/
       if (!fs.existsSync(folderPath)) {
         console.log(folderPath);
@@ -75,7 +85,6 @@ const create = async (req, res) => {
       imageFileName = `${req.files?.BlogImage[0]?.filename}`;
 
       const filePath = Path.join(folderPath, imageFileName);
-
       /** Save the file buffer to the specified file path */
       if (fileBuffer) {
         fs.writeFileSync(filePath, fileBuffer);
@@ -103,10 +112,11 @@ const create = async (req, res) => {
 
     const videofilePath = videoFileName
       ? `https://gautamsolar.us/admin/blogVideo/${videoFileName}`
-      : null;
+      : // ? `https://gautamsolar.us/admin/blogVideo/${videoFileName}`
+        null;
 
     const imagefilePath = imageFileName
-      ? `https://gautamsolar.us/admin/blogImage/${imageFileName}`
+      ?  `https://gautamsolar.us/admin/blogImage/${imageFileName}`
       : null;
 
     /** Prepare data for insertion or update */
@@ -114,10 +124,12 @@ const create = async (req, res) => {
       UUID: UUID,
       ImageURL: imagefilePath,
       VideoUrl: videofilePath,
-      Header: Header,
-      Description: Description,
-      Body: Body,
+      Header: header,
+      Description: description,
+      Body: body,
       Tags: tags,
+      MetaTitle: metaTitle,
+      MetaDescription: metaDescription,
     };
 
     await generateSitemap();
@@ -125,7 +137,6 @@ const create = async (req, res) => {
     const existingDocument = await News.findOne({ UUID });
 
     if (existingDocument) {
-      // Update the existing document
       await News.updateOne({ UUID }, { $set: data });
 
       return res.status(200).json({
@@ -151,7 +162,12 @@ const create = async (req, res) => {
       });
     }
   } catch (err) {
-    console.log(err.message);
+    if (err.name === "ValidationError") {
+      return res.status(400).json({
+        success: false,
+        message: Object.values(err.errors).map((err) => err.message),
+      });
+    }
     return res.status(401).json({
       success: false,
       message: "Something went wrong..",
@@ -305,7 +321,13 @@ const deleteNews = async (req, res) => {
 
 const UpdateNews = async (req, res) => {
   const { uuid } = req.params;
-  const updates = req.body;
+  const { metaTitle, metaDescription, ...rest } = req.body;
+
+  let updates = {
+    MetaTitle: metaTitle,
+    MetaDescription: metaDescription,
+    ...rest,
+  };
 
   let videoFileName;
   let imageFileName;

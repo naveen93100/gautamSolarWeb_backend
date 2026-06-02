@@ -1015,7 +1015,7 @@ const createAdmin = async (req, res) => {
       });
     }
 
-    const admin = await Admin.findOne({ email });
+    const admin = await Admin.findOne({ email }).lean();
 
     if (admin) {
       return res.status(409).json({
@@ -1058,9 +1058,9 @@ const getSalesAllClients = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Invalid SalesId" });
 
-    let data = await SalesCustomer.find({ salesPersonId: salesId });
+    let data = await SalesCustomer.find({ salesPersonId: salesId }).lean();
 
-    return res.status(200).json({ success: true, message: "working", data });
+    return res.status(200).json({ success: true, data });
   } catch (er) {
     return res.status(500).json({ success: false, message: er?.message });
   }
@@ -1117,7 +1117,7 @@ const createSuperAdmin = async (req, res) => {
       });
     }
 
-    const admin = await Admin.findOne({ email });
+    const admin = await Admin.findOne({ email }).lean();
 
     if (admin) {
       return res.status(409).json({
@@ -1127,7 +1127,6 @@ const createSuperAdmin = async (req, res) => {
     }
 
     const hashPass = await bcrypt.hash(password, 10);
-    // console.log("hashPass : ", hashPass)
 
     const adminData = await Admin.create({
       email,
@@ -1304,7 +1303,6 @@ const getAdmin = async (req, res) => {
       data: allData,
     });
   } catch (error) {
-    // console.log("Error : ", error);
     return res.status(500).json({
       success: false,
       message: error?.message || "Internal server error..",
@@ -1442,14 +1440,17 @@ const logoutAdmin = async (req, res) => {
 
 const adminDashBoardData = async (req, res) => {
   try {
-    const totalPannel = await Panel.find().select("panelType panelActive");
-    const totalDealer = await DealerModel.find()
-      .select(" firstName email companyName contactNumber createdAt")
-      .sort({ createdAt: -1 });
 
-    const totalCustomer = await CustomerModel.find().select(
-      "name email dealerId phone",
-    );
+    const [totalPannel, totalDealer, totalCustomer] = await Promise.all([
+      Panel.find().select("panelType panelActive").lean(),
+
+      DealerModel.find()
+        .select(" firstName email companyName contactNumber createdAt")
+        .sort({ createdAt: -1 })
+        .lean(),
+
+      CustomerModel.find().select("name email dealerId phone").lean(),
+    ]);
 
     return res.status(200).json({
       success: true,
@@ -1474,13 +1475,9 @@ const ExcelDownload = async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
 
-    // console.log("totalDealer : ", totalDealer)
 
     const dealerIds = totalDealer.map((item) => item?._id);
 
-    // console.log("dealerId : ", dealerId)
-
-    // check here the client of every dealer
     const customers = await CustomerModel.aggregate([
       {
         $match: { dealerId: { $in: dealerIds } },
@@ -1493,14 +1490,12 @@ const ExcelDownload = async (req, res) => {
       },
     ]);
 
-    // console.log("customer : ", customers)
 
     const clientCountMap = {};
     customers.forEach((item) => {
       clientCountMap[item._id.toString()] = item.totalClients;
     });
 
-    // console.log("clientCountMap  : ", clientCountMap)
 
     const panelCreateClient = await PanelModel.aggregate([
       {
@@ -1513,13 +1508,11 @@ const ExcelDownload = async (req, res) => {
         },
       },
     ]);
-    // console.log("panelCreateClient : ", panelCreateClient)
     const panelCreated = {};
     panelCreateClient.forEach((item) => {
       panelCreated[item._id.toString()] = item.totalPanelCreated;
     });
 
-    // console.log("panelCreated : ", panelCreated)
 
     const powerPlantPropsal = await ProposalModel.aggregate([
       {
@@ -1535,7 +1528,6 @@ const ExcelDownload = async (req, res) => {
       },
     ]);
 
-    // console.log("powerPlantPropsal : ", powerPlantPropsal)
 
     const powerPlantPropsalData = {};
     powerPlantPropsal.forEach((item) => {
@@ -1553,7 +1545,6 @@ const ExcelDownload = async (req, res) => {
       createdAt: new Date(item?.createdAt).toLocaleString(),
     }));
 
-    // console.log("modifiedDealer : ", modifiedDealer)
 
     const worksheet = xlxs.utils.json_to_sheet(modifiedDealer);
 
@@ -1598,7 +1589,7 @@ const getCustomerData = async (req, res) => {
 
     const customerData = await CustomerModel.find({
       dealerId: dealerId,
-    }).select("dealerId  name email ");
+    }).select("dealerId  name email ").lean();
     // console.log("customerData : ", customerData)
 
     return res.status(200).json({

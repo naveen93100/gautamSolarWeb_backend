@@ -20,47 +20,30 @@ const allowRole = require("../Middleware/allowRole.js");
 
 const router = Router();
 
-//
-router.post("/create-proposal", salesAuth, createSalesProposal);
-router.get("/get-proposals/:clientId", salesAuth, getClientProposals);
-router.delete("/delete-proposal/:propId", salesAuth, deleteProposal);
-router.put("/update-proposal", salesAuth, updateSalesProposal);
-//
 router.post("/login", salesLogin);
 router.post("/logout", logout);
 
-// need to create a auth middleware to check if sales person is login or not
+//
+router.use(salesAuth);
+router.post("/create-proposal", createSalesProposal);
+router.get("/get-proposals/:clientId", getClientProposals);
+router.delete("/delete-proposal/:propId", deleteProposal);
+router.put("/update-proposal", updateSalesProposal);
 
-router.post("/create-client", salesAuth, createClient);
-router.get("/get-client/:salesId", salesAuth, getClient);
-router.patch("/update-client", salesAuth, updateClient);
+router.post("/create-client", createClient);
+router.get("/get-client/:salesId", getClient);
+router.patch("/update-client", updateClient);
 
 // admin routes
-router.get(
-  "/",
-  adminAuth,
-  allowRole(["super_admin", "admin"]),
-  getSalesPersonList,
-); 
-router.post(
-  "/create-account",
-  adminAuth,
-  allowRole(["super_admin", "admin"]),
-  createSalesPerson,
-);
 
-router.patch(
-  "/update-account",
-  adminAuth,
-  allowRole(["super_admin", "admin"]),
-  updateSalesAccount,
-);
-router.post(
-  "/toggle-account",
-  adminAuth,
-  allowRole(["super_admin", "admin"]),
-  toggleSalesStatus,
-);
+router.use(adminAuth);
+router.use(allowRole(["super_admin", "admin"]));
+
+router.get("/", getSalesPersonList);
+router.post("/create-account", createSalesPerson);
+
+router.patch("/update-account", updateSalesAccount);
+router.post("/toggle-account", toggleSalesStatus);
 
 // ---------------------------------
 module.exports = router;

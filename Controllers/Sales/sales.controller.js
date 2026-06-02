@@ -12,50 +12,6 @@ const {
 
 const createSalesProposal = async (req, res) => {
   try {
-    // let { salesId, clientId, gst, termsAndConditions, selectedPanels } =
-    //   req.body;
-
-    // if (
-    //   !mongoose.isValidObjectId(salesId) ||
-    //   !mongoose.isValidObjectId(clientId)
-    // )
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: "Invalid or missing sales or client Id",
-    //   });
-
-    // if (typeof gst !== "number")
-    //   return res.status(400).json({ success: false, message: "Invalid Gst!" });
-
-    // let numericGst = Number.parseFloat(gst);
-
-    // if (
-    //   !numericGst ||
-    //   !termsAndConditions ||
-    //   !Array.isArray(selectedPanels) ||
-    //   selectedPanels.length === 0
-    // )
-    //   return res.status(400).json({
-    //     success: false,
-    //     message:
-    //       "GST , terms & conditions, and at least one selected panel are required.",
-    //   });
-
-    // for (const panel of selectedPanels) {
-    //   if (
-    //     !mongoose.Types.ObjectId.isValid(
-    //       panel.panelId ||
-    //         !mongoose.Types.ObjectId.isValid(panel.technologyId) ||
-    //         !mongoose.Types.ObjectId.isValid(panel.constructiveId) ||
-    //         !mongoose.Types.ObjectId.isValid(panel.wattId),
-    //     )
-    //   ) {
-    //     return res.status(400).json({
-    //       message: "Invalid ObjectId in selectedPanel",
-    //     });
-    //   }
-    // }
-
     const result = salesProposalSchema.safeParse(req.body);
 
     if (!result.success) {
@@ -259,8 +215,6 @@ const salesLogin = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      // sameSite: "lax",
-      // sameSite: "none",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -287,9 +241,6 @@ const logout = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-
-      // sameSite: "lax",
-      // maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     return res

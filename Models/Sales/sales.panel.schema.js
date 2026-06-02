@@ -41,7 +41,6 @@ const salesPanelSchema = new mongoose.Schema({
             rate: {
                 type: Number
             },
-            // tax: Number,
             totalPrice: {
                 type: Number
             },
