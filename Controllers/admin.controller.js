@@ -117,6 +117,7 @@ const create = async (req, res) => {
 
     const imagefilePath = imageFileName
       ?  `https://gautamsolar.us/admin/blogImage/${imageFileName}`
+      // ?  `http://localhost:1008/admin/blogImage/${imageFileName}`
       : null;
 
     /** Prepare data for insertion or update */
@@ -321,12 +322,15 @@ const deleteNews = async (req, res) => {
 
 const UpdateNews = async (req, res) => {
   const { uuid } = req.params;
-  const { metaTitle, metaDescription, ...rest } = req.body;
+  const { metaTitle, metaDescription,body, header,description,tags, } = req.body;
 
   let updates = {
     MetaTitle: metaTitle,
     MetaDescription: metaDescription,
-    ...rest,
+    Body:body,
+    Header:header,
+    Description:description,
+    Tags:tags
   };
 
   let videoFileName;
