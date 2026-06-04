@@ -11,18 +11,15 @@ const adminAuth = async (req, res, next) => {
             })
         }
         const decode = jwt.verify(token, process.env.JWT_SECRET);
-        console.log(decode);
         // console.log("decode : ",decode);
         const admin = await Admin.findOne({ _id: decode?.adminId }).select('-password');
         
-        console.log("this is adminAuth middleware",admin);
         if (!admin) {
             return res.status(401).json({ message: "Unauthorized" });
         }
         req.admin = admin
         next()
     } catch (error) {
-        console.log("this is adminAuth middleware",error);
         return res.status(401).json(error.message || { message: "Unauthorized" });
     }
 

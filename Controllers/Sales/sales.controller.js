@@ -642,6 +642,7 @@ const getSalesPersonList = async (req, res) => {
         },
       },
     ]);
+    // console.log(sales)
 
     return res.status(200).json({ success: true, ...sales[0] });
   } catch (er) {

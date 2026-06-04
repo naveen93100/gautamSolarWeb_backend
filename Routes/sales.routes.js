@@ -36,14 +36,33 @@ router.patch("/update-client", updateClient);
 
 // admin routes
 
-router.use(adminAuth);
-router.use(allowRole(["super_admin", "admin"]));
+router.get(
+  "/",
+  adminAuth,
+  allowRole(["super_admin", "admin"]),
+  getSalesPersonList,
+);
 
-router.get("/", getSalesPersonList);
-router.post("/create-account", createSalesPerson);
+router.post(
+  "/create-account",
+  adminAuth,
+  allowRole(["super_admin", "admin"]),
+  createSalesPerson,
+);
 
-router.patch("/update-account", updateSalesAccount);
-router.post("/toggle-account", toggleSalesStatus);
+router.patch(
+  "/update-account",
+  adminAuth,
+  allowRole(["super_admin", "admin"]),
+  updateSalesAccount,
+);
+
+router.post(
+  "/toggle-account",
+  adminAuth,
+  allowRole(["super_admin", "admin"]),
+  toggleSalesStatus,
+);
 
 // ---------------------------------
 module.exports = router;
