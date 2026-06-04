@@ -24,15 +24,14 @@ router.post("/login", salesLogin);
 router.post("/logout", logout);
 
 //
-router.use(salesAuth);
-router.post("/create-proposal", createSalesProposal);
-router.get("/get-proposals/:clientId", getClientProposals);
-router.delete("/delete-proposal/:propId", deleteProposal);
-router.put("/update-proposal", updateSalesProposal);
+router.post("/create-proposal", salesAuth, createSalesProposal);
+router.get("/get-proposals/:clientId", salesAuth, getClientProposals);
+router.delete("/delete-proposal/:propId", salesAuth, deleteProposal);
+router.put("/update-proposal", salesAuth, updateSalesProposal);
 
-router.post("/create-client", createClient);
-router.get("/get-client/:salesId", getClient);
-router.patch("/update-client", updateClient);
+router.post("/create-client", salesAuth, createClient);
+router.get("/get-client/:salesId", salesAuth, getClient);
+router.patch("/update-client", salesAuth, updateClient);
 
 // admin routes
 
