@@ -139,6 +139,52 @@ const sunCoreTransporter = nodemailer.createTransport({
   },
 });
 
+app.post("/interSolar-contact", async (req, res) => {
+  try {
+    let { name, email, phone, companyName, companyDesignation, message, utm } =
+      req.body;
+
+    let Utm = JSON.parse(utm);
+
+    const referrerUrl = req.headers.referer || "Unknown"; // Get the referrer URL
+    const referrerDomain = url.parse(referrerUrl).hostname; // Extract the domain name from the URL
+    const referrerWebsite = extractWebsiteName(referrerDomain);
+
+    const mailOptions = {
+      from: "gautamsolar.vidoes01@gmail.com", // sender email
+      to: "info@gautamsolar.com", // another destination email
+      subject: "Inter Solar Europe FormSubmission",
+      html: `
+      <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+      <h2 style="color: #a20000;">Enquiry Box Form Submission</h2>
+      <p style="margin-bottom: 10px;"><strong>Name:</strong> ${name}</p>
+      <p style="margin-bottom: 10px;"><strong>Email:</strong> ${email}</p>
+      <p style="margin-bottom: 10px;"><strong>Mobile No:</strong> ${phone}</p>
+      <p style="margin-bottom: 10px;"><strong>Company Name:</strong> ${
+        companyName
+      }</p>
+      <p style="margin-bottom: 10px;"><strong>Company Designation:</strong> ${
+        companyDesignation
+      }</p>
+      <p style="margin-bottom: 10px;"><strong>Remarks:</strong> ${message}</p>
+      <p style="margin-bottom: 10px;"><strong>Source:</strong> ${referrerWebsite}</p>
+        <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${
+          Utm?.utm_source || "Direct"
+        }</p>
+    </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res
+      .status(200)
+      .json({ success: true, message: "Form submitted successfully" });
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+});
+
 app.post("/suncore-contact", async (req, res) => {
   try {
     const { name, email, message } = req.body;
