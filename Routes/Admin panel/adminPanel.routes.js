@@ -28,12 +28,21 @@ const { createPanel,
     getSalesAllClients,
     getSalesClientProposals,
     createSuperAdmin,
-    createDealerAccount
+    createDealerAccount,
+    addInverter,
+    addKw,
+    inverterStatusChange,
+    getInverters
 } = require("../../Controllers/proposalAdmin/adminPannel.controller.js");
 const adminAuth = require("../../Middleware/adminAuth.js");
 const uploadImgPath = require("../../Middleware/panalImgWattMulter.js");
 const allowRole = require("../../Middleware/allowRole.js");
 const upload = require("../../Middleware/multer.js");
+
+panelRouter.get('/get-inverter',adminAuth,getInverters);
+panelRouter.post('/add-inverter',adminAuth,addInverter);
+panelRouter.post('/add-kw/:inverterId',adminAuth,addKw);
+panelRouter.patch('/inverter-status-change/:inverterId',adminAuth,inverterStatusChange)
 
 
 // panel routes

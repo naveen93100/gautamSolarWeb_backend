@@ -18,10 +18,12 @@ const ProposalModel = require("../../Models/proposal.schema");
 const Sales = require("../../Models/Sales/sales.schema");
 const SalesCustomer = require("../../Models/Sales/sales.customer.schema");
 const SalesPanel = require("../../Models/Sales/sales.panel.schema");
+const Inverter = require('../../Models/AdminModel/InverterSchema');
 const {
   createDealerAccountAdminSchema,
 } = require("../../Validators/Common.validator");
 const sharp = require("sharp");
+
 
 const createPanel = async (req, res) => {
   try {
@@ -837,7 +839,9 @@ const getPanelWatt = async (req, res) => {
   }
 };
 const togglePanelWatt = async (req, res) => {
+
   try {
+
     const { constructiveId, _id, isActive } = req.query;
     if (!constructiveId || !_id) {
       return res.status(404).json({
@@ -1605,6 +1609,92 @@ const getCustomerData = async (req, res) => {
   }
 };
 
+
+// inverter
+
+const addInverter = async (req, res) => {
+  try {
+
+    let { phase } = req.body;
+
+    if (!phase?.trim()) return res.status(400).json({ success: false, message: "Phase name is required" });
+
+    phase = phase.trim().toLowerCase();
+
+    const existingPhase = await Inverter.findOne({ phase });
+
+    if (existingPhase) {
+      return res.status(409).json({
+        success: false,
+        message: "Phase already exists"
+      });
+    }
+
+    const inverter = await Inverter.create({
+      phase
+    })
+
+    return res.status(201).json({ success: true, message: "Phase Added", inverter });
+
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+}
+
+const addKw = async (req, res) => {
+  try {
+    const { inverterId } = req.params;
+    const { capacity } = req.body;
+
+    if (!mongoose.isValidObjectId(inverterId)) return res.status(400).json({ success: false, message: "Invalid Id" });
+    if (!capacity) return res.status(400).json({ success: false, message: "Capacity is required" });
+
+
+    await Inverter.findByIdAndUpdate(inverterId, {
+      $addToSet: {
+        capacities: capacity
+      }
+    }, { new: true })
+
+    return res.status(200).json({ success: true, message: 'Capcity Added' });
+
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+}
+
+const inverterStatusChange = async (req, res) => {
+  try {
+    let { inverterId } = req.params;
+    const { status } = req.body;
+
+    if (!mongoose.isValidObjectId(inverterId)) return res.status(400).json({ success: false, message: "Invalid Id" });
+
+
+    let inverter = await Inverter.findOneAndUpdate(inverterId, {
+      $set: { status }
+    }, { new: true })
+
+
+    return res.status(200).json({ success: true, message: `Inverter ${status ? 'Activated' : 'De-activated'}` })
+
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+}
+
+const getInverters = async (req, res) => {
+  try {
+
+    let inverter = await Inverter.find({});
+
+    return res.status(200).json({ success: true, inverter });
+
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+}
+
 module.exports = {
   createPanel,
   getPanel,
@@ -1634,4 +1724,8 @@ module.exports = {
   getSalesClientProposals,
   createSuperAdmin,
   createDealerAccount,
+  addInverter,
+  addKw,
+  inverterStatusChange,
+  getInverters
 };
