@@ -1650,13 +1650,13 @@ const addKw = async (req, res) => {
     if (!capacity) return res.status(400).json({ success: false, message: "Capacity is required" });
 
 
-    await Inverter.findByIdAndUpdate(inverterId, {
+    let inverter = await Inverter.findByIdAndUpdate(inverterId, {
       $addToSet: {
         capacities: capacity
       }
-    }, { new: true })
+    }, { new: true }).lean();
 
-    return res.status(200).json({ success: true, message: 'Capcity Added' });
+    return res.status(200).json({ success: true, message: 'Capcity Added', inverter });
 
   } catch (er) {
     return res.status(500).json({ success: false, message: er?.message });
@@ -1686,7 +1686,9 @@ const inverterStatusChange = async (req, res) => {
 const getInverters = async (req, res) => {
   try {
 
-    let inverter = await Inverter.find({});
+    let inverter = await Inverter.find({
+      status: 'active'
+    }).lean();
 
     return res.status(200).json({ success: true, inverter });
 
