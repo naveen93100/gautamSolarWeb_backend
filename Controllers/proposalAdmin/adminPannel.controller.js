@@ -1670,13 +1670,20 @@ const inverterStatusChange = async (req, res) => {
 
     if (!mongoose.isValidObjectId(inverterId)) return res.status(400).json({ success: false, message: "Invalid Id" });
 
+    const allowedStatus = ["active", "inactive"];
+
+    if (!allowedStatus.includes(status)) {
+      return res.status(400).json({
+        message: "Invalid status"
+      });
+    }
 
     let inverter = await Inverter.findOneAndUpdate({ _id: inverterId }, {
       $set: { status }
-    }, { new: true })
+    }, { new: true, runValidators: true })
 
 
-    return res.status(200).json({ success: true, message: `Inverter ${status ? 'Activated' : 'De-activated'}` })
+    return res.status(200).json({ success: true, message: `Inverter ${status === 'active' ? 'Activated' : 'Inactivated'}` })
 
   } catch (er) {
     return res.status(500).json({ success: false, message: er?.message });
