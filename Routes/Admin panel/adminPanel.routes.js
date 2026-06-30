@@ -32,7 +32,9 @@ const { createPanel,
     addInverter,
     addKw,
     inverterStatusChange,
-    getInverters
+    getInverters,
+    removeKw,
+    editInverter
 } = require("../../Controllers/proposalAdmin/adminPannel.controller.js");
 const adminAuth = require("../../Middleware/adminAuth.js");
 const uploadImgPath = require("../../Middleware/panalImgWattMulter.js");
@@ -42,7 +44,9 @@ const upload = require("../../Middleware/multer.js");
 panelRouter.get('/get-inverter',adminAuth,getInverters);
 panelRouter.post('/add-inverter',adminAuth,addInverter);
 panelRouter.post('/add-kw/:inverterId',adminAuth,addKw);
-panelRouter.patch('/inverter-status-change/:inverterId',adminAuth,inverterStatusChange)
+panelRouter.patch('/inverter-status-change/:inverterId',adminAuth,inverterStatusChange);
+panelRouter.delete('/remove-inverter-kw/:inverterId',removeKw);
+panelRouter.patch('edit-inverter/:inverterId',editInverter);
 
 
 // panel routes

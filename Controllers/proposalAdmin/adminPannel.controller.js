@@ -1697,6 +1697,63 @@ const getInverters = async (req, res) => {
   }
 }
 
+const removeKw = async (req, res) => {
+  try {
+    let { inverterId } = req.params;
+    let { kw } = req.body;
+
+
+    if (!mongoose.isValidObjectId(inverterId)) return res.status(400).json({ success: false, message: 'Invalid InverterId.' });
+    if (!kw) return res.status(400).json({ success: false, message: "Kw not provided." });
+
+    let inverter = await Inverter.findOne({ _id: inverterId });
+
+    if (!inverter) return res.status(404).json({ success: false, message: "Inverter not found." });
+
+    await Inverter.findByIdAndUpdate(inverterId, {
+      $pull: {
+        capacities: kw
+      }
+    })
+
+    return res.status(200).json({ success: false, message: "Kw Removed." });
+
+
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+}
+
+const editInverter = async (req, res) => {
+  try {
+
+    let { inverterId } = req.params;
+    let { phase } = req.body;
+
+    if (!phase?.trim()) return res.status(400).json({ success: false, message: "Phase name is required" });
+
+    phase = phase.trim().toLowerCase();
+
+
+    let inverter = await Inverter.findByIdAndUpdate(inverterId, {
+      phase: phase,
+
+    }, { new: true })
+
+    if (!inverter) {
+      return res.status(404).json({
+        success: false,
+        message: "Inverter not found"
+      });
+    }
+
+    return res.status(200).json({ success: true, message: "Inverter Phase Updated.", inverter });
+
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+}
+
 module.exports = {
   createPanel,
   getPanel,
@@ -1729,5 +1786,7 @@ module.exports = {
   addInverter,
   addKw,
   inverterStatusChange,
-  getInverters
+  getInverters,
+  removeKw,
+  editInverter
 };
