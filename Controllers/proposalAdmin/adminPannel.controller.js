@@ -1680,7 +1680,7 @@ const inverterStatusChange = async (req, res) => {
 
     let inverter = await Inverter.findOneAndUpdate({ _id: inverterId }, {
       $set: { status }
-    }, { new: true, runValidators: true })
+    }, { new: true, runValidators: true });
 
 
     return res.status(200).json({ success: true, message: `Inverter ${status === 'active' ? 'Activated' : 'Inactivated'}` })
