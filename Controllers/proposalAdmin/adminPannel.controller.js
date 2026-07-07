@@ -1372,15 +1372,11 @@ const loginAdmin = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
     );
-    // console.log("Match ", match)
 
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      // sameSite: "none",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-
-      // sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -1610,7 +1606,7 @@ const getCustomerData = async (req, res) => {
 };
 
 
-// inverter
+// inverter function
 
 const addInverter = async (req, res) => {
   try {

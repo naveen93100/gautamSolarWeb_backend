@@ -4,8 +4,77 @@ const mongoose = require("mongoose");
 const objectIdSchema = (field) =>
   z.string().refine((val) => mongoose.Types.ObjectId.isValid(val), {
     message: `${field} is missing`,
-});
+  });
 
+const salesInverterProposalSchema = z.object({
+  salesId: z.string({
+    error: (issue) => {
+      if (issue.input === undefined) {
+        return 'Sales Id is required'
+      }
+      return 'SalesId must be a string';
+    }
+  }).trim().min(1, 'SalesId is required').refine(id => mongoose.Types.ObjectId.isValid(id), { message: "Invalid SalesId" }),
+
+  clientId: z.string({
+    error: (issue) => {
+      if (issue.input === undefined) {
+        return 'Client Id is required'
+      }
+      return 'Client Id must be a string';
+    }
+  }).trim().min(1, 'Client Id is required').refine(id => mongoose.Types.ObjectId.isValid(id), { message: "Invalid ClientId" }),
+
+
+  inverterGst: z.preprocess(
+    (value) => {
+      if (value === undefined || value === "") {
+        return undefined;
+      }
+      return value;
+    },
+    z.number({
+      error: (issue) =>
+        issue.input === undefined
+          ? "Gst is required"
+          : "Gst must be a number",
+    }).gt(0, "Gst should be greater than 0")
+  ),
+
+  termsAndConditions: z
+    .string({
+      error: (issue) => {
+        if (issue.input === undefined) {
+          return "Terms are required";
+        }
+
+        return "Term must be a string";
+      },
+    })
+    .trim()
+    .min(1, "Terms are required"),
+
+  selectedInverters: z.array(
+    z.object({
+      inverterId: objectIdSchema("InverterId"),
+      quantity: z
+        .number({
+          required_error: "Quantity is required",
+          invalid_type_error: "Quantity Must be a Number",
+        })
+        .min(1, "Quantity cannot be zero"),
+      rate: z
+        .number({
+          required_error: "Rate is required",
+          invalid_type_error: "Rate Must be a Number",
+        })
+        .min(1, "Rate cannot be less than one"),
+      totalPrice: z.number(),
+      gstAmount: z.number(),
+    }),
+  )
+
+})
 
 const salesProposalSchema = z.object({
   propId: objectIdSchema("ProposalId").optional(),
@@ -57,6 +126,9 @@ const salesProposalSchema = z.object({
     .min(1, "At least one panel is required"),
 });
 
+// ----------------------------------
+
+// ----------------------------------
 
 const createClientSchema = z.object({
   salesId: objectIdSchema("SalesId"),
@@ -131,8 +203,8 @@ const createClientSchema = z.object({
 });
 
 
-const updateClientSchema=createClientSchema.extend({
-   clientId:objectIdSchema("ClientId")
+const updateClientSchema = createClientSchema.extend({
+  clientId: objectIdSchema("ClientId")
 });
 
-module.exports = { salesProposalSchema, createClientSchema,updateClientSchema };
+module.exports = { salesProposalSchema, createClientSchema, updateClientSchema, salesInverterProposalSchema };

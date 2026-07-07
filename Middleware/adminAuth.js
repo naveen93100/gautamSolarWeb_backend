@@ -11,7 +11,7 @@ const adminAuth = async (req, res, next) => {
             })
         }
         const decode = jwt.verify(token, process.env.JWT_SECRET);
-        // console.log("decode : ",decode);
+
         const admin = await Admin.findOne({ _id: decode?.adminId }).select('-password');
         
         if (!admin) {
