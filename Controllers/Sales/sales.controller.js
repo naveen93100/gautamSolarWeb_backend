@@ -214,7 +214,7 @@ const createSalesProposal = async (req, res) => {
         _id: { $in: inverterIds },
         status: "active",
       }).select("_id capacities");
-      
+
 
       const inverterLookup = new Map();
 
@@ -335,53 +335,127 @@ const deleteProposal = async (req, res) => {
 
 const updateSalesProposal = async (req, res) => {
   try {
-    const result = salesProposalSchema.safeParse(req.body);
+    if (type === 'SOLAR') {
 
-    if (!result.success) {
-      const message = [];
-      result.error.issues.forEach((err) => {
-        message.push({ message: err.message });
-      });
+      const result = salesProposalSchema.safeParse(req.body);
 
-      return res.status(400).json({
-        success: false,
-        message,
+      if (!result.success) {
+        const message = [];
+        result.error.issues.forEach((err) => {
+          message.push({ message: err.message });
+        });
+
+        return res.status(400).json({
+          success: false,
+          message,
+        });
+      }
+
+      const { propId, gst, termsAndConditions, selectedPanels } = result.data;
+
+      const wattIds = selectedPanels.map((p) => p.wattId);
+
+      const uniqueWattIds = new Set(wattIds);
+      if (wattIds.length !== uniqueWattIds.size) {
+        return res.status(400).json({
+          message: "Duplicate wattId found in selectedPanel",
+        });
+      }
+
+      const finalPrice = selectedPanels.reduce((total, item) => {
+        return total + Number(item.totalPrice || 0) + Number(item.gstAmount || 0);
+      }, 0);
+
+      const data = { finalPrice, ...result.data };
+
+      let updatedProposal = await SalesPanel.findByIdAndUpdate(
+        propId,
+        { $set: data },
+        { new: true },
+      );
+
+      if (!updatedProposal)
+        return res
+          .status(404)
+          .json({ success: false, message: "Proposal not found!" });
+
+      return res.status(200).json({
+        success: true,
+        message: "Proposal Updated successfully!",
+        data: updatedProposal,
       });
     }
+    else if (type === 'INVERTER') {
+      let result = salesInverterProposalSchema.safeParse(req.body);
+      if (!result.success) {
+        const message = [];
+        result.error.issues.forEach((err) => {
+          let v;
+          if (err.path.length >= 2) {
+            v = err.path[err.path.length - 1];
+          } else {
+            v = err.path.join(".");
+          }
+          message.push({ message: err.message });
+        });
+        console.log(message);
+        console.log(result.data);
+        return res.status(400).json({ success: false, message: "something went wrong" });
+      }
 
-    const { propId, gst, termsAndConditions, selectedPanels } = result.data;
+      let { propId, inverterGst, termsAndConditions, selectedInverters } = req.body;
 
-    const wattIds = selectedPanels.map((p) => p.wattId);
+      let inverterIds = [...new Set(selectedInverters.map(i => i.inverterId))];
 
-    const uniqueWattIds = new Set(wattIds);
-    if (wattIds.length !== uniqueWattIds.size) {
-      return res.status(400).json({
-        message: "Duplicate wattId found in selectedPanel",
+      let inverter = await Inverter.find({
+        _id: { $in: inverterIds },
+        status: "active"
+      }).select('_id capacities');
+
+
+      let inverterLookup = new Map();
+
+      for (let i of inverter) {
+        inverterLookup.set(i._id.toString(), i.capacities)
+      }
+
+
+      for (let i of selectedInverters) {
+        let capacities = inverterLookup.get(i.inverterId);
+
+        if (!capacities.includes(i.capacity))
+          return res.status(400).json({ success: false, message: "Capacity not availabel for this inverter." })
+
+      }
+
+      let finalPrice = selectedInverters.reduce((acc, itr) => acc + (itr.rate * itr.quantity), 0)
+      finalPrice = finalPrice + (finalPrice * inverterGst) / 100;
+
+
+      const subTotal = selectedInverters.reduce((acc, itr) => acc + itr.totalPrice + itr.gstAmount, 0);
+
+      if (finalPrice !== subTotal) return res.status(400).json({ success: false, message: "Calculation mismatch." });
+
+      let data = {
+        inverterGst,
+        termsAndConditions,
+        selectedInverters,
+        finalPrice
+      }
+
+      const panelPropsal = await SalesPanel.findByIdAndUpdate(propId, { $set: data }, { new: true });
+
+      if (!panelPropsal) return res.status(404).json({ success: false, message: "Proposal not found." })
+
+      return res.status(201).json({
+        success: true,
+        message: "Proposal Created!",
+        data: panelPropsal,
       });
     }
+    else if (type === 'BOTH') {
 
-    const finalPrice = selectedPanels.reduce((total, item) => {
-      return total + Number(item.totalPrice || 0) + Number(item.gstAmount || 0);
-    }, 0);
-
-    const data = { finalPrice, ...result.data };
-
-    let updatedProposal = await SalesPanel.findByIdAndUpdate(
-      propId,
-      { $set: data },
-      { new: true },
-    );
-
-    if (!updatedProposal)
-      return res
-        .status(404)
-        .json({ success: false, message: "Proposal not found!" });
-
-    return res.status(200).json({
-      success: true,
-      message: "Proposal Updated successfully!",
-      data: updatedProposal,
-    });
+    }
   } catch (er) {
     return res.status(500).json({ success: false, message: er?.message });
   }
