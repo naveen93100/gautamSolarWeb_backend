@@ -18,1356 +18,1396 @@ const ProposalModel = require("../../Models/proposal.schema");
 const Sales = require("../../Models/Sales/sales.schema");
 const SalesCustomer = require("../../Models/Sales/sales.customer.schema");
 const SalesPanel = require("../../Models/Sales/sales.panel.schema");
-const Inverter = require('../../Models/AdminModel/InverterSchema');
+const Inverter = require("../../Models/AdminModel/InverterSchema");
 const {
-  createDealerAccountAdminSchema,
+    createDealerAccountAdminSchema,
 } = require("../../Validators/Common.validator");
 const sharp = require("sharp");
 
-
 const createPanel = async (req, res) => {
-  try {
-    let { panelType } = req.body;
+    try {
+        let { panelType } = req.body;
 
-    if (!panelType) {
-      return res.status(400).json({
-        success: false,
-        message: "Panel Type Data is required..",
-      });
+        if (!panelType) {
+            return res.status(400).json({
+                success: false,
+                message: "Panel Type Data is required..",
+            });
+        }
+
+        if (panelType && typeof panelType !== "string") {
+            return res
+                .status(400)
+                .json({
+                    success: false,
+                    message: "Panel type should be string",
+                });
+        }
+
+        panelType = panelType?.trim().toUpperCase();
+
+        const existingPannel = await Panel.findOne({ panelType });
+
+        if (existingPannel) {
+            return res.status(409).json({
+                success: false,
+                message: "Panel already Exits..Try with different Name!!",
+            });
+        }
+
+        const panel = await Panel.create({
+            panelType,
+        });
+        return res.status(201).json({
+            success: true,
+            message: "Panel is created sucessfully..",
+        });
+    } catch (er) {
+        console.log(er);
+        res.status(500).json({
+            success: false,
+            message:
+                "Internal Server Error, Couldn't add Panel Type.." ||
+                er?.message,
+        });
     }
-
-    if (panelType && typeof panelType !== "string") {
-      return res
-        .status(400)
-        .json({ success: false, message: "Panel type should be string" });
-    }
-
-    panelType = panelType?.trim().toUpperCase();
-
-    const existingPannel = await Panel.findOne({ panelType });
-
-    if (existingPannel) {
-      return res.status(409).json({
-        success: false,
-        message: "Panel already Exits..Try with different Name!!",
-      });
-    }
-
-    const panel = await Panel.create({
-      panelType,
-    });
-    return res.status(201).json({
-      success: true,
-      message: "Panel is created sucessfully..",
-    });
-  } catch (er) {
-    console.log(er);
-    res.status(500).json({
-      success: false,
-      message:
-        "Internal Server Error, Couldn't add Panel Type.." || er?.message,
-    });
-  }
 };
 
 const getPanel = async (req, res) => {
-  try {
-    const { isActive } = req.query;
-    if (!isActive) {
-      var panelData = await Panel.find();
-    } else {
-      var panelData = await Panel.find({ panelActive: isActive });
-    }
-    // console.log("panelData : ", panelData)
+    try {
+        const { isActive } = req.query;
+        if (!isActive) {
+            var panelData = await Panel.find();
+        } else {
+            var panelData = await Panel.find({ panelActive: isActive });
+        }
+        // console.log("panelData : ", panelData)
 
-    return res.status(200).json({
-      success: true,
-      data: panelData,
-    });
-  } catch (er) {
-    // console.log(error);
-    res.status(500).json({
-      success: false,
-      message: "Internal Server Error.." || er?.message,
-    });
-  }
+        return res.status(200).json({
+            success: true,
+            data: panelData,
+        });
+    } catch (er) {
+        // console.log(error);
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error.." || er?.message,
+        });
+    }
 };
 
 const updatePanel = async (req, res) => {
-  try {
-    let { _id, panelType } = req.query;
+    try {
+        let { _id, panelType } = req.query;
 
-    panelType = panelType?.trim().toUpperCase();
+        panelType = panelType?.trim().toUpperCase();
 
-    if (!mongoose.Types.ObjectId.isValid(_id))
-      return res
-        .status(400)
-        .json({ success: false, message: "You did something with Id" });
+        if (!mongoose.Types.ObjectId.isValid(_id))
+            return res
+                .status(400)
+                .json({ success: false, message: "You did something with Id" });
 
-    if (!_id) {
-      return res.status(400).json({
-        success: false,
-        message: "Id must be required...",
-      });
+        if (!_id) {
+            return res.status(400).json({
+                success: false,
+                message: "Id must be required...",
+            });
+        }
+        if (!panelType) {
+            return res.status(400).json({
+                success: false,
+                message: "Panel Type Required",
+            });
+        }
+
+        const findPanel = await Panel.findById({ _id: _id });
+        // console.log("findPanel : ", findPanel)
+
+        if (!findPanel) {
+            return res.status(400).json({
+                success: false,
+                message: "Panel not found ",
+            });
+        }
+
+        if (findPanel?.panelType === panelType) {
+            return res.status(409).json({
+                success: false,
+                message:
+                    "This name panel is already exits you can not update the panel with same name , Try with different name ",
+            });
+        }
+
+        const panelData = await Panel.find();
+        // console.log("panelData : ",panelData)
+
+        // panelData?.some(item => console.log(item));
+        const data = panelData?.some((item) => item?.panelType === panelType);
+        // console.log("data : ", data)
+        if (data) {
+            return res.status(409).json({
+                success: false,
+                message:
+                    "This  panel name is already exist , Try with New Name..",
+            });
+        }
+
+        // if (findPanel?.panelActive.toString() === panelActive?.toString()) {
+        //   return res.status(400).json({
+        //     success: false,
+        //     message: `${panelActive !== true ? "Panel is Already Active" : "Panel is already disable"} `,
+        //   });
+        // }
+
+        const updateData = await Panel.findByIdAndUpdate(
+            _id,
+            { _id, panelType },
+            { new: true },
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Panel Update Successfully..",
+            data: updateData,
+        });
+    } catch (error) {
+        // console.log(error)
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error.." || error?.message,
+        });
     }
-    if (!panelType) {
-      return res.status(400).json({
-        success: false,
-        message: "Panel Type Required",
-      });
-    }
-
-    const findPanel = await Panel.findById({ _id: _id });
-    // console.log("findPanel : ", findPanel)
-
-    if (!findPanel) {
-      return res.status(400).json({
-        success: false,
-        message: "Panel not found ",
-      });
-    }
-
-    if (findPanel?.panelType === panelType) {
-      return res.status(409).json({
-        success: false,
-        message:
-          "This name panel is already exits you can not update the panel with same name , Try with different name ",
-      });
-    }
-
-    const panelData = await Panel.find();
-    // console.log("panelData : ",panelData)
-
-    // panelData?.some(item => console.log(item));
-    const data = panelData?.some((item) => item?.panelType === panelType);
-    // console.log("data : ", data)
-    if (data) {
-      return res.status(409).json({
-        success: false,
-        message: "This  panel name is already exist , Try with New Name..",
-      });
-    }
-
-    // if (findPanel?.panelActive.toString() === panelActive?.toString()) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: `${panelActive !== true ? "Panel is Already Active" : "Panel is already disable"} `,
-    //   });
-    // }
-
-    const updateData = await Panel.findByIdAndUpdate(
-      _id,
-      { _id, panelType },
-      { new: true },
-    );
-
-    return res.status(200).json({
-      success: true,
-      message: "Panel Update Successfully..",
-      data: updateData,
-    });
-  } catch (error) {
-    // console.log(error)
-    res.status(500).json({
-      success: false,
-      message: "Internal Server Error.." || error?.message,
-    });
-  }
 };
 
 const togglePanel = async (req, res) => {
-  // console.log("id,isActive : ", id, isActive)
-  try {
-    const { id, panelActive } = req.body;
+    // console.log("id,isActive : ", id, isActive)
+    try {
+        const { id, panelActive } = req.body;
 
-    // checking panelActive is string or not
-    if (typeof panelActive === "string")
-      return res.status(400).json({
-        success: false,
-        message: "panelActive should be boolean but getting string",
-      });
+        // checking panelActive is string or not
+        if (typeof panelActive === "string")
+            return res.status(400).json({
+                success: false,
+                message: "panelActive should be boolean but getting string",
+            });
 
-    //   checking if id's coming as string or something else
+        //   checking if id's coming as string or something else
 
-    if (typeof id !== "string")
-      return res.status(400).json({
-        success: false,
-        message: "Panel Id should be string",
-      });
+        if (typeof id !== "string")
+            return res.status(400).json({
+                success: false,
+                message: "Panel Id should be string",
+            });
 
-    if (!id) {
-      return res.status(400).json({
-        success: false,
-        message: "Panel Id  is required.. ",
-      });
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "Panel Id  is required.. ",
+            });
+        }
+
+        // checking if id's are valid or not
+        if (!mongoose.Types.ObjectId.isValid(id))
+            return res
+                .status(400)
+                .json({
+                    success: false,
+                    message: "Technology id is not valid",
+                });
+
+        const findPanel = await Panel.findById(id);
+
+        if (!findPanel) {
+            return res.status(400).json({
+                success: false,
+                message: "Panel is not find ,try with correct panel Id..",
+            });
+        }
+
+        const updateData = await Panel.findByIdAndUpdate(
+            id,
+            { $set: { panelActive } },
+            { new: true },
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: `${panelActive === true ? "Panel is Active" : "Panel is Disable"}`,
+            data: updateData,
+        });
+    } catch (error) {
+        console.log("error : ", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server Error...",
+        });
     }
-
-    // checking if id's are valid or not
-    if (!mongoose.Types.ObjectId.isValid(id))
-      return res
-        .status(400)
-        .json({ success: false, message: "Technology id is not valid" });
-
-    const findPanel = await Panel.findById(id);
-
-    if (!findPanel) {
-      return res.status(400).json({
-        success: false,
-        message: "Panel is not find ,try with correct panel Id..",
-      });
-    }
-
-    const updateData = await Panel.findByIdAndUpdate(
-      id,
-      { $set: { panelActive } },
-      { new: true },
-    );
-
-    return res.status(200).json({
-      success: true,
-      message: `${panelActive === true ? "Panel is Active" : "Panel is Disable"}`,
-      data: updateData,
-    });
-  } catch (error) {
-    console.log("error : ", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server Error...",
-    });
-  }
 };
 
 const createTechnology = async (req, res) => {
-  try {
-    let { panelId, technologyPanel } = req.body;
+    try {
+        let { panelId, technologyPanel } = req.body;
 
-    console.log("req.body : ", req.body);
+        console.log("req.body : ", req.body);
 
-    if (typeof technologyPanel !== "string" || typeof panelId !== "string")
-      return res
-        .status(400)
-        .json({ success: false, message: "Technology should be String!!" });
+        if (typeof technologyPanel !== "string" || typeof panelId !== "string")
+            return res
+                .status(400)
+                .json({
+                    success: false,
+                    message: "Technology should be String!!",
+                });
 
-    if (!panelId.trim() || !technologyPanel.trim()) {
-      return res.status(400).json({
-        success: false,
-        message: "Panel Id and technology panel not be empty...",
-      });
+        if (!panelId.trim() || !technologyPanel.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: "Panel Id and technology panel not be empty...",
+            });
+        }
+
+        panelId = panelId.trim();
+
+        //  check format of panelId
+        if (!mongoose.Types.ObjectId.isValid(panelId))
+            return res
+                .status(400)
+                .json({ success: false, message: "You did something with Id" });
+
+        technologyPanel = technologyPanel?.trim().toUpperCase();
+
+        const panelExits = await Panel.findById(panelId);
+        if (!panelExits) {
+            return res.status(400).json({
+                success: false,
+                message: "Panel is not found.Try with correct panel Id",
+            });
+        }
+        // const isExisting = await Technology.findOne({ panelId, technologyPanel });
+        const isExisting = await Technology.findOne({
+            panelId: new mongoose.Types.ObjectId(panelId),
+            technologyPanel,
+        });
+
+        if (isExisting?.technologyPanel === technologyPanel) {
+            return res.status(400).json({
+                success: false,
+                message: " This Technology is already register...",
+            });
+        }
+
+        await Technology.create({
+            panelId: panelId,
+            technologyPanel,
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: "Panel technology is created successfully...",
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error..." || error?.message,
+        });
     }
-
-    panelId = panelId.trim();
-
-    //  check format of panelId
-    if (!mongoose.Types.ObjectId.isValid(panelId))
-      return res
-        .status(400)
-        .json({ success: false, message: "You did something with Id" });
-
-    technologyPanel = technologyPanel?.trim().toUpperCase();
-
-    const panelExits = await Panel.findById(panelId);
-    if (!panelExits) {
-      return res.status(400).json({
-        success: false,
-        message: "Panel is not found.Try with correct panel Id",
-      });
-    }
-    // const isExisting = await Technology.findOne({ panelId, technologyPanel });
-    const isExisting = await Technology.findOne({
-      panelId: new mongoose.Types.ObjectId(panelId),
-      technologyPanel,
-    });
-
-    if (isExisting?.technologyPanel === technologyPanel) {
-      return res.status(400).json({
-        success: false,
-        message: " This Technology is already register...",
-      });
-    }
-
-    await Technology.create({
-      panelId: panelId,
-      technologyPanel,
-    });
-
-    return res.status(201).json({
-      success: true,
-      message: "Panel technology is created successfully...",
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error..." || error?.message,
-    });
-  }
 };
 
 const getTechnology = async (req, res) => {
-  try {
-    let { panelId, isActive } = req?.query;
+    try {
+        let { panelId, isActive } = req?.query;
 
-    if (!panelId.trim())
-      return res
-        .status(400)
-        .json({ success: false, message: "Panel id Not found" });
+        if (!panelId.trim())
+            return res
+                .status(400)
+                .json({ success: false, message: "Panel id Not found" });
 
-    panelId = panelId.trim();
-    if (!mongoose.Types.ObjectId.isValid(panelId))
-      return res
-        .status(400)
-        .json({ success: false, message: "Panel id is not valid at all" });
+        panelId = panelId.trim();
+        if (!mongoose.Types.ObjectId.isValid(panelId))
+            return res
+                .status(400)
+                .json({
+                    success: false,
+                    message: "Panel id is not valid at all",
+                });
 
-    const isExits = await Panel.findOne({ _id: panelId });
-    if (!isExits) {
-      return res.status(404).json({
-        success: false,
-        message: "Panel Id is not found try with another panel Id..",
-      });
+        const isExits = await Panel.findOne({ _id: panelId });
+        if (!isExits) {
+            return res.status(404).json({
+                success: false,
+                message: "Panel Id is not found try with another panel Id..",
+            });
+        }
+
+        if (!isActive) {
+            var data = await Technology.find({ panelId });
+        } else {
+            var data = await Technology.find({ panelId, isActive });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Data fetch successfully..",
+            data: data,
+        });
+    } catch (error) {
+        console.log("error", error?.message);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error...",
+        });
     }
-
-    if (!isActive) {
-      var data = await Technology.find({ panelId });
-    } else {
-      var data = await Technology.find({ panelId, isActive });
-    }
-    return res.status(200).json({
-      success: true,
-      message: "Data fetch successfully..",
-      data: data,
-    });
-  } catch (error) {
-    console.log("error", error?.message);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error...",
-    });
-  }
 };
 
 const updateTechnology = async (req, res) => {
-  try {
-    let { _id, panelId, technologyPanel } = req.body;
-    console.log(" technology data  : ", req.body);
+    try {
+        let { _id, panelId, technologyPanel } = req.body;
+        console.log(" technology data  : ", req.body);
 
-    if (typeof _id !== "string" || typeof technologyPanel !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Panel ID and technology must be string",
-      });
+        if (typeof _id !== "string" || typeof technologyPanel !== "string") {
+            return res.status(400).json({
+                success: false,
+                message: "Panel ID and technology must be string",
+            });
+        }
+
+        if (!_id.trim() || !technologyPanel.trim())
+            return res.status(400).json({
+                success: false,
+                message: "panel id and technology panel cannot be empty",
+            });
+
+        _id = _id.trim();
+        technologyPanel = technologyPanel?.trim().toUpperCase();
+
+        if (!mongoose.Types.ObjectId.isValid(_id))
+            return res
+                .status(400)
+                .json({
+                    success: false,
+                    message: "Technology id is not valid",
+                });
+
+        const existingData = await Technology.findOne({ _id });
+
+        if (!existingData) {
+            return res.status(400).json({
+                success: false,
+                message: "Technology not found..",
+            });
+        }
+
+        if (technologyPanel === existingData?.technologyPanel) {
+            return res.status(409).json({
+                success: false,
+                message:
+                    "You are trying to update same technology name , if you are updating try with new name...",
+            });
+        }
+
+        const allData = await Technology.findOne({ panelId, technologyPanel });
+        console.log("allData : ", allData);
+
+        if (!allData) {
+            const updateData = await Technology.findByIdAndUpdate(
+                { _id },
+                { technologyPanel },
+                { new: true },
+            );
+
+            return res.status(200).json({
+                success: true,
+                message: "Data is update successfully",
+                updateData: updateData,
+            });
+        }
+    } catch (error) {
+        console.log("error : ", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error..." || error?.message,
+        });
     }
-
-    if (!_id.trim() || !technologyPanel.trim())
-      return res.status(400).json({
-        success: false,
-        message: "panel id and technology panel cannot be empty",
-      });
-
-    _id = _id.trim();
-    technologyPanel = technologyPanel?.trim().toUpperCase();
-
-    if (!mongoose.Types.ObjectId.isValid(_id))
-      return res
-        .status(400)
-        .json({ success: false, message: "Technology id is not valid" });
-
-    const existingData = await Technology.findOne({ _id });
-
-    if (!existingData) {
-      return res.status(400).json({
-        success: false,
-        message: "Technology not found..",
-      });
-    }
-
-    if (technologyPanel === existingData?.technologyPanel) {
-      return res.status(409).json({
-        success: false,
-        message:
-          "You are trying to update same technology name , if you are updating try with new name...",
-      });
-    }
-
-    const allData = await Technology.findOne({ panelId, technologyPanel });
-    console.log("allData : ", allData);
-
-    if (!allData) {
-      const updateData = await Technology.findByIdAndUpdate(
-        { _id },
-        { technologyPanel },
-        { new: true },
-      );
-
-      return res.status(200).json({
-        success: true,
-        message: "Data is update successfully",
-        updateData: updateData,
-      });
-    }
-  } catch (error) {
-    console.log("error : ", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error..." || error?.message,
-    });
-  }
 };
 
 const activeDisableTech = async (req, res) => {
-  // console.log("id,isActive : ", id, isActive)
-  try {
-    const { id, panelId, isActive } = req.body;
+    // console.log("id,isActive : ", id, isActive)
+    try {
+        const { id, panelId, isActive } = req.body;
 
-    // checking isActive is string or not
-    if (typeof isActive === "string")
-      return res.status(400).json({
-        success: false,
-        message: "isActive should be boolean but getting string",
-      });
+        // checking isActive is string or not
+        if (typeof isActive === "string")
+            return res.status(400).json({
+                success: false,
+                message: "isActive should be boolean but getting string",
+            });
 
-    //   checking if id's coming as string or something else
+        //   checking if id's coming as string or something else
 
-    if (typeof panelId !== "string" || typeof id !== "string")
-      return res.status(400).json({
-        success: false,
-        message: "Panel Id and technology id should be string",
-      });
+        if (typeof panelId !== "string" || typeof id !== "string")
+            return res.status(400).json({
+                success: false,
+                message: "Panel Id and technology id should be string",
+            });
 
-    if (!id || !panelId) {
-      return res.status(400).json({
-        success: false,
-        message: "Panel Id & Technology Id is required.. ",
-      });
+        if (!id || !panelId) {
+            return res.status(400).json({
+                success: false,
+                message: "Panel Id & Technology Id is required.. ",
+            });
+        }
+
+        // checking if id's are valid or not
+        if (!mongoose.Types.ObjectId.isValid(id))
+            return res
+                .status(400)
+                .json({
+                    success: false,
+                    message: "Technology id is not valid",
+                });
+        if (!mongoose.Types.ObjectId.isValid(panelId))
+            return res
+                .status(400)
+                .json({ success: false, message: "Panel id is not valid" });
+
+        const findPanel = await Panel.findById({ _id: panelId });
+
+        if (!findPanel) {
+            return res.status(400).json({
+                success: false,
+                message: "Panel is not find ,try with correct panel Id..",
+            });
+        }
+        const findTech = await Technology.findById({ _id: id });
+
+        if (!findTech) {
+            return res.status(400).json({
+                success: false,
+                message: "Technology not found..",
+            });
+        }
+
+        const updateData = await Technology.findByIdAndUpdate(
+            id,
+            { $set: { isActive } },
+            { new: true },
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: `${isActive === true ? "Technology is Active" : "Technology is Disable"}`,
+            data: updateData,
+        });
+    } catch (error) {
+        console.log("error : ", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server Error...",
+        });
     }
-
-    // checking if id's are valid or not
-    if (!mongoose.Types.ObjectId.isValid(id))
-      return res
-        .status(400)
-        .json({ success: false, message: "Technology id is not valid" });
-    if (!mongoose.Types.ObjectId.isValid(panelId))
-      return res
-        .status(400)
-        .json({ success: false, message: "Panel id is not valid" });
-
-    const findPanel = await Panel.findById({ _id: panelId });
-
-    if (!findPanel) {
-      return res.status(400).json({
-        success: false,
-        message: "Panel is not find ,try with correct panel Id..",
-      });
-    }
-    const findTech = await Technology.findById({ _id: id });
-
-    if (!findTech) {
-      return res.status(400).json({
-        success: false,
-        message: "Technology not found..",
-      });
-    }
-
-    const updateData = await Technology.findByIdAndUpdate(
-      id,
-      { $set: { isActive } },
-      { new: true },
-    );
-
-    return res.status(200).json({
-      success: true,
-      message: `${isActive === true ? "Technology is Active" : "Technology is Disable"}`,
-      data: updateData,
-    });
-  } catch (error) {
-    console.log("error : ", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server Error...",
-    });
-  }
 };
 
 const createConstructive = async (req, res) => {
-  try {
-    let { panelId, technologyId, constructiveType } = req.body;
+    try {
+        let { panelId, technologyId, constructiveType } = req.body;
 
-    if (
-      typeof panelId !== "string" ||
-      typeof technologyId !== "string" ||
-      typeof constructiveType !== "string"
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "PanelId ,technologyId and constructiveType should be string",
-      });
+        if (
+            typeof panelId !== "string" ||
+            typeof technologyId !== "string" ||
+            typeof constructiveType !== "string"
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "PanelId ,technologyId and constructiveType should be string",
+            });
+        }
+
+        if (!panelId || !technologyId || !constructiveType) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "All fields are required (panelId, technologyId, constructiveType)",
+            });
+        }
+        constructiveType = constructiveType.trim().toUpperCase();
+        const panelExits = await Panel.findOne({ _id: panelId });
+        const technologyExits = await Technology.findOne({ _id: technologyId });
+        const isExits = await Constructive.findOne({
+            technologyId,
+            constructiveType,
+        });
+
+        // console.log("technology",technologyExits);
+        // console.log("panel ",panelExits);
+        // console.log("Constructive ", isExits);
+
+        if (!panelExits) {
+            return res.status(404).json({
+                success: false,
+                message: "Panel Id is not exits, try with correct panel Id",
+            });
+        }
+
+        if (!technologyExits) {
+            return res.status(404).json({
+                success: false,
+                message:
+                    "Technology Id is not exits, try with correct technology Id",
+            });
+        }
+
+        if (isExits) {
+            return res.status(409).json({
+                success: false,
+                message:
+                    "Constructive Type is already exits,Try with different type..",
+            });
+        }
+
+        // console.log("constructiveType : ", constructiveType)
+        // console.log("constructiveType : ", constructiveType.length)
+
+        const createConstructive = await Constructive.create({
+            panelId,
+            technologyId,
+            constructiveType,
+        });
+        return res.status(201).json({
+            success: true,
+            message: "Constructive is Created successfully..",
+            data: createConstructive,
+        });
+    } catch (error) {
+        // console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error..",
+        });
     }
-
-    if (!panelId || !technologyId || !constructiveType) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "All fields are required (panelId, technologyId, constructiveType)",
-      });
-    }
-    constructiveType = constructiveType.trim().toUpperCase();
-    const panelExits = await Panel.findOne({ _id: panelId });
-    const technologyExits = await Technology.findOne({ _id: technologyId });
-    const isExits = await Constructive.findOne({
-      technologyId,
-      constructiveType,
-    });
-
-    // console.log("technology",technologyExits);
-    // console.log("panel ",panelExits);
-    // console.log("Constructive ", isExits);
-
-    if (!panelExits) {
-      return res.status(404).json({
-        success: false,
-        message: "Panel Id is not exits, try with correct panel Id",
-      });
-    }
-
-    if (!technologyExits) {
-      return res.status(404).json({
-        success: false,
-        message: "Technology Id is not exits, try with correct technology Id",
-      });
-    }
-
-    if (isExits) {
-      return res.status(409).json({
-        success: false,
-        message: "Constructive Type is already exits,Try with different type..",
-      });
-    }
-
-    // console.log("constructiveType : ", constructiveType)
-    // console.log("constructiveType : ", constructiveType.length)
-
-    const createConstructive = await Constructive.create({
-      panelId,
-      technologyId,
-      constructiveType,
-    });
-    return res.status(201).json({
-      success: true,
-      message: "Constructive is Created successfully..",
-      data: createConstructive,
-    });
-  } catch (error) {
-    // console.log(error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error..",
-    });
-  }
 };
 
 const getConstructive = async (req, res) => {
-  const { technologyId, isActive } = req.query;
-  // console.log("technologyId : ", technologyId);
+    const { technologyId, isActive } = req.query;
+    // console.log("technologyId : ", technologyId);
 
-  try {
-    // const isExits = await Technology.findOne({ _id: technologyId });
-    const isExits = await Technology.findOne({ _id: technologyId });
+    try {
+        // const isExits = await Technology.findOne({ _id: technologyId });
+        const isExits = await Technology.findOne({ _id: technologyId });
 
-    if (isExits === null) {
-      return res.status(404).json({
-        success: false,
-        message: "Technology is not find try with correct technology Id",
-      });
+        if (isExits === null) {
+            return res.status(404).json({
+                success: false,
+                message:
+                    "Technology is not find try with correct technology Id",
+            });
+        }
+        if (!isActive) {
+            var data = await Constructive.find({ technologyId });
+        } else {
+            var data = await Constructive.find({ technologyId, isActive });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Data fetch Successfully..",
+            data: data,
+        });
+    } catch (error) {
+        // console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error..",
+        });
     }
-    if (!isActive) {
-      var data = await Constructive.find({ technologyId });
-    } else {
-      var data = await Constructive.find({ technologyId, isActive });
-    }
-    return res.status(200).json({
-      success: true,
-      message: "Data fetch Successfully..",
-      data: data,
-    });
-  } catch (error) {
-    // console.log(error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error..",
-    });
-  }
 };
 
 const updateConstructive = async (req, res) => {
-  let { id, panelId, technologyId, constructiveType } = req.body;
-  // console.log(id, panelId, technologyId, constructiveType);
-  // console.log(req.body);
-  constructiveType = constructiveType.trim().toUpperCase();
+    let { id, panelId, technologyId, constructiveType } = req.body;
+    // console.log(id, panelId, technologyId, constructiveType);
+    // console.log(req.body);
+    constructiveType = constructiveType.trim().toUpperCase();
 
-  try {
-    if (!id || !panelId || !technologyId || !constructiveType) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required...",
-      });
+    try {
+        if (!id || !panelId || !technologyId || !constructiveType) {
+            return res.status(400).json({
+                success: false,
+                message: "All fields are required...",
+            });
+        }
+
+        const findPanel = await Panel.findById({ _id: panelId });
+
+        if (!findPanel) {
+            return res.status(404).json({
+                success: false,
+                message: "Panel is not find try with correct panel id..",
+            });
+        }
+
+        const findTechnology = await Technology.findById({ _id: technologyId });
+        if (!findTechnology) {
+            return res.status(404).json({
+                success: false,
+                message:
+                    "Technology is not find try with correct technology id..",
+            });
+        }
+
+        const findConstructive = await Constructive.findById({ _id: id });
+
+        // console.log("findTechnology: ", findTechnology);
+        // console.log("findConstructive: ", findConstructive);
+        // console.log(constructiveType)
+        if (!findConstructive) {
+            return res.status(404).json({
+                success: false,
+                message:
+                    "Constructive is not find try with correct constructive id..",
+            });
+        }
+
+        const allData = await Constructive.find({ panelId });
+        // console.log("allData : ", allData);
+        const isExits = allData.some((data) => {
+            // console.log("data",data)
+            // console.log("data?.constructiveType : ",data?.constructiveType)
+            return data?.constructiveType === constructiveType;
+        });
+        // console.log("isExits : ", isExits)
+
+        if (isExits) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "This name constructive is already exits , you can not update with same name,Try with different name",
+            });
+        }
+
+        const updateData = await Constructive.findByIdAndUpdate(
+            { _id: id },
+            { $set: { _id: id, panelId, technologyId, constructiveType } },
+            { new: true },
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Update sucessfully",
+            updatedData: updateData,
+        });
+    } catch (error) {
+        console.log("error : ", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error..",
+        });
     }
-
-    const findPanel = await Panel.findById({ _id: panelId });
-
-    if (!findPanel) {
-      return res.status(404).json({
-        success: false,
-        message: "Panel is not find try with correct panel id..",
-      });
-    }
-
-    const findTechnology = await Technology.findById({ _id: technologyId });
-    if (!findTechnology) {
-      return res.status(404).json({
-        success: false,
-        message: "Technology is not find try with correct technology id..",
-      });
-    }
-
-    const findConstructive = await Constructive.findById({ _id: id });
-
-    // console.log("findTechnology: ", findTechnology);
-    // console.log("findConstructive: ", findConstructive);
-    // console.log(constructiveType)
-    if (!findConstructive) {
-      return res.status(404).json({
-        success: false,
-        message: "Constructive is not find try with correct constructive id..",
-      });
-    }
-
-    const allData = await Constructive.find({ panelId });
-    // console.log("allData : ", allData);
-    const isExits = allData.some((data) => {
-      // console.log("data",data)
-      // console.log("data?.constructiveType : ",data?.constructiveType)
-      return data?.constructiveType === constructiveType;
-    });
-    // console.log("isExits : ", isExits)
-
-    if (isExits) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "This name constructive is already exits , you can not update with same name,Try with different name",
-      });
-    }
-
-    const updateData = await Constructive.findByIdAndUpdate(
-      { _id: id },
-      { $set: { _id: id, panelId, technologyId, constructiveType } },
-      { new: true },
-    );
-
-    return res.status(200).json({
-      success: true,
-      message: "Update sucessfully",
-      updatedData: updateData,
-    });
-  } catch (error) {
-    console.log("error : ", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error..",
-    });
-  }
 };
 
 const activeDisableConst = async (req, res) => {
-  const { id, panelId, technologyId, isActive } = req.body;
-  try {
-    if (!id || !panelId || !technologyId) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required(id,panelId,technology)..",
-      });
-    }
-    const findPanel = await Panel.findById({ _id: panelId });
-    if (!findPanel) {
-      return res.status(400).json({
-        success: false,
-        message: "Panel is not find ,try with correct panel Id..",
-      });
-    }
-    const findTech = await Technology.findById({ _id: technologyId });
-    if (!findTech) {
-      return res.status(400).json({
-        success: false,
-        message: "Technology is not find ,try with correct technology Id..",
-      });
-    }
-    const findConstrutive = await Constructive.findById({ _id: id });
-    if (!findConstrutive) {
-      return res.status(400).json({
-        success: false,
-        message: "Construtive is not find ,try with correct Construtive Id..",
-      });
-    }
+    const { id, panelId, technologyId, isActive } = req.body;
+    try {
+        if (!id || !panelId || !technologyId) {
+            return res.status(400).json({
+                success: false,
+                message: "All fields are required(id,panelId,technology)..",
+            });
+        }
+        const findPanel = await Panel.findById({ _id: panelId });
+        if (!findPanel) {
+            return res.status(400).json({
+                success: false,
+                message: "Panel is not find ,try with correct panel Id..",
+            });
+        }
+        const findTech = await Technology.findById({ _id: technologyId });
+        if (!findTech) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Technology is not find ,try with correct technology Id..",
+            });
+        }
+        const findConstrutive = await Constructive.findById({ _id: id });
+        if (!findConstrutive) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Construtive is not find ,try with correct Construtive Id..",
+            });
+        }
 
-    const data = await Constructive.findByIdAndUpdate(
-      id,
-      { $set: { isActive } },
-      { new: true },
-    );
-    return res.status(200).json({
-      success: true,
-      message: `${isActive ? "Construvtive is Active" : "Constructive is Disable"}`,
-      data: data,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Internal server Error...",
-    });
-  }
+        const data = await Constructive.findByIdAndUpdate(
+            id,
+            { $set: { isActive } },
+            { new: true },
+        );
+        return res.status(200).json({
+            success: true,
+            message: `${isActive ? "Construvtive is Active" : "Constructive is Disable"}`,
+            data: data,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Internal server Error...",
+        });
+    }
 };
 
 const panelWatt = async (req, res) => {
-  try {
-    const { panelId, technologyId, constructiveId, watt } = req.body;
+    try {
+        const { panelId, technologyId, constructiveId, watt } = req.body;
 
-    if (!panelId || !technologyId || !constructiveId) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required(panelId,technologId,constructiveId)",
-      });
+        if (!panelId || !technologyId || !constructiveId) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "All fields are required(panelId,technologId,constructiveId)",
+            });
+        }
+
+        if (!watt || typeof Number.parseInt(watt) !== "number") {
+            return res.status(400).json({
+                success: false,
+                message: "Panel watt is required And it must be number.",
+            });
+        }
+
+        if (
+            typeof panelId !== "string" ||
+            typeof technologyId !== "string" ||
+            typeof constructiveId !== "string"
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Invaild format of panelId,technologId,constructiveId.",
+            });
+        }
+
+        if (
+            !mongoose.Types.ObjectId.isValid(panelId) ||
+            !mongoose.Types.ObjectId.isValid(technologyId) ||
+            !mongoose.Types.ObjectId.isValid(constructiveId)
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "You did something with Id",
+            });
+        }
+
+        const panelExits = await Panel.findById(panelId);
+        const technologExit = await Technology.findById(technologyId);
+        const constructiveExit = await Constructive.findById(constructiveId);
+
+        if (!panelExits || !technologExit || !constructiveExit) {
+            return res.status(404).json({
+                success: false,
+                message:
+                    "Oops! We couldn’t find the panel you’re trying to create watts for.",
+            });
+        }
+
+        // checking data is already exits or not
+        const isExits = await PanelWatt.findOne({ constructiveId, watt });
+        if (isExits) {
+            return res.status(409).json({
+                success: false,
+                message: "This watt of panel is already exits..",
+            });
+        }
+
+        const data = await PanelWatt.create({
+            panelId,
+            technologyId,
+            constructiveId,
+            watt: Number.parseInt(watt),
+            // imgWatt,
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: "Panel Watt Create Successfully..",
+        });
+    } catch (error) {
+        console.log("error", error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Internal server error...",
+        });
     }
-
-    if (!watt || typeof Number.parseInt(watt) !== "number") {
-      return res.status(400).json({
-        success: false,
-        message: "Panel watt is required And it must be number.",
-      });
-    }
-
-    if (
-      typeof panelId !== "string" ||
-      typeof technologyId !== "string" ||
-      typeof constructiveId !== "string"
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Invaild format of panelId,technologId,constructiveId.",
-      });
-    }
-
-    if (
-      !mongoose.Types.ObjectId.isValid(panelId) ||
-      !mongoose.Types.ObjectId.isValid(technologyId) ||
-      !mongoose.Types.ObjectId.isValid(constructiveId)
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "You did something with Id",
-      });
-    }
-
-    const panelExits = await Panel.findById(panelId);
-    const technologExit = await Technology.findById(technologyId);
-    const constructiveExit = await Constructive.findById(constructiveId);
-
-    if (!panelExits || !technologExit || !constructiveExit) {
-      return res.status(404).json({
-        success: false,
-        message:
-          "Oops! We couldn’t find the panel you’re trying to create watts for.",
-      });
-    }
-
-    // checking data is already exits or not
-    const isExits = await PanelWatt.findOne({ constructiveId, watt });
-    if (isExits) {
-      return res.status(409).json({
-        success: false,
-        message: "This watt of panel is already exits..",
-      });
-    }
-
-    const data = await PanelWatt.create({
-      panelId,
-      technologyId,
-      constructiveId,
-      watt: Number.parseInt(watt),
-      // imgWatt,
-    });
-
-    return res.status(201).json({
-      success: true,
-      message: "Panel Watt Create Successfully..",
-    });
-  } catch (error) {
-    console.log("error", error);
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Internal server error...",
-    });
-  }
 };
 
 const getPanelWatt = async (req, res) => {
-  try {
-    const { constructiveId, isActive } = req.query;
-    if (
-      !constructiveId ||
-      !mongoose.Types.ObjectId.isValid(constructiveId) ||
-      typeof constructiveId !== "string"
-    ) {
-      return res.status(404).json({
-        success: false,
-        message: "Constructive Id must be required..|| Invaild Constructive Id",
-      });
-    }
-    if (!isActive) {
-      var getData = await PanelWatt.find({ constructiveId });
-    } else {
-      var getData = await PanelWatt.find({ constructiveId, isActive });
-    }
+    try {
+        const { constructiveId, isActive } = req.query;
+        if (
+            !constructiveId ||
+            !mongoose.Types.ObjectId.isValid(constructiveId) ||
+            typeof constructiveId !== "string"
+        ) {
+            return res.status(404).json({
+                success: false,
+                message:
+                    "Constructive Id must be required..|| Invaild Constructive Id",
+            });
+        }
+        if (!isActive) {
+            var getData = await PanelWatt.find({ constructiveId });
+        } else {
+            var getData = await PanelWatt.find({ constructiveId, isActive });
+        }
 
-    return res.status(200).json({
-      success: true,
-      data: getData,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Internal Server Error..",
-    });
-  }
+        return res.status(200).json({
+            success: true,
+            data: getData,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Internal Server Error..",
+        });
+    }
 };
 const togglePanelWatt = async (req, res) => {
+    try {
+        const { constructiveId, _id, isActive } = req.query;
+        if (!constructiveId || !_id) {
+            return res.status(404).json({
+                success: false,
+                message: "Constructive Id and panel Watt _id is required..",
+            });
+        }
 
-  try {
+        if (
+            !mongoose.Types.ObjectId.isValid(_id) ||
+            !mongoose.Types.ObjectId.isValid(constructiveId)
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid constructive Id and panel watt _id..",
+            });
+        }
 
-    const { constructiveId, _id, isActive } = req.query;
-    if (!constructiveId || !_id) {
-      return res.status(404).json({
-        success: false,
-        message: "Constructive Id and panel Watt _id is required..",
-      });
+        const panelWattExits = await PanelWatt.findOne({ _id });
+
+        const constructiveExits = await PanelWatt.findOne({ constructiveId });
+
+        if (!constructiveExits) {
+            return res.status(404).json({
+                success: false,
+                message:
+                    "Constructive ID not found. Please provide a valid Constructive ID and try again.",
+            });
+        }
+
+        if (!panelWattExits) {
+            return res.status(404).json({
+                success: false,
+                message:
+                    "Panel watt not found. Please provide a valid panel watt ID and try again.",
+            });
+        }
+
+        if (panelWattExits?.isActive.toString() === isActive) {
+            return res.status(409).json({
+                success: false,
+                message: `Your panel watt is already ${isActive === "true" ? "Active" : "InActive"}`,
+            });
+        }
+
+        const tooglePanel = await PanelWatt.findByIdAndUpdate(
+            { _id },
+            { $set: { isActive } },
+            { new: true },
+        );
+        return res.status(200).json({
+            success: true,
+            message: `Panel watt ${isActive == "true" ? "activated" : "deactivated"} successfully.`,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Internal server Error...",
+        });
     }
-
-    if (
-      !mongoose.Types.ObjectId.isValid(_id) ||
-      !mongoose.Types.ObjectId.isValid(constructiveId)
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid constructive Id and panel watt _id..",
-      });
-    }
-
-    const panelWattExits = await PanelWatt.findOne({ _id });
-
-    const constructiveExits = await PanelWatt.findOne({ constructiveId });
-
-    if (!constructiveExits) {
-      return res.status(404).json({
-        success: false,
-        message:
-          "Constructive ID not found. Please provide a valid Constructive ID and try again.",
-      });
-    }
-
-    if (!panelWattExits) {
-      return res.status(404).json({
-        success: false,
-        message:
-          "Panel watt not found. Please provide a valid panel watt ID and try again.",
-      });
-    }
-
-    if (panelWattExits?.isActive.toString() === isActive) {
-      return res.status(409).json({
-        success: false,
-        message: `Your panel watt is already ${isActive === "true" ? "Active" : "InActive"}`,
-      });
-    }
-
-    const tooglePanel = await PanelWatt.findByIdAndUpdate(
-      { _id },
-      { $set: { isActive } },
-      { new: true },
-    );
-    return res.status(200).json({
-      success: true,
-      message: `Panel watt ${isActive == "true" ? "activated" : "deactivated"} successfully.`,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Internal server Error...",
-    });
-  }
 };
 
 const updatePanelWatt = async (req, res) => {
-  let { id, watt, constructiveId } = req.body;
-  watt = Number(watt);
-  try {
-    if (!id || !watt) {
-      return res.status(404).json({
-        success: false,
-        message: "Panel watt Required..",
-      });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(id) || typeof id !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Panel watt Id must be required..|| Invaild Panel Watt Id",
-      });
-    }
-
-    const isExisting = await PanelWatt.findById(id);
-
-    if (!isExisting) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "The panel you’re trying to update was not found. Please reload the page and try again.",
-      });
-    }
-
-    const duplicate = await PanelWatt.findOne({
-      constructiveId,
-      watt,
-      _id: { $ne: id },
-    });
-
-    if (duplicate) {
-      return res.status(409).json({
-        success: false,
-        message: "This watt already exists for this Panel Watt",
-      });
-    }
-
-    let imgWatt;
-
-    // ONLY if new images uploaded
-    if (req.files?.length) {
-      // DELETE OLD FILES
-      isExisting?.imgWatt?.forEach((img) => {
-        const filePath = path.join(
-          __dirname,
-          "../../Proposal_Images/watt",
-          img,
-        );
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
+    let { id, watt, constructiveId } = req.body;
+    watt = Number(watt);
+    try {
+        if (!id || !watt) {
+            return res.status(404).json({
+                success: false,
+                message: "Panel watt Required..",
+            });
         }
-      });
 
-      // ORDER NEW FILES
-      const orders = req.body.imgOrder;
+        if (!mongoose.Types.ObjectId.isValid(id) || typeof id !== "string") {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Panel watt Id must be required..|| Invaild Panel Watt Id",
+            });
+        }
 
-      imgWatt = req.files
-        .map((file, i) => ({
-          name: file.filename,
-          order: Array.isArray(orders) ? Number(orders[i]) : Number(orders),
-        }))
-        .sort((a, b) => b.order - a.order)
-        .map((i) => i.name);
+        const isExisting = await PanelWatt.findById(id);
+
+        if (!isExisting) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "The panel you’re trying to update was not found. Please reload the page and try again.",
+            });
+        }
+
+        const duplicate = await PanelWatt.findOne({
+            constructiveId,
+            watt,
+            _id: { $ne: id },
+        });
+
+        if (duplicate) {
+            return res.status(409).json({
+                success: false,
+                message: "This watt already exists for this Panel Watt",
+            });
+        }
+
+        let imgWatt;
+
+        // ONLY if new images uploaded
+        if (req.files?.length) {
+            // DELETE OLD FILES
+            isExisting?.imgWatt?.forEach((img) => {
+                const filePath = path.join(
+                    __dirname,
+                    "../../Proposal_Images/watt",
+                    img,
+                );
+                if (fs.existsSync(filePath)) {
+                    fs.unlinkSync(filePath);
+                }
+            });
+
+            // ORDER NEW FILES
+            const orders = req.body.imgOrder;
+
+            imgWatt = req.files
+                .map((file, i) => ({
+                    name: file.filename,
+                    order: Array.isArray(orders)
+                        ? Number(orders[i])
+                        : Number(orders),
+                }))
+                .sort((a, b) => b.order - a.order)
+                .map((i) => i.name);
+        }
+        const update = {
+            watt,
+        };
+        if (imgWatt) update.imgWatt = imgWatt;
+
+        await PanelWatt.findByIdAndUpdate(id, update);
+
+        return res.json({
+            success: true,
+            message: "Panel watt updated successfully",
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error?.message || "Internal server error..",
+        });
     }
-    const update = {
-      watt,
-    };
-    if (imgWatt) update.imgWatt = imgWatt;
-
-    await PanelWatt.findByIdAndUpdate(id, update);
-
-    return res.json({
-      success: true,
-      message: "Panel watt updated successfully",
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error?.message || "Internal server error..",
-    });
-  }
 };
 
 const createAdmin = async (req, res) => {
-  try {
-    let { email, password, role } = req.body;
+    try {
+        let { email, password, role } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Email and Password are required..",
-      });
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Email and Password are required..",
+            });
+        }
+
+        email = email?.toLowerCase().trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (password.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be 6 words long",
+            });
+        }
+
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invaild email format..",
+            });
+        }
+
+        const admin = await Admin.findOne({ email }).lean();
+
+        if (admin) {
+            return res.status(409).json({
+                success: false,
+                message: "Admin already exists",
+            });
+        }
+
+        const hashPass = await bcrypt.hash(password, 10);
+        // console.log("hashPass : ", hashPass)
+
+        const adminData = await Admin.create({
+            email,
+            password: hashPass,
+            role,
+        });
+
+        adminData.password = undefined;
+
+        return res.status(201).json({
+            success: true,
+            message: "Admin created successfully...",
+            data: adminData,
+        });
+    } catch (error) {
+        // console.log("Error : ", error);
+        return res.status(500).json({
+            success: false,
+            message: error?.message || "Internal Server Error..",
+        });
     }
-
-    email = email?.toLowerCase().trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (password.length < 6) {
-      return res.status(400).json({
-        success: false,
-        message: "Password must be 6 words long",
-      });
-    }
-
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invaild email format..",
-      });
-    }
-
-    const admin = await Admin.findOne({ email }).lean();
-
-    if (admin) {
-      return res.status(409).json({
-        success: false,
-        message: "Admin already exists",
-      });
-    }
-
-    const hashPass = await bcrypt.hash(password, 10);
-    // console.log("hashPass : ", hashPass)
-
-    const adminData = await Admin.create({
-      email,
-      password: hashPass,
-      role,
-    });
-
-    adminData.password = undefined;
-
-    return res.status(201).json({
-      success: true,
-      message: "Admin created successfully...",
-      data: adminData,
-    });
-  } catch (error) {
-    // console.log("Error : ", error);
-    return res.status(500).json({
-      success: false,
-      message: error?.message || "Internal Server Error..",
-    });
-  }
 };
 
 const getSalesAllClients = async (req, res) => {
-  try {
-    const { salesId } = req.params;
+    try {
+        const { salesId } = req.params;
 
-    if (!mongoose.isValidObjectId(salesId))
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid SalesId" });
+        if (!mongoose.isValidObjectId(salesId))
+            return res
+                .status(400)
+                .json({ success: false, message: "Invalid SalesId" });
 
-    let data = await SalesCustomer.find({ salesPersonId: salesId }).lean();
+        let data = await SalesCustomer.find({ salesPersonId: salesId }).lean();
 
-    return res.status(200).json({ success: true, data });
-  } catch (er) {
-    return res.status(500).json({ success: false, message: er?.message });
-  }
+        return res.status(200).json({ success: true, data });
+    } catch (er) {
+        return res.status(500).json({ success: false, message: er?.message });
+    }
 };
 
 const getSalesClientProposals = async (req, res) => {
-  try {
-    const { salesId, clientId } = req.params;
+    try {
+        const { salesId, clientId } = req.params;
 
-    if (
-      !mongoose.isValidObjectId(salesId) ||
-      !mongoose.isValidObjectId(clientId)
-    )
-      return res.status(400).json({ success: false, message: "Invalid Id's" });
+        if (
+            !mongoose.isValidObjectId(salesId) ||
+            !mongoose.isValidObjectId(clientId)
+        )
+            return res
+                .status(400)
+                .json({ success: false, message: "Invalid Id's" });
 
-    const data = await SalesPanel.find({ salesId, clientId }).populate([
-      { path: "selectedPanels.wattId", select: "watt" },
-      { path: "selectedPanels.constructiveId", select: "constructiveType" },
-      { path: "selectedPanels.technologyId", select: "technologyPanel" },
-      { path: "selectedPanels.panelId", select: "panelType" },
-    ]);
+        const data = await SalesPanel.find({ salesId, clientId }).populate([
+            { path: "selectedPanels.wattId", select: "watt" },
+            {
+                path: "selectedPanels.constructiveId",
+                select: "constructiveType",
+            },
+            { path: "selectedPanels.technologyId", select: "technologyPanel" },
+            { path: "selectedPanels.panelId", select: "panelType" },
+        ]);
 
-    return res.status(200).json({ success: true, data });
-  } catch (er) {
-    return res.status(500).json({ success: false, message: er?.message });
-  }
+        return res.status(200).json({ success: true, data });
+    } catch (er) {
+        return res.status(500).json({ success: false, message: er?.message });
+    }
 };
 
 // ----------------
 const createSuperAdmin = async (req, res) => {
-  try {
-    let { email, password, role } = req.body;
+    try {
+        let { email, password, role } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Email and Password are required..",
-      });
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Email and Password are required..",
+            });
+        }
+        email = email?.toLowerCase().trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (password.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be 6 words long",
+            });
+        }
+
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invaild email format..",
+            });
+        }
+
+        const admin = await Admin.findOne({ email }).lean();
+
+        if (admin) {
+            return res.status(409).json({
+                success: false,
+                message: "Admin already exists",
+            });
+        }
+
+        const hashPass = await bcrypt.hash(password, 10);
+
+        const adminData = await Admin.create({
+            email,
+            password: hashPass,
+            role,
+        });
+
+        adminData.password = undefined;
+
+        return res.status(201).json({
+            success: true,
+            message: "Admin created successfully...",
+            data: adminData,
+        });
+    } catch (er) {
+        return res.status(500).json({ success: false, message: er?.message });
     }
-    email = email?.toLowerCase().trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (password.length < 6) {
-      return res.status(400).json({
-        success: false,
-        message: "Password must be 6 words long",
-      });
-    }
-
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invaild email format..",
-      });
-    }
-
-    const admin = await Admin.findOne({ email }).lean();
-
-    if (admin) {
-      return res.status(409).json({
-        success: false,
-        message: "Admin already exists",
-      });
-    }
-
-    const hashPass = await bcrypt.hash(password, 10);
-
-    const adminData = await Admin.create({
-      email,
-      password: hashPass,
-      role,
-    });
-
-    adminData.password = undefined;
-
-    return res.status(201).json({
-      success: true,
-      message: "Admin created successfully...",
-      data: adminData,
-    });
-  } catch (er) {
-    return res.status(500).json({ success: false, message: er?.message });
-  }
 };
 
 // ----------------
 
 const createDealerAccount = async (req, res) => {
-  try {
-    let result = createDealerAccountAdminSchema.safeParse(req.body);
+    try {
+        let result = createDealerAccountAdminSchema.safeParse(req.body);
 
-    if (!result.success) {
-      const message = [];
-      result.error.issues.forEach((err) => {
-        let v;
-        if (err.path.length >= 2) {
-          v = err.path[err.path.length - 1];
-        } else {
-          v = err.path.join(".");
+        if (!result.success) {
+            const message = [];
+            result.error.issues.forEach((err) => {
+                let v;
+                if (err.path.length >= 2) {
+                    v = err.path[err.path.length - 1];
+                } else {
+                    v = err.path.join(".");
+                }
+                message.push({ message: err.message });
+            });
+
+            return res.status(400).json({
+                success: false,
+                message,
+            });
         }
-        message.push({ message: err.message });
-      });
 
-      return res.status(400).json({
-        success: false,
-        message,
-      });
+        let {
+            firstName,
+            lastName,
+            contactNumber,
+            address,
+            gstin,
+            password,
+            companyName,
+            email,
+        } = result.data;
+
+        let companyLogo = null;
+
+        let conditions = [];
+        if (email) conditions.push({ email });
+        if (contactNumber) conditions.push({ contactNumber });
+        if (gstin) conditions.push({ gstin });
+
+        let isDealerExist = await DealerModel.findOne({
+            $or: conditions,
+        });
+
+        if (isDealerExist)
+            return res
+                .status(409)
+                .json({ success: false, message: "Dealer Already Exist" });
+
+        if (req.file) {
+            const folder = path.join("Dealer_Logo");
+
+            await fsp.mkdir(folder, { recursive: true });
+
+            let img = req.file.fieldname + "-" + Date.now() + ".webp";
+            let imgPath = path.join(folder, img);
+
+            let buf = req.file.buffer;
+
+            await sharp(buf)
+                .resize(600, 600, {
+                    fit: "inside",
+                    withoutEnlargement: true,
+                })
+                .webp({ quality: 80 })
+                .toFile(imgPath);
+
+            companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
+            // companyLogo = `http://localhost:1008/dealer_logo/${img}`;
+        }
+
+        let hashPass = await bcrypt.hash(password, 10);
+
+        await DealerModel.create({
+            firstName,
+            lastName,
+            contactNumber,
+            address,
+            gstin,
+            companyName,
+            email,
+            password: hashPass,
+            companyLogo,
+        });
+
+        return res
+            .status(200)
+            .json({
+                success: true,
+                message: "Dealer Account Created successfully.",
+            });
+    } catch (er) {
+        return res.status(500).json({ success: false, message: er?.message });
     }
-
-    let {
-      firstName,
-      lastName,
-      contactNumber,
-      address,
-      gstin,
-      password,
-      companyName,
-      email,
-    } = result.data;
-
-    let companyLogo = null;
-
-    let conditions = [];
-    if (email) conditions.push({ email });
-    if (contactNumber) conditions.push({ contactNumber });
-    if (gstin) conditions.push({ gstin });
-
-    let isDealerExist = await DealerModel.findOne({
-      $or: conditions,
-    });
-
-    if (isDealerExist)
-      return res
-        .status(409)
-        .json({ success: false, message: "Dealer Already Exist" });
-
-    if (req.file) {
-      const folder = path.join("Dealer_Logo");
-
-      await fsp.mkdir(folder, { recursive: true });
-
-      let img = req.file.fieldname + "-" + Date.now() + ".webp";
-      let imgPath = path.join(folder, img);
-
-      let buf = req.file.buffer;
-
-      await sharp(buf)
-        .resize(600, 600, {
-          fit: "inside",
-          withoutEnlargement: true,
-        })
-        .webp({ quality: 80 })
-        .toFile(imgPath);
-
-      companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
-      // companyLogo = `http://localhost:1008/dealer_logo/${img}`;
-    }
-
-    let hashPass = await bcrypt.hash(password, 10);
-
-    await DealerModel.create({
-      firstName,
-      lastName,
-      contactNumber,
-      address,
-      gstin,
-      companyName,
-      email,
-      password: hashPass,
-      companyLogo,
-    });
-
-    return res
-      .status(200)
-      .json({ success: true, message: "Dealer Account Created successfully." });
-  } catch (er) {
-    return res.status(500).json({ success: false, message: er?.message });
-  }
 };
 
 const toggleAdmin = async (req, res) => {
-  try {
-    let { adminId, isActive } = req.body;
+    try {
+        let { adminId, isActive } = req.body;
 
-    if (!mongoose.isValidObjectId(adminId))
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid AdminId" });
+        if (!mongoose.isValidObjectId(adminId))
+            return res
+                .status(400)
+                .json({ success: false, message: "Invalid AdminId" });
 
-    if (typeof isActive === "string") {
-      const value = isActive.trim().toLowerCase();
+        if (typeof isActive === "string") {
+            const value = isActive.trim().toLowerCase();
 
-      if (value === "true") isActive = true;
-      else if (value === "false") isActive = false;
-      else {
-        return res.status(400).json({
-          success: false,
-          message: "'isActive' must be a boolean value (true or false).",
-        });
-      }
+            if (value === "true") isActive = true;
+            else if (value === "false") isActive = false;
+            else {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "'isActive' must be a boolean value (true or false).",
+                });
+            }
+        }
+
+        if (typeof isActive !== "boolean") {
+            return res.status(400).json({
+                success: false,
+                message: "'isActive' must be a boolean value (true or false).",
+            });
+        }
+
+        const updatedAdmin = await Admin.findByIdAndUpdate(
+            adminId,
+            { $set: { isActive } },
+            { new: true, runValidators: true },
+        );
+
+        if (!updatedAdmin) {
+            return res.status(404).json({
+                success: false,
+                message: "Admin not found.",
+            });
+
+            return res.status(200).json({
+                success: true,
+                message: `Account ${isActive ? "Activated" : "De-Activated"} successfully`,
+            });
+        }
+    } catch (er) {
+        return res.status(500).json({ success: false, message: er?.message });
     }
-
-    if (typeof isActive !== "boolean") {
-      return res.status(400).json({
-        success: false,
-        message: "'isActive' must be a boolean value (true or false).",
-      });
-    }
-
-    const updatedAdmin = await Admin.findByIdAndUpdate(
-      adminId,
-      { $set: { isActive } },
-      { new: true, runValidators: true },
-    );
-
-    if (!updatedAdmin) {
-      return res.status(404).json({
-        success: false,
-        message: "Admin not found.",
-      });
-
-      return res.status(200).json({
-        success: true,
-        message: `Account ${isActive ? "Activated" : "De-Activated"} successfully`,
-      });
-    }
-  } catch (er) {
-    return res.status(500).json({ success: false, message: er?.message });
-  }
 };
 
 const getAdmin = async (req, res) => {
-  try {
-    const allData = await Admin.find()
-      .select("-password")
-      .sort({ role: -1 })
-      .lean();
-    return res.status(200).json({
-      success: true,
-      data: allData,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error?.message || "Internal server error..",
-    });
-  }
+    try {
+        const allData = await Admin.find()
+            .select("-password")
+            .sort({ role: -1 })
+            .lean();
+        return res.status(200).json({
+            success: true,
+            data: allData,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error?.message || "Internal server error..",
+        });
+    }
 };
 
 const loginAdmin = async (req, res) => {
-  try {
-    let { email, password } = req.body;
+    try {
+        let { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Email and password are required..",
-      });
-    }
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Email and password are required..",
+            });
+        }
 
-    email = email?.toLowerCase().trim();
-    password = String(password);
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        email = email?.toLowerCase().trim();
+        password = String(password);
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invaild email format..",
-      });
-    }
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invaild email format..",
+            });
+        }
 
-    const admin = await Admin.findOne({ email });
-    if (!admin) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
-    }
+        const admin = await Admin.findOne({ email });
+        if (!admin) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid email or password",
+            });
+        }
 
-    if (!admin.isActive) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Your account is currently inactive. Please contact the super admin to activate your account.",
-      });
-    }
-    // console.log("Admin : ", admin);
+        if (!admin.isActive) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Your account is currently inactive. Please contact the super admin to activate your account.",
+            });
+        }
+        // console.log("Admin : ", admin);
 
-    const match = await bcrypt.compare(password, admin.password);
+        const match = await bcrypt.compare(password, admin.password);
 
-    if (!match) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
-    }
+        if (!match) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid email or password",
+            });
+        }
 
-    const token = jwt.sign(
-      {
-        adminId: admin._id,
-        email: admin.email,
-        role: admin.role,
-      },
+        const token = jwt.sign(
+            {
+                adminId: admin._id,
+                email: admin.email,
+                role: admin.role,
+            },
 
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
@@ -1380,414 +1420,451 @@ const loginAdmin = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.cookie("role", admin?.role, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      // sameSite: "none",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        res.cookie("role", admin?.role, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            // sameSite: "none",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
 
-      // sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+            // sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
 
-    let data = {
-      adminId: admin._id,
-      email: admin.email,
-      role: admin.role,
-    };
+        let data = {
+            adminId: admin._id,
+            email: admin.email,
+            role: admin.role,
+        };
 
-    return res.status(200).json({
-      success: true,
-      message: "Admin Login successfully..",
-      token,
-      data,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Internal Server Error...",
-    });
-  }
+        return res.status(200).json({
+            success: true,
+            message: "Admin Login successfully..",
+            token,
+            data,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Internal Server Error...",
+        });
+    }
 };
 
 const logoutAdmin = async (req, res) => {
-  try {
-    // console.log(req?.cookies)
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      // sameSite: "none",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    try {
+        // console.log(req?.cookies)
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            // sameSite: "none",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
 
-      // sameSite: "lax",
-    });
+            // sameSite: "lax",
+        });
 
-    res.clearCookie("role", {
-      path: "/",
-    });
+        res.clearCookie("role", {
+            path: "/",
+        });
 
-    return res.status(200).json({
-      success: true,
-      message: "Logout successful",
-    });
-  } catch (err) {
-    return res.status(500).json({
-      success: false,
-      message: err.message || "Internal server Error...",
-    });
-  }
+        return res.status(200).json({
+            success: true,
+            message: "Logout successful",
+        });
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: err.message || "Internal server Error...",
+        });
+    }
 };
 
 const adminDashBoardData = async (req, res) => {
-  try {
+    try {
+        const [totalPannel, totalDealer, totalCustomer] = await Promise.all([
+            Panel.find().select("panelType panelActive").lean(),
 
-    const [totalPannel, totalDealer, totalCustomer] = await Promise.all([
-      Panel.find().select("panelType panelActive").lean(),
+            DealerModel.find()
+                .select(" firstName email companyName contactNumber createdAt")
+                .sort({ createdAt: -1 })
+                .lean(),
 
-      DealerModel.find()
-        .select(" firstName email companyName contactNumber createdAt")
-        .sort({ createdAt: -1 })
-        .lean(),
+            CustomerModel.find().select("name email dealerId phone").lean(),
+        ]);
 
-      CustomerModel.find().select("name email dealerId phone").lean(),
-    ]);
-
-    return res.status(200).json({
-      success: true,
-      data: {
-        pannelData: totalPannel,
-        dealerData: totalDealer,
-        customer: totalCustomer,
-      },
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Internal server Error..",
-    });
-  }
+        return res.status(200).json({
+            success: true,
+            data: {
+                pannelData: totalPannel,
+                dealerData: totalDealer,
+                customer: totalCustomer,
+            },
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Internal server Error..",
+        });
+    }
 };
 
 const ExcelDownload = async (req, res) => {
-  try {
-    const totalDealer = await DealerModel.find()
-      .select(" firstName email companyName contactNumber createdAt _id")
-      .sort({ createdAt: -1 })
-      .lean();
+    try {
+        const totalDealer = await DealerModel.find()
+            .select(" firstName email companyName contactNumber createdAt _id")
+            .sort({ createdAt: -1 })
+            .lean();
 
+        const dealerIds = totalDealer.map((item) => item?._id);
 
-    const dealerIds = totalDealer.map((item) => item?._id);
+        const customers = await CustomerModel.aggregate([
+            {
+                $match: { dealerId: { $in: dealerIds } },
+            },
+            {
+                $group: {
+                    _id: "$dealerId",
+                    totalClients: { $sum: 1 },
+                },
+            },
+        ]);
 
-    const customers = await CustomerModel.aggregate([
-      {
-        $match: { dealerId: { $in: dealerIds } },
-      },
-      {
-        $group: {
-          _id: "$dealerId",
-          totalClients: { $sum: 1 },
-        },
-      },
-    ]);
+        const clientCountMap = {};
+        customers.forEach((item) => {
+            clientCountMap[item._id.toString()] = item.totalClients;
+        });
 
+        const panelCreateClient = await PanelModel.aggregate([
+            {
+                $match: { dealerId: { $in: dealerIds } },
+            },
+            {
+                $group: {
+                    _id: "$dealerId",
+                    totalPanelCreated: { $sum: 1 },
+                },
+            },
+        ]);
+        const panelCreated = {};
+        panelCreateClient.forEach((item) => {
+            panelCreated[item._id.toString()] = item.totalPanelCreated;
+        });
 
-    const clientCountMap = {};
-    customers.forEach((item) => {
-      clientCountMap[item._id.toString()] = item.totalClients;
-    });
+        const powerPlantPropsal = await ProposalModel.aggregate([
+            {
+                $match: {
+                    dealerId: { $in: dealerIds },
+                },
+            },
+            {
+                $group: {
+                    _id: "$dealerId",
+                    totalPowerPlantPropsal: { $sum: 1 },
+                },
+            },
+        ]);
 
+        const powerPlantPropsalData = {};
+        powerPlantPropsal.forEach((item) => {
+            powerPlantPropsalData[item._id.toString()] =
+                item.totalPowerPlantPropsal;
+        });
 
-    const panelCreateClient = await PanelModel.aggregate([
-      {
-        $match: { dealerId: { $in: dealerIds } },
-      },
-      {
-        $group: {
-          _id: "$dealerId",
-          totalPanelCreated: { $sum: 1 },
-        },
-      },
-    ]);
-    const panelCreated = {};
-    panelCreateClient.forEach((item) => {
-      panelCreated[item._id.toString()] = item.totalPanelCreated;
-    });
+        let modifiedDealer = totalDealer.map((item) => ({
+            firstName: item?.firstName,
+            email: item?.email,
+            companyName: item?.companyName,
+            contactNumber: item?.contactNumber,
+            TotalClients: clientCountMap[item._id.toString()] || 0,
+            PanelPropsal: panelCreated[item._id.toString()] || 0,
+            PowerPlantPropsal: powerPlantPropsalData[item._id.toString()] || 0,
+            createdAt: new Date(item?.createdAt).toLocaleString(),
+        }));
 
+        const worksheet = xlxs.utils.json_to_sheet(modifiedDealer);
 
-    const powerPlantPropsal = await ProposalModel.aggregate([
-      {
-        $match: {
-          dealerId: { $in: dealerIds },
-        },
-      },
-      {
-        $group: {
-          _id: "$dealerId",
-          totalPowerPlantPropsal: { $sum: 1 },
-        },
-      },
-    ]);
+        const workbook = xlxs.utils.book_new();
+        xlxs.utils.book_append_sheet(workbook, worksheet, "Dealer");
 
+        const excelBuffer = xlxs.write(workbook, {
+            type: "buffer",
+            bookType: "xlsx",
+        });
 
-    const powerPlantPropsalData = {};
-    powerPlantPropsal.forEach((item) => {
-      powerPlantPropsalData[item._id.toString()] = item.totalPowerPlantPropsal;
-    });
+        res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        );
 
-    let modifiedDealer = totalDealer.map((item) => ({
-      firstName: item?.firstName,
-      email: item?.email,
-      companyName: item?.companyName,
-      contactNumber: item?.contactNumber,
-      TotalClients: clientCountMap[item._id.toString()] || 0,
-      PanelPropsal: panelCreated[item._id.toString()] || 0,
-      PowerPlantPropsal: powerPlantPropsalData[item._id.toString()] || 0,
-      createdAt: new Date(item?.createdAt).toLocaleString(),
-    }));
+        res.setHeader(
+            "Content-Disposition",
+            "attachment; filename=dealer.xlsx",
+        );
 
-
-    const worksheet = xlxs.utils.json_to_sheet(modifiedDealer);
-
-    const workbook = xlxs.utils.book_new();
-    xlxs.utils.book_append_sheet(workbook, worksheet, "Dealer");
-
-    const excelBuffer = xlxs.write(workbook, {
-      type: "buffer",
-      bookType: "xlsx",
-    });
-
-    res.setHeader(
-      "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    );
-
-    res.setHeader("Content-Disposition", "attachment; filename=dealer.xlsx");
-
-    res.send(excelBuffer);
-  } catch (er) {
-    console.log("Error : ", er);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
-  }
+        res.send(excelBuffer);
+    } catch (er) {
+        console.log("Error : ", er);
+        return res
+            .status(500)
+            .json({ success: false, message: "Internal Server Error" });
+    }
 };
 
 const getCustomerData = async (req, res) => {
-  const { dealerId } = req.query;
-  // console.log("delaerId : ", dealerId)
-  try {
-    if (
-      !dealerId ||
-      !mongoose.Types.ObjectId.isValid(dealerId) ||
-      typeof dealerId !== "string"
-    ) {
-      return res.status(404).json({
-        success: false,
-        message: "Dealer Id Must be required..,please check dealer Id again.. ",
-      });
+    const { dealerId } = req.query;
+    // console.log("delaerId : ", dealerId)
+    try {
+        if (
+            !dealerId ||
+            !mongoose.Types.ObjectId.isValid(dealerId) ||
+            typeof dealerId !== "string"
+        ) {
+            return res.status(404).json({
+                success: false,
+                message:
+                    "Dealer Id Must be required..,please check dealer Id again.. ",
+            });
+        }
+
+        const customerData = await CustomerModel.find({
+            dealerId: dealerId,
+        })
+            .select("dealerId  name email ")
+            .lean();
+        // console.log("customerData : ", customerData)
+
+        return res.status(200).json({
+            success: true,
+            data: customerData,
+        });
+    } catch (error) {
+        console.log("Error : ", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error...",
+        });
     }
-
-    const customerData = await CustomerModel.find({
-      dealerId: dealerId,
-    }).select("dealerId  name email ").lean();
-    // console.log("customerData : ", customerData)
-
-    return res.status(200).json({
-      success: true,
-      data: customerData,
-    });
-  } catch (error) {
-    console.log("Error : ", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error...",
-    });
-  }
 };
-
 
 // inverter function
 
 const addInverter = async (req, res) => {
-  try {
+    try {
+        let { phase } = req.body;
 
-    let { phase } = req.body;
+        if (!phase?.trim())
+            return res
+                .status(400)
+                .json({ success: false, message: "Phase name is required" });
 
-    if (!phase?.trim()) return res.status(400).json({ success: false, message: "Phase name is required" });
+        phase = phase.trim().toLowerCase();
 
-    phase = phase.trim().toLowerCase();
+        const existingPhase = await Inverter.findOne({ phase });
 
-    const existingPhase = await Inverter.findOne({ phase });
+        if (existingPhase) {
+            return res.status(409).json({
+                success: false,
+                message: "Phase already exists",
+            });
+        }
 
-    if (existingPhase) {
-      return res.status(409).json({
-        success: false,
-        message: "Phase already exists"
-      });
+        const inverter = await Inverter.create({
+            phase,
+        });
+
+        return res
+            .status(201)
+            .json({ success: true, message: "Phase Added", inverter });
+    } catch (er) {
+        return res.status(500).json({ success: false, message: er?.message });
     }
-
-    const inverter = await Inverter.create({
-      phase
-    })
-
-    return res.status(201).json({ success: true, message: "Phase Added", inverter });
-
-  } catch (er) {
-    return res.status(500).json({ success: false, message: er?.message });
-  }
-}
+};
 
 const addKw = async (req, res) => {
-  try {
-    const { inverterId } = req.params;
-    const { capacity } = req.body;
+    try {
+        const { inverterId } = req.params;
+        const { capacity } = req.body;
 
-    if (!mongoose.isValidObjectId(inverterId)) return res.status(400).json({ success: false, message: "Invalid Id" });
-    if (!capacity) return res.status(400).json({ success: false, message: "Capacity is required" });
+        if (!mongoose.isValidObjectId(inverterId))
+            return res
+                .status(400)
+                .json({ success: false, message: "Invalid Id" });
+        if (!capacity)
+            return res
+                .status(400)
+                .json({ success: false, message: "Capacity is required" });
 
+        let inverter = await Inverter.findByIdAndUpdate(
+            inverterId,
+            {
+                $addToSet: {
+                    capacities: capacity,
+                },
+            },
+            { new: true },
+        ).lean();
 
-    let inverter = await Inverter.findByIdAndUpdate(inverterId, {
-      $addToSet: {
-        capacities: capacity
-      }
-    }, { new: true }).lean();
-
-    return res.status(200).json({ success: true, message: 'Capcity Added', inverter });
-
-  } catch (er) {
-    return res.status(500).json({ success: false, message: er?.message });
-  }
-}
+        return res
+            .status(200)
+            .json({ success: true, message: "Capcity Added", inverter });
+    } catch (er) {
+        return res.status(500).json({ success: false, message: er?.message });
+    }
+};
 
 const inverterStatusChange = async (req, res) => {
-  try {
-    let { inverterId } = req.params;
-    const { status } = req.body;
+    try {
+        let { inverterId } = req.params;
+        const { status } = req.body;
 
-    if (!mongoose.isValidObjectId(inverterId)) return res.status(400).json({ success: false, message: "Invalid Id" });
+        if (!mongoose.isValidObjectId(inverterId))
+            return res
+                .status(400)
+                .json({ success: false, message: "Invalid Id" });
 
-    const allowedStatus = ["active", "inactive"];
+        const allowedStatus = ["active", "inactive"];
 
-    if (!allowedStatus.includes(status)) {
-      return res.status(400).json({
-        message: "Invalid status"
-      });
+        if (!allowedStatus.includes(status)) {
+            return res.status(400).json({
+                message: "Invalid status",
+            });
+        }
+
+        let inverter = await Inverter.findOneAndUpdate(
+            { _id: inverterId },
+            {
+                $set: { status },
+            },
+            { new: true, runValidators: true },
+        );
+
+        return res
+            .status(200)
+            .json({
+                success: true,
+                message: `Inverter ${status === "active" ? "Activated" : "Inactivated"}`,
+            });
+    } catch (er) {
+        return res.status(500).json({ success: false, message: er?.message });
     }
-
-    let inverter = await Inverter.findOneAndUpdate({ _id: inverterId }, {
-      $set: { status }
-    }, { new: true, runValidators: true });
-
-
-    return res.status(200).json({ success: true, message: `Inverter ${status === 'active' ? 'Activated' : 'Inactivated'}` })
-
-  } catch (er) {
-    return res.status(500).json({ success: false, message: er?.message });
-  }
-}
+};
 
 const getInverters = async (req, res) => {
-  try {
+    try {
+        let inverter = await Inverter.find({}).lean();
 
-    let inverter = await Inverter.find({}).lean();
-
-    return res.status(200).json({ success: true, inverter });
-
-  } catch (er) {
-    return res.status(500).json({ success: false, message: er?.message });
-  }
-}
+        return res.status(200).json({ success: true, inverter });
+    } catch (er) {
+        return res.status(500).json({ success: false, message: er?.message });
+    }
+};
 
 const removeKw = async (req, res) => {
-  try {
-    let { inverterId } = req.params;
-    let { kw } = req.body;
+    try {
+        let { inverterId } = req.params;
+        let { kw } = req.body;
 
+        if (!mongoose.isValidObjectId(inverterId))
+            return res
+                .status(400)
+                .json({ success: false, message: "Invalid InverterId." });
+        if (!kw)
+            return res
+                .status(400)
+                .json({ success: false, message: "Kw not provided." });
 
-    if (!mongoose.isValidObjectId(inverterId)) return res.status(400).json({ success: false, message: 'Invalid InverterId.' });
-    if (!kw) return res.status(400).json({ success: false, message: "Kw not provided." });
+        let inverter = await Inverter.findOne({ _id: inverterId });
 
-    let inverter = await Inverter.findOne({ _id: inverterId });
+        if (!inverter)
+            return res
+                .status(404)
+                .json({ success: false, message: "Inverter not found." });
 
-    if (!inverter) return res.status(404).json({ success: false, message: "Inverter not found." });
+        await Inverter.findByIdAndUpdate(inverterId, {
+            $pull: {
+                capacities: kw,
+            },
+        });
 
-    await Inverter.findByIdAndUpdate(inverterId, {
-      $pull: {
-        capacities: kw
-      }
-    })
-
-    return res.status(200).json({ success: false, message: "Kw Removed." });
-
-
-  } catch (er) {
-    return res.status(500).json({ success: false, message: er?.message });
-  }
-}
+        return res.status(200).json({ success: false, message: "Kw Removed." });
+    } catch (er) {
+        return res.status(500).json({ success: false, message: er?.message });
+    }
+};
 
 const editInverter = async (req, res) => {
-  try {
+    try {
+        let { inverterId } = req.params;
+        let { phase } = req.body;
+         console.log(inverterId)
 
-    let { inverterId } = req.params;
-    let { phase } = req.body;
+        if (!phase?.trim())
+            return res
+                .status(400)
+                .json({ success: false, message: "Phase name is required" });
 
-    if (!phase?.trim()) return res.status(400).json({ success: false, message: "Phase name is required" });
+        phase = phase.trim().toLowerCase();
+       
 
-    phase = phase.trim().toLowerCase();
+        let inverter = await Inverter.findByIdAndUpdate(
+            inverterId,
+            {
+                phase: phase,
+            },
+            { new: true },
+        );
 
+        if (!inverter) {
+            return res.status(404).json({
+                success: false,
+                message: "Inverter not found",
+            });
+        }
 
-    let inverter = await Inverter.findByIdAndUpdate(inverterId, {
-      phase: phase,
-
-    }, { new: true })
-
-    if (!inverter) {
-      return res.status(404).json({
-        success: false,
-        message: "Inverter not found"
-      });
+        return res
+            .status(200)
+            .json({
+                success: true,
+                message: "Inverter Phase Updated.",
+                inverter,
+            });
+    } catch (er) {
+        return res.status(500).json({ success: false, message: er?.message });
     }
-
-    return res.status(200).json({ success: true, message: "Inverter Phase Updated.", inverter });
-
-  } catch (er) {
-    return res.status(500).json({ success: false, message: er?.message });
-  }
-}
+};
 
 module.exports = {
-  createPanel,
-  getPanel,
-  updatePanel,
-  togglePanel,
-  createTechnology,
-  getTechnology,
-  updateTechnology,
-  activeDisableTech,
-  createConstructive,
-  getConstructive,
-  updateConstructive,
-  activeDisableConst,
-  createAdmin,
-  getAdmin,
-  loginAdmin,
-  logoutAdmin,
-  adminDashBoardData,
-  panelWatt,
-  getPanelWatt,
-  togglePanelWatt,
-  updatePanelWatt,
-  ExcelDownload,
-  getCustomerData,
-  toggleAdmin,
-  getSalesAllClients,
-  getSalesClientProposals,
-  createSuperAdmin,
-  createDealerAccount,
-  addInverter,
-  addKw,
-  inverterStatusChange,
-  getInverters,
-  removeKw,
-  editInverter
+    createPanel,
+    getPanel,
+    updatePanel,
+    togglePanel,
+    createTechnology,
+    getTechnology,
+    updateTechnology,
+    activeDisableTech,
+    createConstructive,
+    getConstructive,
+    updateConstructive,
+    activeDisableConst,
+    createAdmin,
+    getAdmin,
+    loginAdmin,
+    logoutAdmin,
+    adminDashBoardData,
+    panelWatt,
+    getPanelWatt,
+    togglePanelWatt,
+    updatePanelWatt,
+    ExcelDownload,
+    getCustomerData,
+    toggleAdmin,
+    getSalesAllClients,
+    getSalesClientProposals,
+    createSuperAdmin,
+    createDealerAccount,
+    addInverter,
+    addKw,
+    inverterStatusChange,
+    getInverters,
+    removeKw,
+    editInverter,
 };

@@ -47,7 +47,7 @@ panelRouter.post('/add-inverter',adminAuth,addInverter);
 panelRouter.post('/add-kw/:inverterId',adminAuth,addKw);
 panelRouter.patch('/inverter-status-change/:inverterId',adminAuth,inverterStatusChange);
 panelRouter.delete('/remove-inverter-kw/:inverterId',removeKw);
-panelRouter.patch('edit-inverter/:inverterId',editInverter);
+panelRouter.patch('/edit-inverter/:inverterId',editInverter);
 
 
 // panel routes
