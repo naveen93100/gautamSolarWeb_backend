@@ -115,14 +115,20 @@ const createSalesProposal = async (req, res) => {
       }
 
 
+      let checkUniqueCapacity = new Set();
+
+      // need to check if different inverter has same capacity
       for (let i of selectedInverters) {
         let capacities = inverterLookup.get(i.inverterId);
 
         if (!capacities.includes(i.capacity))
           return res.status(400).json({ success: false, message: "Capacity not availabel for this inverter." })
 
-      }
+        if (checkUniqueCapacity.has(i.capacity)) return res.status(400).json({ success: false, message: "You cannot add Inverter with same Capacity." })
 
+        checkUniqueCapacity.add(i.capacity);
+      }
+     
       let finalPrice = selectedInverters.reduce((acc, itr) => acc + (itr.rate * itr.quantity), 0)
       finalPrice = finalPrice + (finalPrice * inverterGst) / 100;
 
@@ -148,6 +154,7 @@ const createSalesProposal = async (req, res) => {
       });
 
     }
+
     else if (type === 'BOTH') {
 
       const solarResult = salesProposalSchema.safeParse(req.body);
@@ -275,6 +282,7 @@ const createSalesProposal = async (req, res) => {
 
 
     }
+
   } catch (er) {
     return res.status(500).json({ success: false, message: er?.message });
   }
@@ -335,6 +343,15 @@ const deleteProposal = async (req, res) => {
 
 const updateSalesProposal = async (req, res) => {
   try {
+    let validType = [
+      'SOLAR',
+      'INVERTER',
+      'BOTH'
+    ]
+
+    let { type } = req.body;
+    if (!validType.includes(type)) return res.status(400).json({ success: false, message: "Invalid type." });
+
     if (type === 'SOLAR') {
 
       const result = salesProposalSchema.safeParse(req.body);
@@ -455,11 +472,141 @@ const updateSalesProposal = async (req, res) => {
     }
     else if (type === 'BOTH') {
 
+      const solarResult = salesProposalSchema.safeParse(req.body);
+      const inverterResult = salesInverterProposalSchema.safeParse(req.body);
+
+      if (!solarResult.success || !inverterResult.success) {
+
+        const message = [];
+
+        if (!solarResult.success) {
+          solarResult.error.issues.forEach((err) => {
+            message.push({ message: err.message });
+          });
+        }
+
+        if (!inverterResult.success) {
+          inverterResult.error.issues.forEach((err) => {
+            message.push({ message: err.message });
+          });
+        }
+
+        return res.status(400).json({
+          success: false,
+          message,
+        });
+      }
+
+      // Both validations passed
+
+      const {
+        gst,
+        inverterGst,
+        termsAndConditions,
+        selectedPanels,
+        selectedInverters,
+        propId
+      } = req.body;
+
+      // Solar Logic ------------------------
+
+      const wattIds = selectedPanels.map((p) => p.wattId);
+
+      if (wattIds.length !== new Set(wattIds).size) {
+        return res.status(400).json({
+          success: false,
+          message: "Duplicate wattId found in selectedPanels.",
+        });
+      }
+
+      const panelFinalPrice = selectedPanels.reduce(
+        (total, item) =>
+          total + Number(item.totalPrice || 0) + Number(item.gstAmount || 0),
+        0
+      );
+
+      // Inverter Logic ---------------------
+
+      const inverterIds = [
+        ...new Set(selectedInverters.map((i) => i.inverterId)),
+      ];
+
+      const inverter = await Inverter.find({
+        _id: { $in: inverterIds },
+        status: "active",
+      }).select("_id capacities");
+
+
+      const inverterLookup = new Map();
+
+      inverter.forEach((i) => {
+        inverterLookup.set(i._id.toString(), i.capacities);
+      });
+
+      for (const item of selectedInverters) {
+        const capacities = inverterLookup.get(item.inverterId);
+
+        if (!capacities) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid inverter."
+          });
+        }
+
+        if (!capacities.includes(item.capacity)) {
+          return res.status(400).json({
+            success: false,
+            message: "Capacity not available for this inverter.",
+          });
+        }
+      }
+
+      let inverterFinalPrice = selectedInverters.reduce(
+        (acc, itr) => acc + itr.rate * itr.quantity,
+        0
+      );
+
+      inverterFinalPrice += (inverterFinalPrice * inverterGst) / 100;
+
+      const inverterSubTotal = selectedInverters.reduce(
+        (acc, itr) => acc + itr.totalPrice + itr.gstAmount,
+        0
+      );
+
+      console.log(inverterSubTotal, inverterFinalPrice)
+
+      // if (inverterFinalPrice !== inverterSubTotal) {
+      //   return res.status(400).json({
+      //     success: false,
+      //     message: "Calculation mismatch.",
+      //   });
+      // }
+
+      // Total
+
+      const finalPrice = panelFinalPrice + inverterFinalPrice;
+      let data = {
+        gst,
+        inverterGst,
+        termsAndConditions,
+        selectedPanels,
+        selectedInverters,
+        finalPrice
+      }
+
+      const proposal = await SalesPanel.findByIdAndUpdate(propId, { $set: data }, { new: true });
+
+      return res.status(201).json({
+        success: true,
+        message: "Proposal Created!",
+        data: proposal,
+      });
     }
   } catch (er) {
     return res.status(500).json({ success: false, message: er?.message });
   }
 };
+
 
 //
 

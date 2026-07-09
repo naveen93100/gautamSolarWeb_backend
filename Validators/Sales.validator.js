@@ -14,7 +14,7 @@ const salesInverterProposalSchema = z.object({
       }
       return 'SalesId must be a string';
     }
-  }).trim().min(1, 'SalesId is required').refine(id => mongoose.Types.ObjectId.isValid(id), { message: "Invalid SalesId" }),
+  }).trim().min(1, 'SalesId is required').refine(id => mongoose.Types.ObjectId.isValid(id), { message: "Invalid SalesId" }).optional(),
 
   clientId: z.string({
     error: (issue) => {
@@ -23,7 +23,7 @@ const salesInverterProposalSchema = z.object({
       }
       return 'Client Id must be a string';
     }
-  }).trim().min(1, 'Client Id is required').refine(id => mongoose.Types.ObjectId.isValid(id), { message: "Invalid ClientId" }),
+  }).trim().min(1, 'Client Id is required').refine(id => mongoose.Types.ObjectId.isValid(id), { message: "Invalid ClientId" }).optional(),
 
 
   inverterGst: z.preprocess(
