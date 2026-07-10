@@ -344,7 +344,7 @@ const getClientProposals = async (req, res) => {
         },
         { path: "selectedInverters", populate: { path: "inverterId" } },
       ])
-      .sort({ _id: -1, createdAt: -1 })
+      .sort({ _id: -1 })
       .limit(limit + 1)
       .lean();
 
