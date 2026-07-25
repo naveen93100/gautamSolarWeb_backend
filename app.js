@@ -52,6 +52,9 @@ const multer = require("multer");
 const { rejects } = require("assert");
 const panelRouter = require("./Routes/Admin panel/adminPanel.routes.js");
 const SalesCustomer = require("./Models/Sales/sales.customer.schema.js");
+
+const galoSalesRouter=require('./Routes/Galo/galo.sales.router.js')
+const galoAdminRouter=require('./Routes/Galo/GaloAdmin/galoAdmin.router.js')
 // const seedData = require("./seed.js");
 
 const storage = multer.memoryStorage();
@@ -605,12 +608,21 @@ app.get("/", (req, res) => {
 app.use("/api/dealer", DealerRouter);
 app.use("/api/sales", SalesRouter);
 
+
+
+// -----------
+app.use('/api/galoSales',galoSalesRouter)
+app.use('/api/galoAdmin',galoAdminRouter)
+// app.use('/api/galoSales',)
+
 app.use("/admin", UserRouter);
 app.use("/media", MediaRouter);
 
+app.use("/adminPanel", panelRouter);
+
+// blog
 app.use("/galo_admin", GaloRouter);
 
-app.use("/adminPanel", panelRouter);
 
 app.listen(process.env.PORT, async () => {
   try {
@@ -624,3 +636,6 @@ app.listen(process.env.PORT, async () => {
     console.log(err);
   }
 });
+
+
+
