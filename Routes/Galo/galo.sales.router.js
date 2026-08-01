@@ -30,9 +30,9 @@ router.get("/get-proposals/:customerId", galoSalesAuth, getGaloClientProposals);
 router.delete("/delete-proposal/:propId", galoSalesAuth, deleteGaloProposal);
 router.put("/update-proposal", galoSalesAuth, updateGaloSalesProposal);
 
-router.post("/create-client", galoSalesAuth, createGaloClient);
-router.get("/get-client/:salesId", galoSalesAuth, getGaloClient);
-router.patch("/update-client", galoSalesAuth, updateGaloClient);
+router.post("/create-galoclient", galoSalesAuth, createGaloClient);
+router.get("/get-galoclient/:salesId", galoSalesAuth, getGaloClient);
+router.patch("/update-galoclient", galoSalesAuth, updateGaloClient);
 
 // admin routes
 

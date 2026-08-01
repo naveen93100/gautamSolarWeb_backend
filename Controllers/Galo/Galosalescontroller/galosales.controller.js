@@ -1,21 +1,15 @@
-
-
-
-
-
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
 const GaloSales = require("../../../Models/Galo/GaloSalesModal/galosales.schema");
-const GalosalesCustomer = require("../../../Models/Galo/GaloSalesModal/galosalescounter.schema");
+const Galosalescustomer = require("../../../Models/Galo/GaloSalesModal/galosales.customer.schema");
 const GaloSalesPanel = require("../../../Models/Galo/GaloSalesModal/galosales.panel.schema");
 
 const {
     galoSalesProposalSchema,
     galoCreateClientSchema,
     galoUpdateClientSchema,
-    
 } = require("../../../Validators/Galosales.validator");
 
 const createGaloSalesProposal = async (req, res) => {
@@ -277,6 +271,7 @@ const galoLogout = async (req, res) => {
 const createGaloClient = async (req, res) => {
     try {
         const result = galoCreateClientSchema.safeParse(req.body);
+        console.log("result", result);
 
         if (!result.success) {
             const message = [];
@@ -294,10 +289,12 @@ const createGaloClient = async (req, res) => {
 
         const data = {
             ...rest,
-            salesPersonId: salesId,
+            galoSalesPersonId: salesId,
         };
 
-        const createCustomer = await GalosalesCustomer.create(data);
+        const createCustomer = await Galosalescustomer.create(data);
+
+        console.log("c", createCustomer);
 
         return res.status(201).json({
             success: true,
@@ -305,6 +302,7 @@ const createGaloClient = async (req, res) => {
             data: { ...createCustomer },
         });
     } catch (er) {
+        console.log(er);
         if (er?.code === 11000) {
             return res.status(409).json({
                 success: false,
@@ -321,6 +319,7 @@ const createGaloClient = async (req, res) => {
 const updateGaloClient = async (req, res) => {
     try {
         const result = galoUpdateClientSchema.safeParse(req.body);
+        console.log(result);
 
         if (!result.success) {
             const message = [];
@@ -336,8 +335,8 @@ const updateGaloClient = async (req, res) => {
 
         const { customerId, salesId, ...rest } = result.data;
 
-        await GalosalesCustomer.findOneAndUpdate(
-            { _id: customerId, salesPersonId: salesId },
+        await Galosalescustomer.findOneAndUpdate(
+            { _id: customerId, galoSalesPersonId: salesId },
             { $set: rest },
             { new: true },
         );
@@ -346,6 +345,7 @@ const updateGaloClient = async (req, res) => {
             .status(200)
             .json({ success: true, message: "Client Updated!" });
     } catch (er) {
+        console.log(er);
         if (er?.code === 11000) {
             return res.status(409).json({
                 success: false,
@@ -372,7 +372,9 @@ const getGaloClient = async (req, res) => {
                 .status(400)
                 .json({ success: false, message: "Invalid or missing Id" });
 
-        const sales = await GalosalesCustomer.find({ salesPersonId: salesId });
+        const sales = await Galosalescustomer.find({
+            galoSalesPersonId: salesId,
+        });
         return res.status(200).json({ success: true, sales });
     } catch (er) {
         return res.status(500).json({ success: false, message: er?.message });
@@ -390,7 +392,3 @@ module.exports = {
     deleteGaloProposal,
     updateGaloSalesProposal,
 };
-
-
-
-

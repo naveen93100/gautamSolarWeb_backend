@@ -28,25 +28,25 @@ const galosalesPanelSchema = new mongoose.Schema(
             {
                 panelId: {
                     type: mongoose.Schema.Types.ObjectId,
-                    ref: "Panel",
+                    ref: "GaloPanel",
                     required: true,
                 },
 
                 technologyId: {
                     type: mongoose.Schema.Types.ObjectId,
-                    ref: "Technology",
+                    ref: "GaloTechnology",
                     required: true,
                 },
 
                 constructiveId: {
                     type: mongoose.Schema.Types.ObjectId,
-                    ref: "Constructive",
+                    ref: "GaloConstructive",
                     required: true,
                 },
 
                 wattId: {
                     type: mongoose.Schema.Types.ObjectId,
-                    ref: "PanelWatt",
+                    ref: "GaloPanelWatt",
                     required: true,
                 },
 
@@ -69,6 +69,10 @@ const galosalesPanelSchema = new mongoose.Schema(
                 gstAmount: {
                     type: Number,
                     required: true,
+                },
+                subsidyAmount: {
+                    type: Number,
+                    required: false,
                 },
             },
         ],

@@ -39,6 +39,7 @@ const uploadImgPath = require("../../Middleware/panalImgWattMulter.js");
 const allowRole = require("../../Middleware/allowRole.js");
 const upload = require("../../Middleware/multer.js");
 
+
 panelRouter.get('/get-inverter',adminAuth,getInverters);
 panelRouter.post('/add-inverter',adminAuth,addInverter);
 panelRouter.post('/add-kw/:inverterId',adminAuth,addKw);
