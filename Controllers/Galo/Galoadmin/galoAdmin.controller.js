@@ -254,6 +254,7 @@ const GaloTechnology = require("../../../Models/Galo/GaloAdminModels/GaloPannelT
 const GaloConstructive = require("../../../Models/Galo/GaloAdminModels/GaloConstructiveSchema");
 const GaloAdmin = require("../../../Models/Galo/GaloAdminModels/GaloAdminSchema");
 const GaloPanelWatt = require("../../../Models/Galo/GaloAdminModels/GaloPannelWattSchema");
+const GaloInverter = require("../../../Models/Galo/GaloAdminModels/GaloInverterSchema");
 
 // Sales models (kept – not dealer/inverter)
 const GaloSales = require("../../../Models/Galo/GaloSalesModal/galosales.schema");
@@ -1738,6 +1739,127 @@ const toggleGaloSalesStatus = async (req, res) => {
 };
 
 // ------------------------------------------------
+// 7. INVERTER  CRUD
+// ------------------------------------------------
+
+const createInverter = async (req, res) => {
+  try {
+    const { inverterCapacity } = req.body;
+
+    const normalizedCap = normalizeString(inverterCapacity);
+
+    const alreadyExists = await GaloInverter.findOne({ inverterCapacity: normalizedCap });
+    if (alreadyExists) {
+      return res.status(409).json({
+        success: false,
+        message: "Inverter capacity already exists, please use a different capacity."
+      });
+    }
+    const inverter = await GaloInverter.create({
+      inverterCapacity: normalizedCap,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Inverter created successfully",
+      data: inverter,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const getInverter = async(req,res)=>{
+    try {
+    const inverters = await GaloInverter.find().sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      data: inverters,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}
+
+const updateInverter = async (req, res) => {
+  try {
+    const { id, inverterCapacity } = req.body;
+    const normalizedCap = normalizeString(inverterCapacity);
+    
+    const inverter = await GaloInverter.findByIdAndUpdate(
+      id,
+      { inverterCapacity: normalizedCap },
+      { new: true }
+    );
+
+    if (!inverter) {
+      return res.status(404).json({
+        success: false,
+        message: "Inverter not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Inverter updated successfully",
+      data: inverter,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const toggleInverter = async (req, res) => {
+  try {
+    const { id } = req.query;
+    if(!id){
+        return res.status(400).json({
+            success: false,
+            message: "Inverter ID is required",
+        });
+    }
+    const inverter = await GaloInverter.findById(id);
+
+    if (!inverter) {
+        return res.status(404).json({
+            success: false,
+            message: "Inverter not found",
+        });
+    }
+
+    inverter.isActive = !inverter.isActive;
+
+    await inverter.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Inverter toggled successfully",
+      data: inverter,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+//util
+const normalizeString = (str)=>{
+    return String(str).trim().toUpperCase();
+}
+
+// ------------------------------------------------
 // EXPORT (only the functions kept)
 // ------------------------------------------------
 module.exports = {
@@ -1778,4 +1900,10 @@ module.exports = {
     updateGaloSalesAccount,
     getGaloSalesPersonList,
     toggleGaloSalesStatus,
+
+    // Inverter
+    createInverter,
+    getInverter,
+    updateInverter,
+    toggleInverter,
 };

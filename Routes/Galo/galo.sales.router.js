@@ -1,19 +1,5 @@
 const { Router } = require("express");
-const {
-    createGaloSalesPerson,
-    getGaloSalesPersonList,
-    createGaloClient,
-    updateGaloSalesAccount,
-    toggleGaloSalesStatus,
-    galoSalesLogin,
-    galoLogout,
-    getGaloClient,
-    updateGaloClient,
-    createGaloSalesProposal,
-    getGaloClientProposals,
-    deleteGaloProposal,
-    updateGaloSalesProposal,
-} = require("../../Controllers/Galo/Galosalescontroller/galosales.controller.js");
+const GaloSalesController = require("../../Controllers/Galo/Galosalescontroller/galosales.controller.js");
 const galoSalesAuth = require("../../Middleware/galoSalesAuth.js");
 
 // const adminAuth = require("../../Middleware/adminAuth.js");
@@ -21,47 +7,19 @@ const galoSalesAuth = require("../../Middleware/galoSalesAuth.js");
 
 const router = Router();
 
-router.post("/login", galoSalesLogin);
-router.post("/logout", galoLogout);
+router.post("/login", GaloSalesController.galoSalesLogin);
 
-//
-router.post("/create-proposal", galoSalesAuth, createGaloSalesProposal);
-router.get("/get-proposals/:customerId", galoSalesAuth, getGaloClientProposals);
-router.delete("/delete-proposal/:propId", galoSalesAuth, deleteGaloProposal);
-router.put("/update-proposal", galoSalesAuth, updateGaloSalesProposal);
+// auth middleware
+router.use(galoSalesAuth);
 
-router.post("/create-galoclient", galoSalesAuth, createGaloClient);
-router.get("/get-galoclient/:salesId", galoSalesAuth, getGaloClient);
-router.patch("/update-galoclient", galoSalesAuth, updateGaloClient);
+router.post("/logout", GaloSalesController.galoLogout);
+router.post("/create-proposal", GaloSalesController.createGaloSalesProposal);
+router.get("/get-proposals/:customerId", GaloSalesController.getGaloClientProposals);
+router.delete("/delete-proposal/:propId", GaloSalesController.deleteGaloProposal);
+router.put("/update-proposal", GaloSalesController.updateGaloSalesProposal);
 
-// admin routes
-
-// router.get(
-//     "/",
-//     adminAuth,
-//     allowRole(["super_admin", "admin"]),
-//     getGaloSalesPersonList,
-// );
-
-// router.post(
-//     "/create-account",
-//     adminAuth,
-//     allowRole(["super_admin", "admin"]),
-//     createGaloSalesPerson,
-// );
-
-// router.patch(
-//     "/update-account",
-//     adminAuth,
-//     allowRole(["super_admin", "admin"]),
-//     updateGaloSalesAccount,
-// );
-
-// router.post(
-//     "/toggle-account",
-//     adminAuth,
-//     allowRole(["super_admin", "admin"]),
-//     toggleGaloSalesStatus,
-// );
+router.post("/create-galoclient", GaloSalesController.createGaloClient);
+router.get("/get-galoclient/:salesId", GaloSalesController.getGaloClient);
+router.patch("/update-galoclient", GaloSalesController.updateGaloClient);
 
 module.exports = router;

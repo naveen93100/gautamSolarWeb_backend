@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 
 const GaloSales = require("../../../Models/Galo/GaloSalesModal/galosales.schema");
 const Galosalescustomer = require("../../../Models/Galo/GaloSalesModal/galosales.customer.schema");
-const GaloSalesPanel = require("../../../Models/Galo/GaloSalesModal/galosales.panel.schema");
+const GaloSalesProposal = require("../../../Models/Galo/GaloSalesModal/galosales.proposal.schema");
 
 const {
     galoSalesProposalSchema,
@@ -12,6 +12,7 @@ const {
     galoUpdateClientSchema,
 } = require("../../../Validators/Galosales.validator");
 
+//proposal creation and management
 const createGaloSalesProposal = async (req, res) => {
     try {
         const result = galoSalesProposalSchema.safeParse(req.body);
@@ -51,7 +52,7 @@ const createGaloSalesProposal = async (req, res) => {
             );
         }, 0);
 
-        const panelProposal = await GaloSalesPanel.create({
+        const panelProposal = await GaloSalesProposal.create({
             salesId,
             customerId,
             gst,
@@ -83,7 +84,7 @@ const getGaloClientProposals = async (req, res) => {
                 message: "Invalid or missing customerId",
             });
 
-        const proposal = await GaloSalesPanel.find({ customerId })
+        const proposal = await GaloSalesProposal.find({ customerId })
             .populate("customerId salesId")
             .populate({
                 path: "selectedPanels",
@@ -113,7 +114,7 @@ const deleteGaloProposal = async (req, res) => {
                 message: "Invalid or missing Proposal Id",
             });
 
-        const deletedProposal = await GaloSalesPanel.findByIdAndDelete(propId);
+        const deletedProposal = await GaloSalesProposal.findByIdAndDelete(propId);
 
         if (!deletedProposal)
             return res
@@ -166,7 +167,7 @@ const updateGaloSalesProposal = async (req, res) => {
 
         const data = { finalPrice, ...result.data };
 
-        const updatedProposal = await GaloSalesPanel.findByIdAndUpdate(
+        const updatedProposal = await GaloSalesProposal.findByIdAndUpdate(
             propId,
             { $set: data },
             { new: true },
@@ -187,6 +188,7 @@ const updateGaloSalesProposal = async (req, res) => {
     }
 };
 
+//authentication and authorization
 const galoSalesLogin = async (req, res) => {
     try {
         let { userId, password } = req.body;
@@ -268,6 +270,7 @@ const galoLogout = async (req, res) => {
     }
 };
 
+//client | customer 
 const createGaloClient = async (req, res) => {
     try {
         const result = galoCreateClientSchema.safeParse(req.body);

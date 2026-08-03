@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const galosalesPanelSchema = new mongoose.Schema(
+const galoSalesProposalSchema = new mongoose.Schema(
     {
         salesId: {
             type: mongoose.Schema.Types.ObjectId,
@@ -70,12 +70,15 @@ const galosalesPanelSchema = new mongoose.Schema(
                     type: Number,
                     required: true,
                 },
-                subsidyAmount: {
-                    type: Number,
-                    required: false,
-                },
             },
         ],
+        setupKw: {
+            type: String,
+            required: true,
+        },
+        subsidyAmount: {
+            type: Number
+        },
 
         finalPrice: {
             type: Number,
@@ -85,6 +88,6 @@ const galosalesPanelSchema = new mongoose.Schema(
     { timestamps: true },
 );
 
-const GaloSalesPanel = mongoose.model("GaloSalesPanel", galosalesPanelSchema);
+const GaloSalesProposal = mongoose.model("GaloSalesProposal", galoSalesProposalSchema);
 
-module.exports = GaloSalesPanel;
+module.exports = GaloSalesProposal;

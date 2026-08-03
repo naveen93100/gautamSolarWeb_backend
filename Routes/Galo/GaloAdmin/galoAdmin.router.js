@@ -2,89 +2,57 @@ const express = require("express");
 const router = express.Router();
 
 
-const {
-    // Panel
-    createPanel,
-    getPanel,
-    updatePanel,
-    togglePanel,
-
-    // Technology
-    createTechnology,
-    getTechnology,
-    updateTechnology,
-    activeDisableTech,
-
-    // Constructive
-    createConstructive,
-    getConstructive,
-    updateConstructive,
-    activeDisableConst,
-
-    // Panel Watt
-    panelWatt,
-    getPanelWatt,
-    togglePanelWatt,
-    updatePanelWatt,
-
-    // Admin Auth
-    createAdmin,
-    createSuperAdmin,
-    toggleAdmin,
-    getAdmin,
-    loginAdmin,
-    logoutAdmin,
-
-    // Sales Person (already present)
-    createGaloSalesPerson,
-    updateGaloSalesAccount,
-    getGaloSalesPersonList,
-    toggleGaloSalesStatus,
-} = require("../../../Controllers/Galo/Galoadmin/galoAdmin.controller");
+const adminController = require("../../../Controllers/Galo/Galoadmin/galoAdmin.controller");
 
 const adminAuth = require("../../../Middleware/adminAuth");
 const allowRole = require("../../../Middleware/allowRole");
 
-router.post("/login", loginAdmin);
-router.post("/logout", logoutAdmin);
+router.post("/login", adminController.loginAdmin);
+router.post("/logout", adminController.logoutAdmin);
 
-// router.use(adminAuth);
-// router.use(allowRole(["super_admin", "admin"]));
+// router.use(adminController.adminAuth);
+// router.use(allowRole(["super_admin", "adminadminController."]));
 
 // ---------- Panel ----------
-router.get("/panel", getPanel);
-router.post("/panel", createPanel);
-router.put("/panel", updatePanel);
-router.patch("/panel/toggle", togglePanel);
+router.get("/panel", adminController.getPanel);
+router.post("/panel", adminController.createPanel);
+router.put("/panel", adminController.updatePanel);
+router.patch("/panel/toggle", adminController.togglePanel);
 
 // ---------- Technology ----------
-router.get("/technology", getTechnology);
-router.post("/technology", createTechnology);
-router.put("/technology", updateTechnology);
-router.patch("/technology/toggle", activeDisableTech);
+router.get("/technology", adminController.getTechnology);
+router.post("/technology", adminController.createTechnology);
+router.put("/technology", adminController.updateTechnology);
+router.patch("/technology/toggle", adminController.activeDisableTech);
 
 // ---------- Constructive ----------
-router.get("/constructive", getConstructive);
-router.post("/constructive", createConstructive);
-router.put("/constructive", updateConstructive);
-router.patch("/constructive/toggle", activeDisableConst);
+router.get("/constructive", adminController.getConstructive);
+router.post("/constructive", adminController.createConstructive);
+router.put("/constructive", adminController.updateConstructive);
+router.patch("/constructive/toggle", adminController.activeDisableConst);
 
 // ---------- Panel Watt ----------
-router.get("/panel-watt", getPanelWatt);
-router.post("/panel-watt", panelWatt);
-router.put("/panel-watt", updatePanelWatt);
-router.patch("/panel-watt/toggle", togglePanelWatt);
+router.get("/panel-watt", adminController.getPanelWatt);
+router.post("/panel-watt", adminController.panelWatt);
+router.put("/panel-watt", adminController.updatePanelWatt);
+router.patch("/panel-watt/toggle", adminController.togglePanelWatt);
 
 // ---------- Admin Management ----------
-router.get("/admin", getAdmin);
-router.post("/admin", createAdmin);
-router.post("/admin/super", createSuperAdmin);
-router.patch("/admin/toggle", toggleAdmin);
+router.get("/admin", adminController.getAdmin);
+router.post("/admin", adminController.createAdmin);
+router.post("/admin/super", adminController.createSuperAdmin);
+router.patch("/admin/toggle", adminController.toggleAdmin);
 
 // ---------- Sales Person (already defined) ----------
-router.get("/sales", getGaloSalesPersonList);
-router.post("/sales/create-account", createGaloSalesPerson);
-router.patch("/sales/update-account", updateGaloSalesAccount);
-router.patch("/sales/toggle-account", toggleGaloSalesStatus);
+router.get("/sales", adminController.getGaloSalesPersonList);
+router.post("/sales/create-account", adminController.createGaloSalesPerson);
+router.patch("/sales/update-account", adminController.updateGaloSalesAccount);
+router.patch("/sales/toggle-account", adminController.toggleGaloSalesStatus);
+
+// ---------- Inverter ----------
+router.post("/inverter", adminController.createInverter);
+router.get("/inverter", adminController.getInverter);
+router.put("/inverter", adminController.updateInverter);
+router.patch("/inverter/toggle", adminController.toggleInverter);
 
 module.exports = router;

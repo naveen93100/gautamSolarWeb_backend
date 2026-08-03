@@ -39,6 +39,7 @@ const galoSalesProposalSchema = z.object({
         constructiveId: objectIdSchema("Constructive"),
 
         wattId: objectIdSchema("Panel Watt"),
+        inverterId: objectIdSchema("Inverter capacity").optional(),
 
         quantity: z
           .number({
@@ -58,6 +59,7 @@ const galoSalesProposalSchema = z.object({
           required_error: "Total Price is required",
         }),
 
+        subsidyAmount: z.number().optional().decode(0),
         gstAmount: z.number({
           required_error: "GST Amount is required",
         }),
