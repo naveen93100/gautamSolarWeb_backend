@@ -21,6 +21,7 @@ const createGaloSalesProposal = async (req, res) => {
             const message = [];
 
             result.error.issues.forEach((err) => {
+                console.log(err)
                 message.push({ message: err.message });
             });
 
@@ -30,7 +31,7 @@ const createGaloSalesProposal = async (req, res) => {
             });
         }
 
-        const { salesId, customerId, gst, termsAndConditions, selectedPanels } =
+        const { salesId, customerId, gst, termsAndConditions, selectedPanels, setupKw } =
             result.data;
 
         const wattIds = selectedPanels.map((panel) => panel.wattId);
@@ -48,9 +49,12 @@ const createGaloSalesProposal = async (req, res) => {
             return (
                 total +
                 Number(item.totalPrice || 0) +
-                Number(item.gstAmount || 0)
+                Number(item.gstAmount || 0) -
+                Number(item?.subsidyAmount || 0)
             );
         }, 0);
+
+        console.log(finalPrice);
 
         const panelProposal = await GaloSalesProposal.create({
             salesId,
@@ -59,6 +63,7 @@ const createGaloSalesProposal = async (req, res) => {
             termsAndConditions,
             selectedPanels,
             finalPrice,
+            setupKw
         });
 
         return res.status(201).json({
@@ -93,10 +98,12 @@ const getGaloClientProposals = async (req, res) => {
                     { path: "panelId" },
                     { path: "constructiveId" },
                     { path: "technologyId" },
+                    { path: "inverterId" }
                 ],
             })
             .sort({ createdAt: -1 })
             .lean();
+
 
         return res.status(200).json({ success: true, data: proposal });
     } catch (er) {

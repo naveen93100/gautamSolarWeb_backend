@@ -1774,7 +1774,7 @@ const createInverter = async (req, res) => {
 
 const getInverter = async(req,res)=>{
     try {
-    const inverters = await GaloInverter.find().sort({ createdAt: -1 });
+    const inverters = await GaloInverter.find({isActive:true}).sort({ createdAt: -1 });
 
     return res.status(200).json({
       success: true,

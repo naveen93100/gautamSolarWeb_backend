@@ -50,16 +50,16 @@ const galoSalesProposalSchema = new mongoose.Schema(
                     required: true,
                 },
 
-                quantity: {
-                    type: Number,
-                    required: true,
-                    default: 1,
-                },
+                // quantity: {
+                //     type: Number,
+                //     required: true,
+                //     default: 1,
+                // },
 
-                rate: {
-                    type: Number,
-                    required: true,
-                },
+                // rate: {
+                //     type: Number,
+                //     required: true,
+                // },
 
                 totalPrice: {
                     type: Number,
@@ -70,15 +70,23 @@ const galoSalesProposalSchema = new mongoose.Schema(
                     type: Number,
                     required: true,
                 },
+
+                subsidyAmount: {
+                    type: Number,
+                    default: 0
+                },
+
+                inverterId: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'GaloInverter'
+                }
             },
         ],
         setupKw: {
-            type: String,
+            type: Number,
             required: true,
         },
-        subsidyAmount: {
-            type: Number
-        },
+
 
         finalPrice: {
             type: Number,

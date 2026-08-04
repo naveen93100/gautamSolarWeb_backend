@@ -29,6 +29,8 @@ const galoSalesProposalSchema = z.object({
     })
     .min(1, "Terms & Conditions cannot be empty"),
 
+  setupKw: z.number({ required_error: "Setup Kw is required", }),
+
   selectedPanels: z
     .array(
       z.object({
@@ -39,27 +41,29 @@ const galoSalesProposalSchema = z.object({
         constructiveId: objectIdSchema("Constructive"),
 
         wattId: objectIdSchema("Panel Watt"),
+
         inverterId: objectIdSchema("Inverter capacity").optional(),
 
-        quantity: z
-          .number({
-            required_error: "Quantity is required",
-            invalid_type_error: "Quantity must be a number",
-          })
-          .min(1, "Quantity must be at least 1"),
+        // quantity: z
+        //   .number({
+        //     required_error: "Quantity is required",
+        //     invalid_type_error: "Quantity must be a number",
+        //   })
+        //   .min(1, "Quantity must be at least 1"),
 
-        rate: z
-          .number({
-            required_error: "Rate is required",
-            invalid_type_error: "Rate must be a number",
-          })
-          .min(1, "Rate must be greater than 0"),
+        // rate: z
+        //   .number({
+        //     required_error: "Rate is required",
+        //     invalid_type_error: "Rate must be a number",
+        //   })
+        //   .min(1, "Rate must be greater than 0"),
 
         totalPrice: z.number({
           required_error: "Total Price is required",
         }),
 
-        subsidyAmount: z.number().optional().decode(0),
+        subsidyAmount: z.number().optional().default(0),
+
         gstAmount: z.number({
           required_error: "GST Amount is required",
         }),
