@@ -32,13 +32,11 @@ const galosalesCustomerSchema = new Schema(
 
         companyName: {
             type: String,
-            required: false,
             trim: true,
         },
 
         gstin: {
             type: String,
-            required: false,
             trim: true,
             uppercase: true,
         },
