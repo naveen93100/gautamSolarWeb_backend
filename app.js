@@ -229,16 +229,13 @@ app.post("/interSolar-contact", async (req, res) => {
       <p style="margin-bottom: 10px;"><strong>Name:</strong> ${name}</p>
       <p style="margin-bottom: 10px;"><strong>Email:</strong> ${email}</p>
       <p style="margin-bottom: 10px;"><strong>Mobile No:</strong> ${phone}</p>
-      <p style="margin-bottom: 10px;"><strong>Company Name:</strong> ${
-        companyName
-      }</p>
-      <p style="margin-bottom: 10px;"><strong>Company Designation:</strong> ${
-        companyDesignation
-      }</p>
+      <p style="margin-bottom: 10px;"><strong>Company Name:</strong> ${companyName
+        }</p>
+      <p style="margin-bottom: 10px;"><strong>Company Designation:</strong> ${companyDesignation
+        }</p>
       <p style="margin-bottom: 10px;"><strong>Remarks:</strong> ${message}</p>
       <p style="margin-bottom: 10px;"><strong>Source:</strong> ${referrerWebsite}</p>
-        <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${
-          Utm?.utm_source || "Direct"
+        <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${Utm?.utm_source || "Direct"
         }</p>
     </div>
       `,
@@ -597,6 +594,93 @@ app.post("/submit-delhi", async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
+
+
+app.post('/submit-inverter', async (req, res) => {
+  try {
+    const formData = req.body;
+    const referrerUrl = req.headers.referer || "Unknown"; // Get the referrer URL
+    const referrerDomain = url.parse(referrerUrl).hostname; // Extract the domain name from the URL
+    const referrerWebsite = extractWebsiteName(referrerDomain); // Extract the website name from the domain name
+
+    let utm = JSON.parse(formData.utm);
+    let showUtmData =
+      utm?.utm_source && utm?.utm_medium
+        ? `${utm?.utm_source}-${utm?.utm_medium}`
+        : "Direct";
+
+    const mailOptions = {
+      from: "gautamsolar.vidoes01@gmail.com", // sender email
+      to: "info@gautamsolar.com", // another destination email
+      subject: "Inverter Form Submission",
+      html: `
+      <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+      <h2 style="color: #a20000;">Inverter Form Submission</h2>
+      <p style="margin-bottom: 10px;"><strong>Name:</strong> ${formData.fullName || 'NA'}</p>
+      <p style="margin-bottom: 10px;"><strong>Email:</strong> ${formData.email || 'NA'}</p>
+      <p style="margin-bottom: 10px;"><strong>Mobile No:</strong> ${formData.phone || 'NA'}</p>
+      <p style="margin-bottom: 10px;"><strong>Model:</strong> ${formData.model || 'NA'}</p>
+      <p style="margin-bottom: 10px;"><strong>Remark:</strong> ${formData.remark || 'NA'}</p>
+      <p style="margin-bottom: 10px;"><strong>Source:</strong> ${referrerWebsite}</p>
+        <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${showUtmData}</p>
+    </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res
+      .status(200)
+      .json({ success: true, message: "Form submitted successfully" });
+  } catch (error) {
+    console.error("Error submitting Contact Box form:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+})
+
+app.post('/submit-bess', async (req, res) => {
+  try {
+    const formData = req.body;
+    const referrerUrl = req.headers.referer || "Unknown"; // Get the referrer URL
+    const referrerDomain = url.parse(referrerUrl).hostname; // Extract the domain name from the URL
+    const referrerWebsite = extractWebsiteName(referrerDomain); // Extract the website name from the domain name
+
+    let utm = JSON.parse(formData.utm);
+    let showUtmData =
+      utm?.utm_source && utm?.utm_medium
+        ? `${utm?.utm_source}-${utm?.utm_medium}`
+        : "Direct";
+
+    const mailOptions = {
+      from: "gautamsolar.vidoes01@gmail.com", // sender email
+      to: "info@gautamsolar.com", // another destination email
+      subject: "Bess System Form Submission",
+      html: `
+      <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+      <h2 style="color: #a20000;">Bess System Form Submission</h2>
+      <p style="margin-bottom: 10px;"><strong>Name:</strong> ${formData?.fullName || 'NA'}</p>
+      <p style="margin-bottom: 10px;"><strong>Email:</strong> ${formData?.email || 'NA'}</p>
+      <p style="margin-bottom: 10px;"><strong>Mobile No:</strong> ${formData?.phone || 'NA'}</p>
+      <p style="margin-bottom: 10px;"><strong>Company Name:</strong> ${formData?.companyName || 'NA'}</p>
+      <p style="margin-bottom: 10px;"><strong>Application:</strong> ${formData?.application || 'NA'}</p>
+      <p style="margin-bottom: 10px;"><strong>Required Capacity:</strong> ${formData?.capacity || 'NA'}</p>
+      <p style="margin-bottom: 10px;"><strong>Remark:</strong> ${formData?.remark || 'NA'}</p>
+      <p style="margin-bottom: 10px;"><strong>Source:</strong> ${referrerWebsite}</p>
+        <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${showUtmData}</p>
+    </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res
+      .status(200)
+      .json({ success: true, message: "Form submitted successfully" });
+  } catch (error) {
+    console.error("Error submitting Contact Box form:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+})
 
 app.get("/", (req, res) => {
   res.send({ msg: "Welcome Solar News App" });
