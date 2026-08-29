@@ -7,27 +7,32 @@ const { promisify } = require("util");
 const unlinkAsync = promisify(fs.unlink);
 require("dotenv").config();
 
-const generateSitemap = async () => {
+const generateSitemap = async (req, res) => {
   try {
     const blogs = await News.find();
+
     const sitemapLinks = blogs.map((blog) => ({
       url: `/${createSlug(blog.Header)}`,
-      lastmod: new Date(blog.CreatedOn).toISOString().split("T")[0], // format YYYY-MM-DD
+      lastmod: new Date(blog.CreatedOn).toISOString().split("T")[0],
     }));
 
     const { SitemapStream, streamToPromise } = require("sitemap");
     const { Readable } = require("stream");
 
-    const stream = new SitemapStream({ hostname: "https://gautamsolar.com" });
+    const stream = new SitemapStream({
+      hostname: "https://gautamsolar.com",
+    });
 
-    // Generate the sitemap XML and save it to a file
     const xmlData = await streamToPromise(
-      Readable.from(sitemapLinks).pipe(stream),
+      Readable.from(sitemapLinks).pipe(stream)
     );
-    fs.writeFileSync(Path.join(__dirname, "sitemap.xml"), xmlData);
-    console.log("Sitemap generated and saved");
+
+    res.set("Content-Type", "application/xml");
+    res.send(xmlData);
+
   } catch (error) {
     console.error("Error generating sitemap:", error);
+    res.status(500).send("Unable to generate sitemap");
   }
 };
 
@@ -113,10 +118,10 @@ const create = async (req, res) => {
     const videofilePath = videoFileName
       ? `https://gautamsolar.us/admin/blogVideo/${videoFileName}`
       : // ? `https://gautamsolar.us/admin/blogVideo/${videoFileName}`
-        null;
+      null;
 
     const imagefilePath = imageFileName
-      ?  `https://gautamsolar.us/admin/blogImage/${imageFileName}`
+      ? `https://gautamsolar.us/admin/blogImage/${imageFileName}`
       // ?  `http://localhost:1008/admin/blogImage/${imageFileName}`
       : null;
 
@@ -322,15 +327,15 @@ const deleteNews = async (req, res) => {
 
 const UpdateNews = async (req, res) => {
   const { uuid } = req.params;
-  const { metaTitle, metaDescription,body, header,description,tags, } = req.body;
+  const { metaTitle, metaDescription, body, header, description, tags, } = req.body;
 
   let updates = {
     MetaTitle: metaTitle,
     MetaDescription: metaDescription,
-    Body:body,
-    Header:header,
-    Description:description,
-    Tags:tags
+    Body: body,
+    Header: header,
+    Description: description,
+    Tags: tags
   };
 
   let videoFileName;
@@ -370,7 +375,7 @@ const UpdateNews = async (req, res) => {
         imagefilePath = imageFileName
           ? `https://gautamsolar.us/admin/blogImage/${imageFileName}`
           : //    `http://localhost:1008/admin/blogImage/${imageFileName}`
-            null;
+          null;
         updates.ImageURL = imagefilePath;
       }
 
@@ -395,7 +400,7 @@ const UpdateNews = async (req, res) => {
         videofilePath = videoFileName
           ? `https://gautamsolar.us/admin/blogVideo/${videoFileName}`
           : //   `http://localhost:1008/admin/blogVideo/${videoFileName}`
-            null;
+          null;
         updates.VideoUrl = videofilePath;
       }
     } else {
@@ -448,4 +453,5 @@ module.exports = {
   GetBlogImage,
   getNewsByUUID,
   GetBlogVideo,
+  generateSitemap
 };

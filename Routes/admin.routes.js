@@ -1,5 +1,5 @@
 const express = require('express')
-const { create, getNews,deleteNews, UpdateNews, GetBlogImage,getNewsByUUID, GetBlogVideo } = require('../Controllers/admin.controller')
+const { create, getNews,deleteNews, UpdateNews, GetBlogImage,getNewsByUUID, GetBlogVideo,generateSitemap } = require('../Controllers/admin.controller')
 const multer = require('multer')
 const {authentication} = require('../Middleware/authentication')
 const UserRouter = express.Router()
@@ -47,10 +47,12 @@ const fileFilter = (req, file, cb) => {
         cb(new Error('Invalid file type. Only images and videos are allowed.'), false); // Reject the file
     }
 };
-
+ 
  
 // here we are uploading the images and video
 const upload = multer({ storage: storage, fileFilter: fileFilter,limits: { fileSize: 1024  * 1024 * 50,  fieldSize: 10 * 1024 * 1024, }  });
+
+UserRouter.get('/sitemap.xml',generateSitemap)
 
 /** To Get All News */
 UserRouter.get('/news',getNews)
