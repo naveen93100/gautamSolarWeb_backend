@@ -19,7 +19,7 @@ const cookieParser = require("cookie-parser");
 
 const limiter = rateLimiter.rateLimit({
   windowMs: 2000, // 1 second
-  limit: 10, // Limit each IP to 10 requests per second
+  limit: 50, // Limit each IP to 10 requests per second
   standardHeaders: "draft-8",
   legacyHeaders: false,
   ipv6Subnet: 56,
