@@ -86,6 +86,8 @@ const create = async (req, res) => {
     const { header, description, body, tags, metaTitle, metaDescription } =
       req.body;
 
+    let { faq } = req.body
+
     if (!header)
       return res
         .status(401)
@@ -104,6 +106,22 @@ const create = async (req, res) => {
       return res
         .status(401)
         .json({ success: false, message: "Meta Description is required" });
+
+    if (!faq.length === 0)
+      return res
+        .status(401)
+        .json({ success: false, message: "FAQ is required" });
+
+    if (typeof faq === "string") {
+      try {
+        faq = JSON.parse(faq);
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid FAQ format"
+        });
+      }
+    }
 
     /** Get the file buffer and the file format , because file is store in buffer data **/
     let fileBuffer = req.files?.buffer;
@@ -169,9 +187,9 @@ const create = async (req, res) => {
       Tags: tags,
       MetaTitle: metaTitle,
       MetaDescription: metaDescription,
+      Faq: faq
     };
 
-    await generateSitemap();
     /** Check if document with UUID exists */
     const existingDocument = await News.findOne({ UUID });
 

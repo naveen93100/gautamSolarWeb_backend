@@ -686,14 +686,15 @@ app.get("/", (req, res) => {
   res.send({ msg: "Welcome Solar News App" });
 });
 
+app.use("/media", MediaRouter);
+app.use("/admin", UserRouter);
+
+
 app.use("/api/dealer", DealerRouter);
 app.use("/api/sales", SalesRouter);
 
-app.use("/admin", UserRouter);
-app.use("/media", MediaRouter);
 
 app.use("/galo_admin", GaloRouter);
-
 app.use("/adminPanel", panelRouter);
 
 app.listen(process.env.PORT, async () => {

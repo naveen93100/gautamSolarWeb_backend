@@ -42,6 +42,13 @@ const NewsSchema = mongoose.Schema(
       trim: true,
       maxlength: [160, "Meta Description cannot exceed 160 characters"],
     },
+    Faq: {
+      type: [{
+        question: { type: String, required: true },
+        answer: { type: String, required: true }
+      }],
+      default: []
+    },
     CreatedOn: {
       type: Date,
       default: Date.now,
