@@ -704,10 +704,8 @@ app.use('/api/galoAdmin',galoAdminRouter)
 // app.use('/api/galoSales',)
 
 
-
 // -----------
-app.use('/api/galoSales',galoSalesRouter)
-app.use('/api/galoAdmin',galoAdminRouter)
+
 // app.use('/api/galoSales',)
 
 
