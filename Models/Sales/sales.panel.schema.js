@@ -48,9 +48,40 @@ const salesPanelSchema = new mongoose.Schema({
                 type: Number,
                 required: true
             },
-            
+
         }
     ],
+
+    inverterGst:Number,
+
+    selectedInverters: [{
+        inverterId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Inverter',
+            required: true
+        },
+        capacity: {
+            type: Number,
+            required: true
+        },
+        quantity: {
+            type: Number,
+            default: 1,
+            required: true
+        },
+        rate: {
+            type: Number,
+            required: true
+        },
+        gstAmount: {
+            type: Number,
+            required: true
+        },
+        totalPrice: {
+            type: Number,
+            required: true
+        }
+    }],
 
     finalPrice: {
         type: Number,

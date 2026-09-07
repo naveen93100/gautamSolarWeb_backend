@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { string, required } = require("zod/mini");
 
 const panelSchema = new mongoose.Schema({
     dealerId: {
@@ -49,7 +50,6 @@ const panelSchema = new mongoose.Schema({
                 type: Number,
                 required: true
             },
-            
         }
     ],
 
