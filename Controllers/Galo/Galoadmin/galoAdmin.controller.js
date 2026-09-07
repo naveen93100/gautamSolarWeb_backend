@@ -1,29 +1,267 @@
-const Panel = require("../../Models/AdminModel/pannelTypeSchema");
-const Technology = require("../../Models/AdminModel/panneTechnologySchema");
-const Constructive = require("../../Models/AdminModel/constructiveSchema");
+// const mongoose = require("mongoose");
+// const GaloPanel = require("../../../Models/Galo/GaloAdminModels/GaloPannelTypeSchema");
+// const GaloTechnology = require("../../../Models/Galo/GaloAdminModels/GaloPannelTechnologySchema");
+// const GaloConstructive = require("../../../Models/Galo/GaloAdminModels/GaloConstructiveSchema");
+// const bcrypt = require("bcrypt");
+// const jwt = require("jsonwebtoken");
+// const {GaloAdmin} = require("../../../Models/Galo/GaloAdminModels/GaloAdminSchema");
+// const GaloPanelWatt = require("../../../Models/Galo/GaloAdminModels/GaloPannelWattSchema")
+// const path = require("path");
+// const fs = require("fs");
+// const fsp = require("fs").promises;
+// const xlxs = require("xlsx");
+
+// const GaloSales = require("../../../Models/Galo/GaloSalesModal/galosales.schema");
+// const sharp = require("sharp");
+
+// const createGaloSalesPerson = async (req, res) => {
+//     try {
+//         let { name, phone, password } = req.body;
+
+//         if (!name || !phone || !password)
+//             return res.status(400).json({
+//                 success: false,
+//                 message: "Please fill required fields..",
+//             });
+
+//         name = name.trim();
+//         const phoneRegex = /^[6-9]\d{9}$/;
+//         const nameRegex = /^[a-zA-Z]+(?:\s[a-zA-Z]+)*$/;
+
+//         if (!phoneRegex.test(phone))
+//             return res
+//                 .status(400)
+//                 .json({ success: false, message: "Invalid phone number!" });
+
+//         if (!nameRegex.test(name))
+//             return res
+//                 .status(400)
+//                 .json({ success: false, message: "Invalid name" });
+
+//         const newSalesPerson = await GaloSales.create({
+//             name,
+//             phone,
+//             password,
+//         });
+
+//         return res.status(201).json({
+//             success: true,
+//             message: "Account Created",
+//             data: {
+//                 _id: newSalesPerson._id,
+//                 name: newSalesPerson.name,
+//                 phone: newSalesPerson.phone,
+//                 isActive: newSalesPerson.isActive,
+//                 userId: newSalesPerson.userId,
+//             },
+//         });
+//     } catch (er) {
+//         if (er?.code === 11000) {
+//             return res.status(409).json({
+//                 success: false,
+//                 message: "userId Or Phone already exists",
+//             });
+//         }
+//         return res.status(500).json({ success: false, message: er?.message });
+//     }
+// };
+
+// const updateGaloSalesAccount = async (req, res) => {
+//     try {
+//         let { salesId, name, phone } = req.body;
+
+//         if (!mongoose.isValidObjectId(salesId))
+//             return res
+//                 .status(400)
+//                 .json({ success: false, message: "Invalid or missing Id." });
+
+//         const salesAccount = await GaloSales.findOne({ _id: salesId });
+
+//         if (!salesAccount)
+//             return res
+//                 .status(404)
+//                 .json({ success: false, message: "Account not found!" });
+
+//         const newData = {};
+
+//         if (name && name.trim()) {
+//             newData.name = name.trim();
+//         }
+
+//         if (phone) {
+//             phone = phone.replace(/\D/g, "");
+//             if (!/^[6-9]\d{9}$/.test(phone)) {
+//                 return res
+//                     .status(400)
+//                     .json({ success: false, message: "Invalid Phone number!" });
+//             }
+//             if (phone !== salesAccount.phone) {
+//                 newData.phone = phone;
+//             }
+//         }
+
+//         if (Object.keys(newData).length === 0) {
+//             return res
+//                 .status(400)
+//                 .json({ success: false, message: "No Changes provided!" });
+//         }
+
+//         await GaloSales.findByIdAndUpdate(salesId, { $set: newData });
+//         return res
+//             .status(200)
+//             .json({ success: true, message: "Account Updated." });
+//     } catch (er) {
+//         if (er?.code === 11000) {
+//             return res.status(409).json({
+//                 success: false,
+//                 message: "Email or phone already exist",
+//             });
+//         }
+//         return res.status(500).json({ success: false, message: er?.message });
+//     }
+// };
+
+// const getGaloSalesPersonList = async (req, res) => {
+//     try {
+//         let { pageNo } = req.query;
+//         const limit = 6;
+
+//         pageNo = parseInt(pageNo) || 1;
+
+//         const sales = await GaloSales.aggregate([
+//             {
+//                 $facet: {
+//                     totalRecord: [{ $count: "count" }],
+
+//                     data: [
+//                         { $sort: { _id: -1 } },
+//                         { $skip: (pageNo - 1) * limit },
+//                         { $limit: limit },
+
+//                         {
+//                             $lookup: {
+//                                 from: "galosalespanels",
+//                                 localField: "_id",
+//                                 foreignField: "salesId",
+//                                 as: "totalClient",
+//                             },
+//                         },
+
+//                         {
+//                             $addFields: {
+//                                 totalClient: {
+//                                     $size: {
+//                                         $ifNull: ["$totalClient", []],
+//                                     },
+//                                 },
+//                             },
+//                         },
+
+//                         {
+//                             $project: {
+//                                 password: 0,
+//                             },
+//                         },
+//                     ],
+//                 },
+//             },
+
+//             {
+//                 $project: {
+//                     data: 1,
+//                     totalRecord: {
+//                         $ifNull: [
+//                             { $arrayElemAt: ["$totalRecord.count", 0] },
+//                             0,
+//                         ],
+//                     },
+//                 },
+//             },
+
+//             {
+//                 $addFields: {
+//                     currentPage: pageNo,
+//                     limit,
+//                     hasNextPage: {
+//                         $gt: ["$totalRecord", pageNo * limit],
+//                     },
+//                 },
+//             },
+//         ]);
+
+//         return res.status(200).json({ success: true, ...sales[0] });
+//     } catch (er) {
+//         return res.status(500).json({ success: false, message: er?.message });
+//     }
+// };
+
+// const toggleGaloSalesStatus = async (req, res) => {
+//     try {
+//         const { salesId, isActive } = req.body;
+
+//         if (!mongoose.isValidObjectId(salesId))
+//             return res
+//                 .status(400)
+//                 .json({ success: false, message: "Invalid or missing Id" });
+
+//         if (typeof isActive !== "boolean") {
+//             return res.status(400).json({
+//                 success: false,
+//                 message: "isActive must be true or false",
+//             });
+//         }
+
+//         const sales = await GaloSales.findOneAndUpdate(
+//             { _id: salesId },
+//             { $set: { isActive } },
+//             { new: true },
+//         );
+
+//         if (!sales) {
+//             return res.status(404).json({
+//                 success: false,
+//                 message: "Sales person not found",
+//             });
+//         }
+
+//         return res.status(200).json({
+//             success: true,
+//             message: `Account ${isActive === true ? "Activated" : "De-Activated"}`,
+//         });
+//     } catch (er) {
+//         return res.status(500).json({ success: false, message: er?.message });
+//     }
+// };
+
+// module.exports = {
+//     createGaloSalesPerson,
+//     updateGaloSalesAccount,
+//     getGaloSalesPersonList,
+//     toggleGaloSalesStatus,
+// };
+
+const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { Admin } = require("../../Models/AdminModel/AdminSchema");
-const { default: mongoose } = require("mongoose");
-const DealerModel = require("../../Models/dealer.schema");
-const PanelWatt = require("../../Models/AdminModel/panelWattSchema");
 const path = require("path");
 const fs = require("fs");
-const fsp = require("fs").promises;
 
-const xlxs = require("xlsx");
-const CustomerModel = require("../../Models/customer.schema");
-const PanelModel = require("../../Models/panelSchema");
-const ProposalModel = require("../../Models/proposal.schema");
-const Sales = require("../../Models/Sales/sales.schema");
-const SalesCustomer = require("../../Models/Sales/sales.customer.schema");
-const SalesPanel = require("../../Models/Sales/sales.panel.schema");
-const Inverter = require("../../Models/AdminModel/InverterSchema");
-const {
-    createDealerAccountAdminSchema,
-} = require("../../Validators/Common.validator");
-const sharp = require("sharp");
+// ------------------------------------------------
+// Galo Models
+// ------------------------------------------------
+const GaloPanel = require("../../../Models/Galo/GaloAdminModels/GaloPannelTypeSchema");
+const GaloTechnology = require("../../../Models/Galo/GaloAdminModels/GaloPannelTechnologySchema");
+const GaloConstructive = require("../../../Models/Galo/GaloAdminModels/GaloConstructiveSchema");
+const GaloAdmin = require("../../../Models/Galo/GaloAdminModels/GaloAdminSchema");
+const GaloPanelWatt = require("../../../Models/Galo/GaloAdminModels/GaloPannelWattSchema");
+const GaloInverter = require("../../../Models/Galo/GaloAdminModels/GaloInverterSchema");
 
+// Sales models (kept – not dealer/inverter)
+const GaloSales = require("../../../Models/Galo/GaloSalesModal/galosales.schema");
+
+// ------------------------------------------------
+// 1. PANEL CRUD
+// ------------------------------------------------
 const createPanel = async (req, res) => {
     try {
         let { panelType } = req.body;
@@ -36,17 +274,15 @@ const createPanel = async (req, res) => {
         }
 
         if (panelType && typeof panelType !== "string") {
-            return res
-                .status(400)
-                .json({
-                    success: false,
-                    message: "Panel type should be string",
-                });
+            return res.status(400).json({
+                success: false,
+                message: "Panel type should be string",
+            });
         }
 
         panelType = panelType?.trim().toUpperCase();
 
-        const existingPannel = await Panel.findOne({ panelType });
+        const existingPannel = await GaloPanel.findOne({ panelType });
 
         if (existingPannel) {
             return res.status(409).json({
@@ -55,9 +291,7 @@ const createPanel = async (req, res) => {
             });
         }
 
-        const panel = await Panel.create({
-            panelType,
-        });
+        await GaloPanel.create({ panelType });
         return res.status(201).json({
             success: true,
             message: "Panel is created sucessfully..",
@@ -76,19 +310,17 @@ const createPanel = async (req, res) => {
 const getPanel = async (req, res) => {
     try {
         const { isActive } = req.query;
+        let panelData;
         if (!isActive) {
-            var panelData = await Panel.find();
+            panelData = await GaloPanel.find();
         } else {
-            var panelData = await Panel.find({ panelActive: isActive });
+            panelData = await GaloPanel.find({ panelActive: isActive });
         }
-        // console.log("panelData : ", panelData)
-
         return res.status(200).json({
             success: true,
             data: panelData,
         });
     } catch (er) {
-        // console.log(error);
         res.status(500).json({
             success: false,
             message: "Internal Server Error.." || er?.message,
@@ -98,7 +330,7 @@ const getPanel = async (req, res) => {
 
 const updatePanel = async (req, res) => {
     try {
-        let { _id, panelType } = req.query;
+        let { _id, panelType } = req.body;
 
         panelType = panelType?.trim().toUpperCase();
 
@@ -120,9 +352,7 @@ const updatePanel = async (req, res) => {
             });
         }
 
-        const findPanel = await Panel.findById({ _id: _id });
-        // console.log("findPanel : ", findPanel)
-
+        const findPanel = await GaloPanel.findById({ _id: _id });
         if (!findPanel) {
             return res.status(400).json({
                 success: false,
@@ -138,28 +368,20 @@ const updatePanel = async (req, res) => {
             });
         }
 
-        const panelData = await Panel.find();
-        // console.log("panelData : ",panelData)
-
-        // panelData?.some(item => console.log(item));
-        const data = panelData?.some((item) => item?.panelType === panelType);
-        // console.log("data : ", data)
-        if (data) {
+        // Efficient duplicate check (exclude current)
+        const existingDuplicate = await GaloPanel.findOne({
+            panelType,
+            _id: { $ne: _id },
+        });
+        if (existingDuplicate) {
             return res.status(409).json({
                 success: false,
                 message:
-                    "This  panel name is already exist , Try with New Name..",
+                    "This panel name is already exist , Try with New Name..",
             });
         }
 
-        // if (findPanel?.panelActive.toString() === panelActive?.toString()) {
-        //   return res.status(400).json({
-        //     success: false,
-        //     message: `${panelActive !== true ? "Panel is Already Active" : "Panel is already disable"} `,
-        //   });
-        // }
-
-        const updateData = await Panel.findByIdAndUpdate(
+        const updateData = await GaloPanel.findByIdAndUpdate(
             _id,
             { _id, panelType },
             { new: true },
@@ -171,7 +393,6 @@ const updatePanel = async (req, res) => {
             data: updateData,
         });
     } catch (error) {
-        // console.log(error)
         res.status(500).json({
             success: false,
             message: "Internal Server Error.." || error?.message,
@@ -180,18 +401,14 @@ const updatePanel = async (req, res) => {
 };
 
 const togglePanel = async (req, res) => {
-    // console.log("id,isActive : ", id, isActive)
     try {
         const { id, panelActive } = req.body;
 
-        // checking panelActive is string or not
         if (typeof panelActive === "string")
             return res.status(400).json({
                 success: false,
                 message: "panelActive should be boolean but getting string",
             });
-
-        //   checking if id's coming as string or something else
 
         if (typeof id !== "string")
             return res.status(400).json({
@@ -206,17 +423,12 @@ const togglePanel = async (req, res) => {
             });
         }
 
-        // checking if id's are valid or not
         if (!mongoose.Types.ObjectId.isValid(id))
             return res
                 .status(400)
-                .json({
-                    success: false,
-                    message: "Technology id is not valid",
-                });
+                .json({ success: false, message: "Panel id is not valid" });
 
-        const findPanel = await Panel.findById(id);
-
+        const findPanel = await GaloPanel.findById(id);
         if (!findPanel) {
             return res.status(400).json({
                 success: false,
@@ -224,7 +436,7 @@ const togglePanel = async (req, res) => {
             });
         }
 
-        const updateData = await Panel.findByIdAndUpdate(
+        const updateData = await GaloPanel.findByIdAndUpdate(
             id,
             { $set: { panelActive } },
             { new: true },
@@ -244,19 +456,18 @@ const togglePanel = async (req, res) => {
     }
 };
 
+// ------------------------------------------------
+// 2. TECHNOLOGY CRUD
+// ------------------------------------------------
 const createTechnology = async (req, res) => {
     try {
         let { panelId, technologyPanel } = req.body;
 
-        console.log("req.body : ", req.body);
-
         if (typeof technologyPanel !== "string" || typeof panelId !== "string")
-            return res
-                .status(400)
-                .json({
-                    success: false,
-                    message: "Technology should be String!!",
-                });
+            return res.status(400).json({
+                success: false,
+                message: "Technology should be String!!",
+            });
 
         if (!panelId.trim() || !technologyPanel.trim()) {
             return res.status(400).json({
@@ -266,8 +477,6 @@ const createTechnology = async (req, res) => {
         }
 
         panelId = panelId.trim();
-
-        //  check format of panelId
         if (!mongoose.Types.ObjectId.isValid(panelId))
             return res
                 .status(400)
@@ -275,27 +484,27 @@ const createTechnology = async (req, res) => {
 
         technologyPanel = technologyPanel?.trim().toUpperCase();
 
-        const panelExits = await Panel.findById(panelId);
+        const panelExits = await GaloPanel.findById(panelId);
         if (!panelExits) {
             return res.status(400).json({
                 success: false,
                 message: "Panel is not found.Try with correct panel Id",
             });
         }
-        // const isExisting = await Technology.findOne({ panelId, technologyPanel });
-        const isExisting = await Technology.findOne({
+
+        const isExisting = await GaloTechnology.findOne({
             panelId: new mongoose.Types.ObjectId(panelId),
             technologyPanel,
         });
 
-        if (isExisting?.technologyPanel === technologyPanel) {
+        if (isExisting) {
             return res.status(400).json({
                 success: false,
                 message: " This Technology is already register...",
             });
         }
 
-        await Technology.create({
+        await GaloTechnology.create({
             panelId: panelId,
             technologyPanel,
         });
@@ -324,14 +533,12 @@ const getTechnology = async (req, res) => {
 
         panelId = panelId.trim();
         if (!mongoose.Types.ObjectId.isValid(panelId))
-            return res
-                .status(400)
-                .json({
-                    success: false,
-                    message: "Panel id is not valid at all",
-                });
+            return res.status(400).json({
+                success: false,
+                message: "Panel id is not valid at all",
+            });
 
-        const isExits = await Panel.findOne({ _id: panelId });
+        const isExits = await GaloPanel.findOne({ _id: panelId });
         if (!isExits) {
             return res.status(404).json({
                 success: false,
@@ -339,10 +546,11 @@ const getTechnology = async (req, res) => {
             });
         }
 
+        let data;
         if (!isActive) {
-            var data = await Technology.find({ panelId });
+            data = await GaloTechnology.find({ panelId });
         } else {
-            var data = await Technology.find({ panelId, isActive });
+            data = await GaloTechnology.find({ panelId, isActive });
         }
         return res.status(200).json({
             success: true,
@@ -361,7 +569,6 @@ const getTechnology = async (req, res) => {
 const updateTechnology = async (req, res) => {
     try {
         let { _id, panelId, technologyPanel } = req.body;
-        console.log(" technology data  : ", req.body);
 
         if (typeof _id !== "string" || typeof technologyPanel !== "string") {
             return res.status(400).json({
@@ -380,15 +587,12 @@ const updateTechnology = async (req, res) => {
         technologyPanel = technologyPanel?.trim().toUpperCase();
 
         if (!mongoose.Types.ObjectId.isValid(_id))
-            return res
-                .status(400)
-                .json({
-                    success: false,
-                    message: "Technology id is not valid",
-                });
+            return res.status(400).json({
+                success: false,
+                message: "Technology id is not valid",
+            });
 
-        const existingData = await Technology.findOne({ _id });
-
+        const existingData = await GaloTechnology.findOne({ _id });
         if (!existingData) {
             return res.status(400).json({
                 success: false,
@@ -404,22 +608,29 @@ const updateTechnology = async (req, res) => {
             });
         }
 
-        const allData = await Technology.findOne({ panelId, technologyPanel });
-        console.log("allData : ", allData);
-
-        if (!allData) {
-            const updateData = await Technology.findByIdAndUpdate(
-                { _id },
-                { technologyPanel },
-                { new: true },
-            );
-
-            return res.status(200).json({
-                success: true,
-                message: "Data is update successfully",
-                updateData: updateData,
+        // Check duplicate (exclude current)
+        const allData = await GaloTechnology.findOne({
+            panelId,
+            technologyPanel,
+        });
+        if (allData && allData._id.toString() !== _id) {
+            return res.status(409).json({
+                success: false,
+                message: "Technology already exists for this panel",
             });
         }
+
+        const updateData = await GaloTechnology.findByIdAndUpdate(
+            { _id },
+            { technologyPanel },
+            { new: true },
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Data is update successfully",
+            updateData: updateData,
+        });
     } catch (error) {
         console.log("error : ", error);
         return res.status(500).json({
@@ -430,18 +641,14 @@ const updateTechnology = async (req, res) => {
 };
 
 const activeDisableTech = async (req, res) => {
-    // console.log("id,isActive : ", id, isActive)
     try {
         const { id, panelId, isActive } = req.body;
 
-        // checking isActive is string or not
         if (typeof isActive === "string")
             return res.status(400).json({
                 success: false,
                 message: "isActive should be boolean but getting string",
             });
-
-        //   checking if id's coming as string or something else
 
         if (typeof panelId !== "string" || typeof id !== "string")
             return res.status(400).json({
@@ -456,29 +663,24 @@ const activeDisableTech = async (req, res) => {
             });
         }
 
-        // checking if id's are valid or not
         if (!mongoose.Types.ObjectId.isValid(id))
-            return res
-                .status(400)
-                .json({
-                    success: false,
-                    message: "Technology id is not valid",
-                });
+            return res.status(400).json({
+                success: false,
+                message: "Technology id is not valid",
+            });
         if (!mongoose.Types.ObjectId.isValid(panelId))
             return res
                 .status(400)
                 .json({ success: false, message: "Panel id is not valid" });
 
-        const findPanel = await Panel.findById({ _id: panelId });
-
+        const findPanel = await GaloPanel.findById({ _id: panelId });
         if (!findPanel) {
             return res.status(400).json({
                 success: false,
                 message: "Panel is not find ,try with correct panel Id..",
             });
         }
-        const findTech = await Technology.findById({ _id: id });
-
+        const findTech = await GaloTechnology.findById({ _id: id });
         if (!findTech) {
             return res.status(400).json({
                 success: false,
@@ -486,7 +688,7 @@ const activeDisableTech = async (req, res) => {
             });
         }
 
-        const updateData = await Technology.findByIdAndUpdate(
+        const updateData = await GaloTechnology.findByIdAndUpdate(
             id,
             { $set: { isActive } },
             { new: true },
@@ -506,6 +708,9 @@ const activeDisableTech = async (req, res) => {
     }
 };
 
+// ------------------------------------------------
+// 3. CONSTRUCTIVE CRUD
+// ------------------------------------------------
 const createConstructive = async (req, res) => {
     try {
         let { panelId, technologyId, constructiveType } = req.body;
@@ -530,16 +735,15 @@ const createConstructive = async (req, res) => {
             });
         }
         constructiveType = constructiveType.trim().toUpperCase();
-        const panelExits = await Panel.findOne({ _id: panelId });
-        const technologyExits = await Technology.findOne({ _id: technologyId });
-        const isExits = await Constructive.findOne({
+
+        const panelExits = await GaloPanel.findOne({ _id: panelId });
+        const technologyExits = await GaloTechnology.findOne({
+            _id: technologyId,
+        });
+        const isExits = await GaloConstructive.findOne({
             technologyId,
             constructiveType,
         });
-
-        // console.log("technology",technologyExits);
-        // console.log("panel ",panelExits);
-        // console.log("Constructive ", isExits);
 
         if (!panelExits) {
             return res.status(404).json({
@@ -564,10 +768,7 @@ const createConstructive = async (req, res) => {
             });
         }
 
-        // console.log("constructiveType : ", constructiveType)
-        // console.log("constructiveType : ", constructiveType.length)
-
-        const createConstructive = await Constructive.create({
+        const createConstructive = await GaloConstructive.create({
             panelId,
             technologyId,
             constructiveType,
@@ -578,7 +779,6 @@ const createConstructive = async (req, res) => {
             data: createConstructive,
         });
     } catch (error) {
-        // console.log(error);
         return res.status(500).json({
             success: false,
             message: "Internal Server Error..",
@@ -588,12 +788,9 @@ const createConstructive = async (req, res) => {
 
 const getConstructive = async (req, res) => {
     const { technologyId, isActive } = req.query;
-    // console.log("technologyId : ", technologyId);
 
     try {
-        // const isExits = await Technology.findOne({ _id: technologyId });
-        const isExits = await Technology.findOne({ _id: technologyId });
-
+        const isExits = await GaloTechnology.findOne({ _id: technologyId });
         if (isExits === null) {
             return res.status(404).json({
                 success: false,
@@ -601,10 +798,11 @@ const getConstructive = async (req, res) => {
                     "Technology is not find try with correct technology Id",
             });
         }
+        let data;
         if (!isActive) {
-            var data = await Constructive.find({ technologyId });
+            data = await GaloConstructive.find({ technologyId });
         } else {
-            var data = await Constructive.find({ technologyId, isActive });
+            data = await GaloConstructive.find({ technologyId, isActive });
         }
         return res.status(200).json({
             success: true,
@@ -612,7 +810,6 @@ const getConstructive = async (req, res) => {
             data: data,
         });
     } catch (error) {
-        // console.log(error);
         return res.status(500).json({
             success: false,
             message: "Internal Server Error..",
@@ -622,8 +819,6 @@ const getConstructive = async (req, res) => {
 
 const updateConstructive = async (req, res) => {
     let { id, panelId, technologyId, constructiveType } = req.body;
-    // console.log(id, panelId, technologyId, constructiveType);
-    // console.log(req.body);
     constructiveType = constructiveType.trim().toUpperCase();
 
     try {
@@ -634,8 +829,7 @@ const updateConstructive = async (req, res) => {
             });
         }
 
-        const findPanel = await Panel.findById({ _id: panelId });
-
+        const findPanel = await GaloPanel.findById({ _id: panelId });
         if (!findPanel) {
             return res.status(404).json({
                 success: false,
@@ -643,7 +837,9 @@ const updateConstructive = async (req, res) => {
             });
         }
 
-        const findTechnology = await Technology.findById({ _id: technologyId });
+        const findTechnology = await GaloTechnology.findById({
+            _id: technologyId,
+        });
         if (!findTechnology) {
             return res.status(404).json({
                 success: false,
@@ -652,11 +848,7 @@ const updateConstructive = async (req, res) => {
             });
         }
 
-        const findConstructive = await Constructive.findById({ _id: id });
-
-        // console.log("findTechnology: ", findTechnology);
-        // console.log("findConstructive: ", findConstructive);
-        // console.log(constructiveType)
+        const findConstructive = await GaloConstructive.findById({ _id: id });
         if (!findConstructive) {
             return res.status(404).json({
                 success: false,
@@ -665,16 +857,14 @@ const updateConstructive = async (req, res) => {
             });
         }
 
-        const allData = await Constructive.find({ panelId });
-        // console.log("allData : ", allData);
-        const isExits = allData.some((data) => {
-            // console.log("data",data)
-            // console.log("data?.constructiveType : ",data?.constructiveType)
-            return data?.constructiveType === constructiveType;
+        // Efficient duplicate check (exclude current)
+        const existingDuplicate = await GaloConstructive.findOne({
+            panelId,
+            technologyId,
+            constructiveType,
+            _id: { $ne: id },
         });
-        // console.log("isExits : ", isExits)
-
-        if (isExits) {
+        if (existingDuplicate) {
             return res.status(400).json({
                 success: false,
                 message:
@@ -682,7 +872,7 @@ const updateConstructive = async (req, res) => {
             });
         }
 
-        const updateData = await Constructive.findByIdAndUpdate(
+        const updateData = await GaloConstructive.findByIdAndUpdate(
             { _id: id },
             { $set: { _id: id, panelId, technologyId, constructiveType } },
             { new: true },
@@ -711,14 +901,14 @@ const activeDisableConst = async (req, res) => {
                 message: "All fields are required(id,panelId,technology)..",
             });
         }
-        const findPanel = await Panel.findById({ _id: panelId });
+        const findPanel = await GaloPanel.findById({ _id: panelId });
         if (!findPanel) {
             return res.status(400).json({
                 success: false,
                 message: "Panel is not find ,try with correct panel Id..",
             });
         }
-        const findTech = await Technology.findById({ _id: technologyId });
+        const findTech = await GaloTechnology.findById({ _id: technologyId });
         if (!findTech) {
             return res.status(400).json({
                 success: false,
@@ -726,7 +916,7 @@ const activeDisableConst = async (req, res) => {
                     "Technology is not find ,try with correct technology Id..",
             });
         }
-        const findConstrutive = await Constructive.findById({ _id: id });
+        const findConstrutive = await GaloConstructive.findById({ _id: id });
         if (!findConstrutive) {
             return res.status(400).json({
                 success: false,
@@ -735,7 +925,7 @@ const activeDisableConst = async (req, res) => {
             });
         }
 
-        const data = await Constructive.findByIdAndUpdate(
+        const data = await GaloConstructive.findByIdAndUpdate(
             id,
             { $set: { isActive } },
             { new: true },
@@ -753,6 +943,9 @@ const activeDisableConst = async (req, res) => {
     }
 };
 
+// ------------------------------------------------
+// 4. PANEL WATT CRUD
+// ------------------------------------------------
 const panelWatt = async (req, res) => {
     try {
         const { panelId, technologyId, constructiveId, watt } = req.body;
@@ -765,10 +958,16 @@ const panelWatt = async (req, res) => {
             });
         }
 
-        if (!watt || typeof Number.parseInt(watt) !== "number") {
+        if (
+            watt === undefined ||
+            watt === null ||
+            typeof watt !== "number" ||
+            isNaN(watt) ||
+            watt <= 0
+        ) {
             return res.status(400).json({
                 success: false,
-                message: "Panel watt is required And it must be number.",
+                message: "Watt must be a positive number.",
             });
         }
 
@@ -795,9 +994,10 @@ const panelWatt = async (req, res) => {
             });
         }
 
-        const panelExits = await Panel.findById(panelId);
-        const technologExit = await Technology.findById(technologyId);
-        const constructiveExit = await Constructive.findById(constructiveId);
+        const panelExits = await GaloPanel.findById(panelId);
+        const technologExit = await GaloTechnology.findById(technologyId);
+        const constructiveExit =
+            await GaloConstructive.findById(constructiveId);
 
         if (!panelExits || !technologExit || !constructiveExit) {
             return res.status(404).json({
@@ -807,8 +1007,13 @@ const panelWatt = async (req, res) => {
             });
         }
 
-        // checking data is already exits or not
-        const isExits = await PanelWatt.findOne({ constructiveId, watt });
+        // Check duplicate for full combination
+        const isExits = await GaloPanelWatt.findOne({
+            panelId,
+            technologyId,
+            constructiveId,
+            watt,
+        });
         if (isExits) {
             return res.status(409).json({
                 success: false,
@@ -816,12 +1021,11 @@ const panelWatt = async (req, res) => {
             });
         }
 
-        const data = await PanelWatt.create({
+        await GaloPanelWatt.create({
             panelId,
             technologyId,
             constructiveId,
-            watt: Number.parseInt(watt),
-            // imgWatt,
+            watt,
         });
 
         return res.status(201).json({
@@ -851,10 +1055,11 @@ const getPanelWatt = async (req, res) => {
                     "Constructive Id must be required..|| Invaild Constructive Id",
             });
         }
+        let getData;
         if (!isActive) {
-            var getData = await PanelWatt.find({ constructiveId });
+            getData = await GaloPanelWatt.find({ constructiveId });
         } else {
-            var getData = await PanelWatt.find({ constructiveId, isActive });
+            getData = await GaloPanelWatt.find({ constructiveId, isActive });
         }
 
         return res.status(200).json({
@@ -868,6 +1073,7 @@ const getPanelWatt = async (req, res) => {
         });
     }
 };
+
 const togglePanelWatt = async (req, res) => {
     try {
         const { constructiveId, _id, isActive } = req.query;
@@ -888,9 +1094,10 @@ const togglePanelWatt = async (req, res) => {
             });
         }
 
-        const panelWattExits = await PanelWatt.findOne({ _id });
-
-        const constructiveExits = await PanelWatt.findOne({ constructiveId });
+        const panelWattExits = await GaloPanelWatt.findOne({ _id });
+        const constructiveExits = await GaloPanelWatt.findOne({
+            constructiveId,
+        });
 
         if (!constructiveExits) {
             return res.status(404).json({
@@ -915,7 +1122,7 @@ const togglePanelWatt = async (req, res) => {
             });
         }
 
-        const tooglePanel = await PanelWatt.findByIdAndUpdate(
+        const tooglePanel = await GaloPanelWatt.findByIdAndUpdate(
             { _id },
             { $set: { isActive } },
             { new: true },
@@ -951,8 +1158,7 @@ const updatePanelWatt = async (req, res) => {
             });
         }
 
-        const isExisting = await PanelWatt.findById(id);
-
+        const isExisting = await GaloPanelWatt.findById(id);
         if (!isExisting) {
             return res.status(400).json({
                 success: false,
@@ -961,12 +1167,11 @@ const updatePanelWatt = async (req, res) => {
             });
         }
 
-        const duplicate = await PanelWatt.findOne({
+        const duplicate = await GaloPanelWatt.findOne({
             constructiveId,
             watt,
             _id: { $ne: id },
         });
-
         if (duplicate) {
             return res.status(409).json({
                 success: false,
@@ -975,7 +1180,6 @@ const updatePanelWatt = async (req, res) => {
         }
 
         let imgWatt;
-
         // ONLY if new images uploaded
         if (req.files?.length) {
             // DELETE OLD FILES
@@ -992,7 +1196,6 @@ const updatePanelWatt = async (req, res) => {
 
             // ORDER NEW FILES
             const orders = req.body.imgOrder;
-
             imgWatt = req.files
                 .map((file, i) => ({
                     name: file.filename,
@@ -1003,12 +1206,10 @@ const updatePanelWatt = async (req, res) => {
                 .sort((a, b) => b.order - a.order)
                 .map((i) => i.name);
         }
-        const update = {
-            watt,
-        };
+        const update = { watt };
         if (imgWatt) update.imgWatt = imgWatt;
 
-        await PanelWatt.findByIdAndUpdate(id, update);
+        await GaloPanelWatt.findByIdAndUpdate(id, update);
 
         return res.json({
             success: true,
@@ -1022,6 +1223,9 @@ const updatePanelWatt = async (req, res) => {
     }
 };
 
+// ------------------------------------------------
+// 5. ADMIN AUTH & MANAGEMENT
+// ------------------------------------------------
 const createAdmin = async (req, res) => {
     try {
         let { email, password, role } = req.body;
@@ -1050,8 +1254,7 @@ const createAdmin = async (req, res) => {
             });
         }
 
-        const admin = await Admin.findOne({ email }).lean();
-
+        const admin = await GaloAdmin.findOne({ email }).lean();
         if (admin) {
             return res.status(409).json({
                 success: false,
@@ -1060,9 +1263,7 @@ const createAdmin = async (req, res) => {
         }
 
         const hashPass = await bcrypt.hash(password, 10);
-        // console.log("hashPass : ", hashPass)
-
-        const adminData = await Admin.create({
+        const adminData = await GaloAdmin.create({
             email,
             password: hashPass,
             role,
@@ -1076,7 +1277,6 @@ const createAdmin = async (req, res) => {
             data: adminData,
         });
     } catch (error) {
-        // console.log("Error : ", error);
         return res.status(500).json({
             success: false,
             message: error?.message || "Internal Server Error..",
@@ -1084,53 +1284,8 @@ const createAdmin = async (req, res) => {
     }
 };
 
-const getSalesAllClients = async (req, res) => {
-    try {
-        const { salesId } = req.params;
-
-        if (!mongoose.isValidObjectId(salesId))
-            return res
-                .status(400)
-                .json({ success: false, message: "Invalid SalesId" });
-
-        let data = await SalesCustomer.find({ salesPersonId: salesId }).lean();
-
-        return res.status(200).json({ success: true, data });
-    } catch (er) {
-        return res.status(500).json({ success: false, message: er?.message });
-    }
-};
-
-const getSalesClientProposals = async (req, res) => {
-    try {
-        const { salesId, clientId } = req.params;
-
-        if (
-            !mongoose.isValidObjectId(salesId) ||
-            !mongoose.isValidObjectId(clientId)
-        )
-            return res
-                .status(400)
-                .json({ success: false, message: "Invalid Id's" });
-
-        const data = await SalesPanel.find({ salesId, clientId }).populate([
-            { path: "selectedPanels.wattId", select: "watt" },
-            {
-                path: "selectedPanels.constructiveId",
-                select: "constructiveType",
-            },
-            { path: "selectedPanels.technologyId", select: "technologyPanel" },
-            { path: "selectedPanels.panelId", select: "panelType" },
-        ]);
-
-        return res.status(200).json({ success: true, data });
-    } catch (er) {
-        return res.status(500).json({ success: false, message: er?.message });
-    }
-};
-
-// ----------------
 const createSuperAdmin = async (req, res) => {
+    // Same as createAdmin
     try {
         let { email, password, role } = req.body;
 
@@ -1157,8 +1312,7 @@ const createSuperAdmin = async (req, res) => {
             });
         }
 
-        const admin = await Admin.findOne({ email }).lean();
-
+        const admin = await GaloAdmin.findOne({ email }).lean();
         if (admin) {
             return res.status(409).json({
                 success: false,
@@ -1167,8 +1321,7 @@ const createSuperAdmin = async (req, res) => {
         }
 
         const hashPass = await bcrypt.hash(password, 10);
-
-        const adminData = await Admin.create({
+        const adminData = await GaloAdmin.create({
             email,
             password: hashPass,
             role,
@@ -1186,104 +1339,6 @@ const createSuperAdmin = async (req, res) => {
     }
 };
 
-// ----------------
-
-const createDealerAccount = async (req, res) => {
-    try {
-        let result = createDealerAccountAdminSchema.safeParse(req.body);
-
-        if (!result.success) {
-            const message = [];
-            result.error.issues.forEach((err) => {
-                let v;
-                if (err.path.length >= 2) {
-                    v = err.path[err.path.length - 1];
-                } else {
-                    v = err.path.join(".");
-                }
-                message.push({ message: err.message });
-            });
-
-            return res.status(400).json({
-                success: false,
-                message,
-            });
-        }
-
-        let {
-            firstName,
-            lastName,
-            contactNumber,
-            address,
-            gstin,
-            password,
-            companyName,
-            email,
-        } = result.data;
-
-        let companyLogo = null;
-
-        let conditions = [];
-        if (email) conditions.push({ email });
-        if (contactNumber) conditions.push({ contactNumber });
-        if (gstin) conditions.push({ gstin });
-
-        let isDealerExist = await DealerModel.findOne({
-            $or: conditions,
-        });
-
-        if (isDealerExist)
-            return res
-                .status(409)
-                .json({ success: false, message: "Dealer Already Exist" });
-
-        if (req.file) {
-            const folder = path.join("Dealer_Logo");
-
-            await fsp.mkdir(folder, { recursive: true });
-
-            let img = req.file.fieldname + "-" + Date.now() + ".webp";
-            let imgPath = path.join(folder, img);
-
-            let buf = req.file.buffer;
-
-            await sharp(buf)
-                .resize(600, 600, {
-                    fit: "inside",
-                    withoutEnlargement: true,
-                })
-                .webp({ quality: 80 })
-                .toFile(imgPath);
-
-            companyLogo = `https://gautamsolar.us/dealer_logo/${img}`;
-            // companyLogo = `http://localhost:1008/dealer_logo/${img}`;
-        }
-
-        let hashPass = await bcrypt.hash(password, 10);
-
-        await DealerModel.create({
-            firstName,
-            lastName,
-            contactNumber,
-            address,
-            gstin,
-            companyName,
-            email,
-            password: hashPass,
-            companyLogo,
-        });
-
-        return res
-            .status(200)
-            .json({
-                success: true,
-                message: "Dealer Account Created successfully.",
-            });
-    } catch (er) {
-        return res.status(500).json({ success: false, message: er?.message });
-    }
-};
-
 const toggleAdmin = async (req, res) => {
     try {
         let { adminId, isActive } = req.body;
@@ -1295,7 +1350,6 @@ const toggleAdmin = async (req, res) => {
 
         if (typeof isActive === "string") {
             const value = isActive.trim().toLowerCase();
-
             if (value === "true") isActive = true;
             else if (value === "false") isActive = false;
             else {
@@ -1314,7 +1368,7 @@ const toggleAdmin = async (req, res) => {
             });
         }
 
-        const updatedAdmin = await Admin.findByIdAndUpdate(
+        const updatedAdmin = await GaloAdmin.findByIdAndUpdate(
             adminId,
             { $set: { isActive } },
             { new: true, runValidators: true },
@@ -1325,12 +1379,12 @@ const toggleAdmin = async (req, res) => {
                 success: false,
                 message: "Admin not found.",
             });
-
-            return res.status(200).json({
-                success: true,
-                message: `Account ${isActive ? "Activated" : "De-Activated"} successfully`,
-            });
         }
+
+        return res.status(200).json({
+            success: true,
+            message: `Account ${isActive ? "Activated" : "De-Activated"} successfully`,
+        });
     } catch (er) {
         return res.status(500).json({ success: false, message: er?.message });
     }
@@ -1338,7 +1392,7 @@ const toggleAdmin = async (req, res) => {
 
 const getAdmin = async (req, res) => {
     try {
-        const allData = await Admin.find()
+        const allData = await GaloAdmin.find()
             .select("-password")
             .sort({ role: -1 })
             .lean();
@@ -1376,7 +1430,7 @@ const loginAdmin = async (req, res) => {
             });
         }
 
-        const admin = await Admin.findOne({ email });
+        const admin = await GaloAdmin.findOne({ email });
         if (!admin) {
             return res.status(401).json({
                 success: false,
@@ -1391,10 +1445,8 @@ const loginAdmin = async (req, res) => {
                     "Your account is currently inactive. Please contact the super admin to activate your account.",
             });
         }
-        // console.log("Admin : ", admin);
 
         const match = await bcrypt.compare(password, admin.password);
-
         if (!match) {
             return res.status(401).json({
                 success: false,
@@ -1408,25 +1460,21 @@ const loginAdmin = async (req, res) => {
                 email: admin.email,
                 role: admin.role,
             },
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" },
+        );
 
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" },
-    );
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
 
         res.cookie("role", admin?.role, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            // sameSite: "none",
             sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-
-            // sameSite: "lax",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
@@ -1452,14 +1500,10 @@ const loginAdmin = async (req, res) => {
 
 const logoutAdmin = async (req, res) => {
     try {
-        // console.log(req?.cookies)
         res.clearCookie("token", {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            // sameSite: "none",
             sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-
-            // sameSite: "lax",
         });
 
         res.clearCookie("role", {
@@ -1478,338 +1522,328 @@ const logoutAdmin = async (req, res) => {
     }
 };
 
-const adminDashBoardData = async (req, res) => {
+// ------------------------------------------------
+// 6. SALES PERSON CRUD (kept)
+// ------------------------------------------------
+const createGaloSalesPerson = async (req, res) => {
     try {
-        const [totalPannel, totalDealer, totalCustomer] = await Promise.all([
-            Panel.find().select("panelType panelActive").lean(),
+        let { name, phone, password } = req.body;
 
-            DealerModel.find()
-                .select(" firstName email companyName contactNumber createdAt")
-                .sort({ createdAt: -1 })
-                .lean(),
-
-            CustomerModel.find().select("name email dealerId phone").lean(),
-        ]);
-
-        return res.status(200).json({
-            success: true,
-            data: {
-                pannelData: totalPannel,
-                dealerData: totalDealer,
-                customer: totalCustomer,
-            },
-        });
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: error.message || "Internal server Error..",
-        });
-    }
-};
-
-const ExcelDownload = async (req, res) => {
-    try {
-        const totalDealer = await DealerModel.find()
-            .select(" firstName email companyName contactNumber createdAt _id")
-            .sort({ createdAt: -1 })
-            .lean();
-
-        const dealerIds = totalDealer.map((item) => item?._id);
-
-        const customers = await CustomerModel.aggregate([
-            {
-                $match: { dealerId: { $in: dealerIds } },
-            },
-            {
-                $group: {
-                    _id: "$dealerId",
-                    totalClients: { $sum: 1 },
-                },
-            },
-        ]);
-
-        const clientCountMap = {};
-        customers.forEach((item) => {
-            clientCountMap[item._id.toString()] = item.totalClients;
-        });
-
-        const panelCreateClient = await PanelModel.aggregate([
-            {
-                $match: { dealerId: { $in: dealerIds } },
-            },
-            {
-                $group: {
-                    _id: "$dealerId",
-                    totalPanelCreated: { $sum: 1 },
-                },
-            },
-        ]);
-        const panelCreated = {};
-        panelCreateClient.forEach((item) => {
-            panelCreated[item._id.toString()] = item.totalPanelCreated;
-        });
-
-        const powerPlantPropsal = await ProposalModel.aggregate([
-            {
-                $match: {
-                    dealerId: { $in: dealerIds },
-                },
-            },
-            {
-                $group: {
-                    _id: "$dealerId",
-                    totalPowerPlantPropsal: { $sum: 1 },
-                },
-            },
-        ]);
-
-        const powerPlantPropsalData = {};
-        powerPlantPropsal.forEach((item) => {
-            powerPlantPropsalData[item._id.toString()] =
-                item.totalPowerPlantPropsal;
-        });
-
-        let modifiedDealer = totalDealer.map((item) => ({
-            firstName: item?.firstName,
-            email: item?.email,
-            companyName: item?.companyName,
-            contactNumber: item?.contactNumber,
-            TotalClients: clientCountMap[item._id.toString()] || 0,
-            PanelPropsal: panelCreated[item._id.toString()] || 0,
-            PowerPlantPropsal: powerPlantPropsalData[item._id.toString()] || 0,
-            createdAt: new Date(item?.createdAt).toLocaleString(),
-        }));
-
-        const worksheet = xlxs.utils.json_to_sheet(modifiedDealer);
-
-        const workbook = xlxs.utils.book_new();
-        xlxs.utils.book_append_sheet(workbook, worksheet, "Dealer");
-
-        const excelBuffer = xlxs.write(workbook, {
-            type: "buffer",
-            bookType: "xlsx",
-        });
-
-        res.setHeader(
-            "Content-Type",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        );
-
-        res.setHeader(
-            "Content-Disposition",
-            "attachment; filename=dealer.xlsx",
-        );
-
-        res.send(excelBuffer);
-    } catch (er) {
-        console.log("Error : ", er);
-        return res
-            .status(500)
-            .json({ success: false, message: "Internal Server Error" });
-    }
-};
-
-const getCustomerData = async (req, res) => {
-    const { dealerId } = req.query;
-    // console.log("delaerId : ", dealerId)
-    try {
-        if (
-            !dealerId ||
-            !mongoose.Types.ObjectId.isValid(dealerId) ||
-            typeof dealerId !== "string"
-        ) {
-            return res.status(404).json({
+        if (!name || !phone || !password)
+            return res.status(400).json({
                 success: false,
-                message:
-                    "Dealer Id Must be required..,please check dealer Id again.. ",
+                message: "Please fill required fields..",
             });
-        }
 
-        const customerData = await CustomerModel.find({
-            dealerId: dealerId,
-        })
-            .select("dealerId  name email ")
-            .lean();
-        // console.log("customerData : ", customerData)
+        name = name.trim();
+        const phoneRegex = /^[6-9]\d{9}$/;
+        const nameRegex = /^[a-zA-Z]+(?:\s[a-zA-Z]+)*$/;
 
-        return res.status(200).json({
-            success: true,
-            data: customerData,
-        });
-    } catch (error) {
-        console.log("Error : ", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal Server Error...",
-        });
-    }
-};
-
-// inverter function
-
-const addInverter = async (req, res) => {
-    try {
-        let { phase } = req.body;
-
-        if (!phase?.trim())
+        if (!phoneRegex.test(phone))
             return res
                 .status(400)
-                .json({ success: false, message: "Phase name is required" });
+                .json({ success: false, message: "Invalid phone number!" });
 
-        phase = phase.trim().toLowerCase();
+        if (!nameRegex.test(name))
+            return res
+                .status(400)
+                .json({ success: false, message: "Invalid name" });
 
-        const existingPhase = await Inverter.findOne({ phase });
+        const newSalesPerson = await GaloSales.create({
+            name,
+            phone,
+            password,
+        });
 
-        if (existingPhase) {
+        return res.status(201).json({
+            success: true,
+            message: "Account Created",
+            data: {
+                _id: newSalesPerson._id,
+                name: newSalesPerson.name,
+                phone: newSalesPerson.phone,
+                isActive: newSalesPerson.isActive,
+                userId: newSalesPerson.userId,
+            },
+        });
+    } catch (er) {
+        if (er?.code === 11000) {
             return res.status(409).json({
                 success: false,
-                message: "Phase already exists",
+                message: "userId Or Phone already exists",
             });
         }
-
-        const inverter = await Inverter.create({
-            phase,
-        });
-
-        return res
-            .status(201)
-            .json({ success: true, message: "Phase Added", inverter });
-    } catch (er) {
         return res.status(500).json({ success: false, message: er?.message });
     }
 };
 
-const addKw = async (req, res) => {
+const updateGaloSalesAccount = async (req, res) => {
     try {
-        const { inverterId } = req.params;
-        const { capacity } = req.body;
+        let { salesId, name, phone } = req.body;
 
-        if (!mongoose.isValidObjectId(inverterId))
+        if (!mongoose.isValidObjectId(salesId))
             return res
                 .status(400)
-                .json({ success: false, message: "Invalid Id" });
-        if (!capacity)
-            return res
-                .status(400)
-                .json({ success: false, message: "Capacity is required" });
+                .json({ success: false, message: "Invalid or missing Id." });
 
-        let inverter = await Inverter.findByIdAndUpdate(
-            inverterId,
-            {
-                $addToSet: {
-                    capacities: capacity,
-                },
-            },
-            { new: true },
-        ).lean();
+        const salesAccount = await GaloSales.findOne({ _id: salesId });
 
-        return res
-            .status(200)
-            .json({ success: true, message: "Capcity Added", inverter });
-    } catch (er) {
-        return res.status(500).json({ success: false, message: er?.message });
-    }
-};
-
-const inverterStatusChange = async (req, res) => {
-    try {
-        let { inverterId } = req.params;
-        const { status } = req.body;
-
-        if (!mongoose.isValidObjectId(inverterId))
-            return res
-                .status(400)
-                .json({ success: false, message: "Invalid Id" });
-
-        const allowedStatus = ["active", "inactive"];
-
-        if (!allowedStatus.includes(status)) {
-            return res.status(400).json({
-                message: "Invalid status",
-            });
-        }
-
-        let inverter = await Inverter.findOneAndUpdate(
-            { _id: inverterId },
-            {
-                $set: { status },
-            },
-            { new: true, runValidators: true },
-        );
-
-        return res
-            .status(200)
-            .json({
-                success: true,
-                message: `Inverter ${status === "active" ? "Activated" : "Inactivated"}`,
-            });
-    } catch (er) {
-        return res.status(500).json({ success: false, message: er?.message });
-    }
-};
-
-const getInverters = async (req, res) => {
-    try {
-        let inverter = await Inverter.find({}).lean();
-
-        return res.status(200).json({ success: true, inverter });
-    } catch (er) {
-        return res.status(500).json({ success: false, message: er?.message });
-    }
-};
-
-const removeKw = async (req, res) => {
-    try {
-        let { inverterId } = req.params;
-        let { kw } = req.body;
-
-        if (!mongoose.isValidObjectId(inverterId))
-            return res
-                .status(400)
-                .json({ success: false, message: "Invalid InverterId." });
-        if (!kw)
-            return res
-                .status(400)
-                .json({ success: false, message: "Kw not provided." });
-
-        let inverter = await Inverter.findOne({ _id: inverterId });
-
-        if (!inverter)
+        if (!salesAccount)
             return res
                 .status(404)
-                .json({ success: false, message: "Inverter not found." });
+                .json({ success: false, message: "Account not found!" });
 
-        await Inverter.findByIdAndUpdate(inverterId, {
-            $pull: {
-                capacities: kw,
+        const newData = {};
+
+        if (name && name.trim()) {
+            newData.name = name.trim();
+        }
+
+        if (phone) {
+            phone = phone.replace(/\D/g, "");
+            if (!/^[6-9]\d{9}$/.test(phone)) {
+                return res
+                    .status(400)
+                    .json({ success: false, message: "Invalid Phone number!" });
+            }
+            if (phone !== salesAccount.phone) {
+                newData.phone = phone;
+            }
+        }
+
+        if (Object.keys(newData).length === 0) {
+            return res
+                .status(400)
+                .json({ success: false, message: "No Changes provided!" });
+        }
+
+        await GaloSales.findByIdAndUpdate(salesId, { $set: newData });
+        return res
+            .status(200)
+            .json({ success: true, message: "Account Updated." });
+    } catch (er) {
+        if (er?.code === 11000) {
+            return res.status(409).json({
+                success: false,
+                message: "Email or phone already exist",
+            });
+        }
+        return res.status(500).json({ success: false, message: er?.message });
+    }
+};
+
+const getGaloSalesPersonList = async (req, res) => {
+    try {
+        let { pageNo } = req.query;
+        const limit = 6;
+
+        pageNo = parseInt(pageNo) || 1;
+
+        const sales = await GaloSales.aggregate([
+            {
+                $facet: {
+                    totalRecord: [{ $count: "count" }],
+                    data: [
+                        { $sort: { _id: -1 } },
+                        { $skip: (pageNo - 1) * limit },
+                        { $limit: limit },
+                        {
+                            $lookup: {
+                                from: "galosalespanels",
+                                localField: "_id",
+                                foreignField: "salesId",
+                                as: "totalClient",
+                            },
+                        },
+                        {
+                            $addFields: {
+                                totalClient: {
+                                    $size: {
+                                        $ifNull: ["$totalClient", []],
+                                    },
+                                },
+                            },
+                        },
+                        {
+                            $project: {
+                                password: 0,
+                            },
+                        },
+                    ],
+                },
             },
-        });
+            {
+                $project: {
+                    data: 1,
+                    totalRecord: {
+                        $ifNull: [
+                            { $arrayElemAt: ["$totalRecord.count", 0] },
+                            0,
+                        ],
+                    },
+                },
+            },
+            {
+                $addFields: {
+                    currentPage: pageNo,
+                    limit,
+                    hasNextPage: {
+                        $gt: ["$totalRecord", pageNo * limit],
+                    },
+                },
+            },
+        ]);
 
-        return res.status(200).json({ success: false, message: "Kw Removed." });
+        return res.status(200).json({ success: true, ...sales[0] });
     } catch (er) {
         return res.status(500).json({ success: false, message: er?.message });
     }
 };
 
-const editInverter = async (req, res) => {
+const toggleGaloSalesStatus = async (req, res) => {
     try {
-        let { inverterId } = req.params;
-        let { phase } = req.body;
-         console.log(inverterId)
+        const { salesId, isActive } = req.body;
 
-        if (!phase?.trim())
+        if (!mongoose.isValidObjectId(salesId))
             return res
                 .status(400)
-                .json({ success: false, message: "Phase name is required" });
+                .json({ success: false, message: "Invalid or missing Id" });
 
-        phase = phase.trim().toLowerCase();
-       
+        if (typeof isActive !== "boolean") {
+            return res.status(400).json({
+                success: false,
+                message: "isActive must be true or false",
+            });
+        }
 
-        let inverter = await Inverter.findByIdAndUpdate(
-            inverterId,
-            {
-                phase: phase,
-            },
+        const sales = await GaloSales.findOneAndUpdate(
+            { _id: salesId },
+            { $set: { isActive } },
+            { new: true },
+        );
+
+        if (!sales) {
+            return res.status(404).json({
+                success: false,
+                message: "Sales person not found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: `Account ${isActive === true ? "Activated" : "De-Activated"}`,
+        });
+    } catch (er) {
+        return res.status(500).json({ success: false, message: er?.message });
+    }
+};
+
+// ------------------------------------------------
+// 7. INVERTER  CRUD
+// ------------------------------------------------
+
+const createInverter = async (req, res) => {
+    try {
+        const { inverterCapacity } = req.body;
+
+        const normalizedCap = normalizeString(inverterCapacity);
+
+        const alreadyExists = await GaloInverter.findOne({
+            inverterCapacity: normalizedCap,
+        });
+        if (alreadyExists) {
+            return res.status(409).json({
+                success: false,
+                message:
+                    "Inverter capacity already exists, please use a different capacity.",
+            });
+        }
+        const inverter = await GaloInverter.create({
+            inverterCapacity: normalizedCap,
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: "Inverter created successfully",
+            data: inverter,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+const getInverter = async (req, res) => {
+    try {
+        const inverters = await GaloInverter.find().sort({
+            createdAt: -1,
+        });
+
+        return res.status(200).json({
+            success: true,
+            data: inverters,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+// const updateInverter = async (req, res) => {
+//     try {
+//         const { id, inverterCapacity } = req.body;
+//         const normalizedCap = normalizeString(inverterCapacity);
+
+//         const inverter = await GaloInverter.findByIdAndUpdate(
+//             id,
+//             { inverterCapacity: normalizedCap },
+//             { new: true },
+//         );
+
+//         if (!inverter) {
+//             return res.status(404).json({
+//                 success: false,
+//                 message: "Inverter not found",
+//             });
+//         }
+
+//         return res.status(200).json({
+//             success: true,
+//             message: "Inverter updated successfully",
+//             data: inverter,
+//         });
+//     } catch (error) {
+//         return res.status(500).json({
+//             success: false,
+//             message: error.message,
+//         });
+//     }
+// };
+
+const updateInverter = async (req, res) => {
+    try {
+        const { id, inverterCapacity } = req.body;
+        const normalizedCap = normalizeString(inverterCapacity);
+
+        const existing = await GaloInverter.findOne({
+            inverterCapacity: normalizedCap,
+            _id: { $ne: id }, // Ignore the current document
+        });
+
+        if (existing) {
+            return res.status(409).json({
+                success: false,
+                message: "Inverter capacity already exists",
+            });
+        }
+
+        const inverter = await GaloInverter.findByIdAndUpdate(
+            id,
+            { inverterCapacity: normalizedCap },
             { new: true },
         );
 
@@ -1820,51 +1854,104 @@ const editInverter = async (req, res) => {
             });
         }
 
-        return res
-            .status(200)
-            .json({
-                success: true,
-                message: "Inverter Phase Updated.",
-                inverter,
-            });
-    } catch (er) {
-        return res.status(500).json({ success: false, message: er?.message });
+        return res.status(200).json({
+            success: true,
+            message: "Inverter updated successfully",
+            data: inverter,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
     }
 };
 
+const toggleInverter = async (req, res) => {
+    try {
+        const { id } = req.query;
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "Inverter ID is required",
+            });
+        }
+        const inverter = await GaloInverter.findById(id);
+
+        if (!inverter) {
+            return res.status(404).json({
+                success: false,
+                message: "Inverter not found",
+            });
+        }
+
+        inverter.isActive = !inverter.isActive;
+
+        await inverter.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Inverter toggled successfully",
+            data: inverter,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+//util
+const normalizeString = (str) => {
+    return String(str).trim().toUpperCase();
+};
+
+// ------------------------------------------------
+// EXPORT (only the functions kept)
+// ------------------------------------------------
 module.exports = {
+    // Panel
     createPanel,
     getPanel,
     updatePanel,
     togglePanel,
+
+    // Technology
     createTechnology,
     getTechnology,
     updateTechnology,
     activeDisableTech,
+
+    // Constructive
     createConstructive,
     getConstructive,
     updateConstructive,
     activeDisableConst,
-    createAdmin,
-    getAdmin,
-    loginAdmin,
-    logoutAdmin,
-    adminDashBoardData,
+
+    // Panel Watt
     panelWatt,
     getPanelWatt,
     togglePanelWatt,
     updatePanelWatt,
-    ExcelDownload,
-    getCustomerData,
-    toggleAdmin,
-    getSalesAllClients,
-    getSalesClientProposals,
+
+    // Admin Auth
+    createAdmin,
     createSuperAdmin,
-    createDealerAccount,
-    addInverter,
-    addKw,
-    inverterStatusChange,
-    getInverters,
-    removeKw,
-    editInverter,
+    toggleAdmin,
+    getAdmin,
+    loginAdmin,
+    logoutAdmin,
+
+    // Sales Person
+    createGaloSalesPerson,
+    updateGaloSalesAccount,
+    getGaloSalesPersonList,
+    toggleGaloSalesStatus,
+
+    // Inverter
+    createInverter,
+    getInverter,
+    updateInverter,
+    toggleInverter,
 };
