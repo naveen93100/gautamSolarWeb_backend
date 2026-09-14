@@ -53,8 +53,8 @@ const { rejects } = require("assert");
 const panelRouter = require("./Routes/Admin panel/adminPanel.routes.js");
 const SalesCustomer = require("./Models/Sales/sales.customer.schema.js");
 
-const galoSalesRouter=require('./Routes/Galo/galo.sales.router.js')
-const galoAdminRouter=require('./Routes/Galo/GaloAdmin/galoAdmin.router.js')
+const galoSalesRouter = require('./Routes/Galo/galo.sales.router.js')
+const galoAdminRouter = require('./Routes/Galo/GaloAdmin/galoAdmin.router.js')
 // const seedData = require("./seed.js");
 
 const storage = multer.memoryStorage();
@@ -144,6 +144,74 @@ const sunCoreTransporter = nodemailer.createTransport({
     user: process.env.SUNCORE_MAIL,
     pass: process.env.SUNCORE_PASS,
   },
+});
+
+app.post("/solar-saving-contact", async (req, res) => {
+  try {
+    let {
+      name,
+      pin,
+      whatsapp,
+      lookingFor,
+      monthlyBill,
+      utm
+    } = req.body;
+
+    let Utm = JSON.parse(utm);
+
+    const referrerUrl = req.headers.referer || "Unknown"; // Get the referrer URL
+    const referrerDomain = url.parse(referrerUrl).hostname; // Extract the domain name from the URL
+    const referrerWebsite = extractWebsiteName(referrerDomain);
+
+    const lookingForLabels = {
+      home: "Home",
+      commercial: "Commercial",
+      industrial: "Industrial",
+      exploring: "Just Exploring",
+    };
+
+    const mailOptions = {
+      from: "gautamsolar.vidoes01@gmail.com", // sender email
+      to: "info@gautamsolar.com", // destination email
+      subject: `New Site Visit Request — ${name || "Unnamed Lead"}`,
+      html: `
+            <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+              <h2 style="color: #a20000; border-bottom: 2px solid #a20000; padding-bottom: 10px;">Solar Site Visit Request</h2>
+
+              <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; margin-top: 15px;">
+                <h3 style="color: #a20000; margin-top: 0;">Contact Details</h3>
+                <p style="margin-bottom: 10px;"><strong>Full Name:</strong> ${name || 'N/A'}</p>
+                <p style="margin-bottom: 10px;"><strong>WhatsApp Number:</strong> +91 ${whatsapp || 'N/A'}</p>
+                <p style="margin-bottom: 10px;"><strong>PIN Code:</strong> ${pin || 'N/A'}</p>
+              </div>
+
+              <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; margin-top: 15px;">
+                <h3 style="color: #a20000; margin-top: 0;">Requirement Details</h3>
+                <p style="margin-bottom: 10px;"><strong>Looking For:</strong> ${lookingForLabels[lookingFor] || lookingFor || 'N/A'}</p>
+                <p style="margin-bottom: 10px;"><strong>Average Monthly Electricity Bill:</strong> ${monthlyBill || 'Not Provided'}</p>
+              </div>
+
+              <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; margin-top: 15px;">
+                <h3 style="color: #a20000; margin-top: 0;">Source Information</h3>
+                <p style="margin-bottom: 10px;"><strong>Source:</strong>Direct</p>
+                <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${Utm?.utm_source || 'Direct'}</p>
+
+              </div>
+
+              <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; margin-top: 15px;">
+                <p style="margin-bottom: 5px; color: #666; font-size: 12px;"><strong>Submitted At:</strong> ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</p>
+              </div>
+            </div>
+  `,
+    };
+    await transporter.sendMail(mailOptions);
+
+    res
+      .status(200)
+      .json({ success: true, message: "Form submitted successfully" });
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
 });
 
 app.post("/solarPlant-contact", async (req, res) => {
@@ -699,8 +767,8 @@ app.use("/api/sales", SalesRouter);
 
 
 // -----------
-app.use('/api/galoSales',galoSalesRouter)
-app.use('/api/galoAdmin',galoAdminRouter)
+app.use('/api/galoSales', galoSalesRouter)
+app.use('/api/galoAdmin', galoAdminRouter)
 // app.use('/api/galoSales',)
 
 
