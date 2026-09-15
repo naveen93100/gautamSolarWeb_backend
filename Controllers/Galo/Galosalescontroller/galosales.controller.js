@@ -15,6 +15,12 @@ const {
 //proposal creation and management
 const createGaloSalesProposal = async (req, res) => {
     try {
+
+        let validType = ["Panel", "Both"];
+
+        let { proposalType } = req.body;
+        if (!validType.includes(proposalType)) return res.status(400).json({ success: false, message: "Invalid Proposal Type.." });
+
         const result = galoSalesProposalSchema.safeParse(req.body);
 
         if (!result.success) {
@@ -54,7 +60,6 @@ const createGaloSalesProposal = async (req, res) => {
             );
         }, 0);
 
-        console.log(finalPrice);
 
         const panelProposal = await GaloSalesProposal.create({
             salesId,
@@ -63,7 +68,8 @@ const createGaloSalesProposal = async (req, res) => {
             termsAndConditions,
             selectedPanels,
             finalPrice,
-            setupKw
+            setupKw,
+            proposalType
         });
 
         return res.status(201).json({
@@ -71,6 +77,7 @@ const createGaloSalesProposal = async (req, res) => {
             message: "Proposal Created Successfully!",
             data: panelProposal,
         });
+
     } catch (er) {
         return res.status(500).json({
             success: false,

@@ -29,7 +29,7 @@ const galoSalesProposalSchema = z.object({
         })
         .min(1, "Terms & Conditions cannot be empty"),
 
-    setupKw: z.number({ required_error: "Setup Kw is required" }),
+    setupKw: z.number({ required_error: "Setup Kw is required" }).optional(),
 
     selectedPanels: z
         .array(
