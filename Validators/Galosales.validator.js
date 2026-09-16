@@ -44,25 +44,79 @@ const galoSalesProposalSchema = z.object({
 
                 inverterId: objectIdSchema("Inverter capacity").optional(),
 
-                // quantity: z
-                //   .number({
-                //     required_error: "Quantity is required",
-                //     invalid_type_error: "Quantity must be a number",
-                //   })
-                //   .min(1, "Quantity must be at least 1"),
-
-                // rate: z
-                //   .number({
-                //     required_error: "Rate is required",
-                //     invalid_type_error: "Rate must be a number",
-                //   })
-                //   .min(1, "Rate must be greater than 0"),
-
                 totalPrice: z.number({
                     required_error: "Total Price is required",
                 }),
 
                 subsidyAmount: z.number().optional().default(0),
+
+                gstAmount: z.number({
+                    required_error: "GST Amount is required",
+                }),
+            }),
+            {
+                required_error: "Selected Panels are required",
+                invalid_type_error: "Selected Panels must be an array",
+            },
+        )
+        .min(1, "At least one panel is required"),
+});
+
+const galoSalesPanelProposalSchema = z.object({
+    propId: objectIdSchema("ProposalId").optional(),
+
+    salesId: objectIdSchema("SalesId").optional(),
+
+    customerId: objectIdSchema("CustomerId").optional(),
+
+    gst: z.coerce
+        .number({
+            required_error: "GST is required",
+            invalid_type_error: "GST must be a number",
+        })
+        .min(0, "GST cannot be negative"),
+
+    termsAndConditions: z
+        .string({
+            required_error: "Terms & Conditions are required",
+            invalid_type_error: "Terms & Conditions must be a string",
+        })
+        .min(1, "Terms & Conditions cannot be empty"),
+
+    // setupKw: z.number({ required_error: "Setup Kw is required" }).optional(),
+
+    selectedPanels: z
+        .array(
+            z.object({
+                panelId: objectIdSchema("Panel"),
+
+                technologyId: objectIdSchema("Technology"),
+
+                constructiveId: objectIdSchema("Constructive"),
+
+                wattId: objectIdSchema("Panel Watt"),
+
+                // inverterId: objectIdSchema("Inverter capacity").optional(),
+
+                quantity: z
+                  .number({
+                    required_error: "Quantity is required",
+                    invalid_type_error: "Quantity must be a number",
+                  })
+                  .min(1, "Quantity must be at least 1"),
+
+                rate: z
+                  .number({
+                    required_error: "Rate is required",
+                    invalid_type_error: "Rate must be a number",
+                  })
+                  .min(1, "Rate must be greater than 0"),
+
+                totalPrice: z.number({
+                    required_error: "Total Price is required",
+                }),
+
+                // subsidyAmount: z.number().optional().default(0),
 
                 gstAmount: z.number({
                     required_error: "GST Amount is required",
@@ -228,4 +282,5 @@ module.exports = {
     galoSalesProposalSchema,
     galoCreateClientSchema,
     galoUpdateClientSchema,
+    galoSalesPanelProposalSchema,
 };
