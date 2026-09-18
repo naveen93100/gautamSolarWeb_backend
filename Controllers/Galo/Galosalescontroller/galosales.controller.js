@@ -10,12 +10,27 @@ const {
     galoSalesProposalSchema,
     galoCreateClientSchema,
     galoUpdateClientSchema,
+    galoSalesProposalUpdateSchema,
+    galoSalesPanelProposalSchema,
 } = require("../../../Validators/Galosales.validator");
 
 //proposal creation and management
 const createGaloSalesProposal = async (req, res) => {
     try {
-        const result = galoSalesProposalSchema.safeParse(req.body);
+
+        let validType = ["Panel", "Both"];
+
+        let { proposalType } = req.body;
+        if (!validType.includes(proposalType)) return res.status(400).json({ success: false, message: "Invalid Proposal Type.." });
+
+
+        let result;
+        if (proposalType === 'Both') {
+            result = galoSalesProposalSchema.safeParse(req.body);
+        }
+        else {
+            result = galoSalesPanelProposalSchema.safeParse(req.body)
+        }
 
         if (!result.success) {
             const message = [];
@@ -31,10 +46,9 @@ const createGaloSalesProposal = async (req, res) => {
             });
         }
 
-        const { salesId, customerId, gst, termsAndConditions, selectedPanels, setupKw } =
-            result.data;
+        // const { salesId, customerId, gst, termsAndConditions, selectedPanels, setupKw } = result.data;
 
-        const wattIds = selectedPanels.map((panel) => panel.wattId);
+        const wattIds = result.data?.selectedPanels.map((panel) => panel.wattId);
 
         const uniqueWattIds = new Set(wattIds);
 
@@ -45,7 +59,7 @@ const createGaloSalesProposal = async (req, res) => {
             });
         }
 
-        const finalPrice = selectedPanels.reduce((total, item) => {
+        const finalPrice = result.data?.selectedPanels.reduce((total, item) => {
             return (
                 total +
                 Number(item.totalPrice || 0) +
@@ -54,23 +68,20 @@ const createGaloSalesProposal = async (req, res) => {
             );
         }, 0);
 
-        console.log(finalPrice);
 
         const panelProposal = await GaloSalesProposal.create({
-            salesId,
-            customerId,
-            gst,
-            termsAndConditions,
-            selectedPanels,
+            ...result.data,
             finalPrice,
-            setupKw
+            proposalType
         });
+
 
         return res.status(201).json({
             success: true,
             message: "Proposal Created Successfully!",
             data: panelProposal,
         });
+
     } catch (er) {
         return res.status(500).json({
             success: false,
@@ -138,7 +149,19 @@ const deleteGaloProposal = async (req, res) => {
 
 const updateGaloSalesProposal = async (req, res) => {
     try {
-        const result = galoSalesProposalSchema.safeParse(req.body);
+
+        let { proposalType } = req.body;
+        let validType = ['Both', 'Panel'];
+        if (!validType.includes(proposalType)) return res.status(400).json({ success: false, message: "Invalid Type.." });
+
+        let result;
+        // this one is for inverter plus panel
+        if (proposalType === 'Both') {
+            result = galoSalesProposalSchema.safeParse(req.body);
+        }
+        else {
+            result = galoSalesPanelProposalSchema.safeParse(req.body);
+        }
 
         if (!result.success) {
             const message = [];
@@ -152,7 +175,7 @@ const updateGaloSalesProposal = async (req, res) => {
             });
         }
 
-        const { propId, gst, termsAndConditions, selectedPanels } = result.data;
+        const { propId, selectedPanels } = result.data;
 
         const wattIds = selectedPanels.map((panel) => panel.wattId);
 
@@ -173,6 +196,7 @@ const updateGaloSalesProposal = async (req, res) => {
         }, 0);
 
         const data = { finalPrice, ...result.data };
+
 
         const updatedProposal = await GaloSalesProposal.findByIdAndUpdate(
             propId,

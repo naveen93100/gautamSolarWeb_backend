@@ -50,16 +50,16 @@ const galoSalesProposalSchema = new mongoose.Schema(
                     required: true,
                 },
 
-                // quantity: {
-                //     type: Number,
-                //     required: true,
-                //     default: 1,
-                // },
+                quantity: {
+                    type: Number,
+                    // required: true,
+                    // default: 1,
+                },
 
-                // rate: {
-                //     type: Number,
-                //     required: true,
-                // },
+                rate: {
+                    type: Number,
+                    // required: true,
+                },
 
                 totalPrice: {
                     type: Number,
@@ -82,9 +82,14 @@ const galoSalesProposalSchema = new mongoose.Schema(
                 }
             },
         ],
+
+        proposalType: {
+            type: String
+        },
+
         setupKw: {
             type: Number,
-            required: true,
+            // required: true,
         },
 
 
