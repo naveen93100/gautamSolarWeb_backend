@@ -146,6 +146,8 @@ const sunCoreTransporter = nodemailer.createTransport({
   },
 });
 
+
+
 app.post("/solar-saving-contact", async (req, res) => {
   try {
     let {
@@ -155,10 +157,29 @@ app.post("/solar-saving-contact", async (req, res) => {
       lookingFor,
       monthlyBill,
       utm,
-      email
+      email,
+      qrCode
     } = req.body;
 
+    const qrMapping = {
+      // DLF001: {
+      //   promoter: "Testing",
+      //   location: "Testing",
+      //   //  event:""
+      // }
+    }
+
     let Utm = JSON.parse(utm);
+    let promoter = null;
+    let location = null;
+
+    const qr = qrMapping[qrCode];
+
+    if (qrCode && qr) {
+      promoter = qr.promoter;
+      location = qr.location;
+    }
+
 
     const referrerUrl = req.headers.referer || "Unknown"; // Get the referrer URL
     const referrerDomain = url.parse(referrerUrl).hostname; // Extract the domain name from the URL
@@ -195,7 +216,8 @@ app.post("/solar-saving-contact", async (req, res) => {
 
               <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; margin-top: 15px;">
                 <h3 style="color: #a20000; margin-top: 0;">Source Information</h3>
-                <p style="margin-bottom: 10px;"><strong>Source:</strong>Direct</p>
+                <p style="margin-bottom: 10px;"><strong>Source:</strong>${promoter ? `Promoter - ${promoter}` : 'Direct'}</p>
+                <p style="margin-bottom: 10px;"><strong>Location:</strong>${location || 'N/A'}</p>
                 <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${Utm?.utm_source || 'Direct'}</p>
 
               </div>
@@ -206,7 +228,7 @@ app.post("/solar-saving-contact", async (req, res) => {
             </div>
   `,
     };
-    
+
     await transporter.sendMail(mailOptions);
 
     if (email) {
@@ -239,7 +261,7 @@ app.post("/solar-saving-contact", async (req, res) => {
         `,
       };
 
-      await transporter.sendMail(userMailOptions);
+      // await transporter.sendMail(userMailOptions);
     }
 
     res
@@ -575,6 +597,7 @@ app.post("/submit-contactbox", async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
+
 // end point for solar plant form
 app.post("/submit-solarplant", async (req, res) => {
   try {
