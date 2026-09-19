@@ -157,7 +157,7 @@ app.post("/solar-saving-contact", async (req, res) => {
       lookingFor,
       monthlyBill,
       utm,
-      email,
+      // email,
       qrCode
     } = req.body;
 
@@ -203,7 +203,6 @@ app.post("/solar-saving-contact", async (req, res) => {
               <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; margin-top: 15px;">
                 <h3 style="color: #a20000; margin-top: 0;">Contact Details</h3>
                 <p style="margin-bottom: 10px;"><strong>Full Name:</strong> ${name || 'N/A'}</p>
-                <p style="margin-bottom: 10px;"><strong>Email:</strong> ${email || 'N/A'}</p>
                 <p style="margin-bottom: 10px;"><strong>WhatsApp Number:</strong> +91 ${whatsapp || 'N/A'}</p>
                 <p style="margin-bottom: 10px;"><strong>PIN Code:</strong> ${pin || 'N/A'}</p>
               </div>
@@ -230,39 +229,6 @@ app.post("/solar-saving-contact", async (req, res) => {
     };
 
     await transporter.sendMail(mailOptions);
-
-    if (email) {
-      const userMailOptions = {
-        from: "gautamsolar.vidoes01@gmail.com",
-        to: email,
-        subject: `Thank You for Reaching Out to Gautam Solar, ${name || "there"}!`,
-        html: `
-            <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-              <h2 style="color: #a20000; border-bottom: 2px solid #a20000; padding-bottom: 10px;">Thank You, ${name || 'there'}!</h2>
-
-              <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; margin-top: 15px;">
-                <p style="margin-bottom: 10px;">
-                  We've received your request for a solar site visit. Our team will review your details and get in touch with you shortly on your WhatsApp number
-                  ${whatsapp ? ` (+91 ${whatsapp})` : ''} to schedule a convenient time.
-                </p>
-              </div>
-
-              <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; margin-top: 15px;">
-                <h3 style="color: #a20000; margin-top: 0;">Your Submitted Details</h3>
-                <p style="margin-bottom: 10px;"><strong>PIN Code:</strong> ${pin || 'N/A'}</p>
-                <p style="margin-bottom: 10px;"><strong>Looking For:</strong> ${lookingForLabels[lookingFor] || lookingFor || 'N/A'}</p>
-                <p style="margin-bottom: 10px;"><strong>Average Monthly Electricity Bill:</strong> ${monthlyBill || 'Not Provided'}</p>
-              </div>
-
-              <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; margin-top: 15px;">
-                <p style="margin: 0; color: #666; font-size: 12px;">Gautam Solar &mdash; Powering a Sustainable Future</p>
-              </div>
-            </div>
-        `,
-      };
-
-      // await transporter.sendMail(userMailOptions);
-    }
 
     res
       .status(200)
