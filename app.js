@@ -157,13 +157,14 @@ app.post("/solar-saving-contact", async (req, res) => {
       lookingFor,
       monthlyBill,
       utm,
+      salesRepresentative,
       // email,
       qrCode
     } = req.body;
 
     const qrMapping = {
       DLF001: {
-        promoter: "Priyam",
+        // promoter: "Priyam",
         location: "DLF Mall",
       }
     }
@@ -175,7 +176,7 @@ app.post("/solar-saving-contact", async (req, res) => {
     const qr = qrMapping[qrCode];
 
     if (qrCode && qr) {
-      promoter = qr.promoter;
+      // promoter = qr.promoter;
       location = qr.location;
     }
 
@@ -214,7 +215,7 @@ app.post("/solar-saving-contact", async (req, res) => {
 
               <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; margin-top: 15px;">
                 <h3 style="color: #a20000; margin-top: 0;">Source Information</h3>
-                <p style="margin-bottom: 10px;"><strong>Source:</strong>${promoter ? `Promoter - ${promoter}` : 'Direct'}</p>
+                <p style="margin-bottom: 10px;"><strong>Source:</strong>${salesRepresentative ? `Promoter - ${salesRepresentative}` : 'Direct'}</p>
                 <p style="margin-bottom: 10px;"><strong>Location:</strong>${location || 'N/A'}</p>
                 <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${Utm?.utm_source || 'Direct'}</p>
 
