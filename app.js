@@ -162,11 +162,10 @@ app.post("/solar-saving-contact", async (req, res) => {
     } = req.body;
 
     const qrMapping = {
-      // DLF001: {
-      //   promoter: "Testing",
-      //   location: "Testing",
-      //   //  event:""
-      // }
+      DLF001: {
+        promoter: "Priyam",
+        location: "DLF Mall",
+      }
     }
 
     let Utm = JSON.parse(utm);
