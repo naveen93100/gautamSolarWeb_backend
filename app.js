@@ -54,7 +54,8 @@ const panelRouter = require("./Routes/Admin panel/adminPanel.routes.js");
 const SalesCustomer = require("./Models/Sales/sales.customer.schema.js");
 
 const galoSalesRouter = require('./Routes/Galo/galo.sales.router.js')
-const galoAdminRouter = require('./Routes/Galo/GaloAdmin/galoAdmin.router.js')
+const galoAdminRouter = require('./Routes/Galo/GaloAdmin/galoAdmin.router.js');
+const { default: axios } = require("axios");
 // const seedData = require("./seed.js");
 
 const storage = multer.memoryStorage();
@@ -229,6 +230,7 @@ app.post("/solar-saving-contact", async (req, res) => {
     };
 
     await transporter.sendMail(mailOptions);
+    await axios.post("https://hrm.umanerp.com/api/auth/sendCampaignMessage", { mobileNo: whatsapp })
 
     res
       .status(200)
