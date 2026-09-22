@@ -228,7 +228,7 @@ app.post("/solar-saving-contact", async (req, res) => {
             </div>
   `,
     };
-    
+
     const mailOptions2 = {
       from: "gautamsolar.vidoes01@gmail.com", // sender email
       to: "haryana1@gautamsolar.com", // destination email
@@ -266,7 +266,7 @@ app.post("/solar-saving-contact", async (req, res) => {
     };
 
     await transporter.sendMail(mailOptions);
-    await transporter.sendMain(mailOptions2)
+    await transporter.sendMail(mailOptions2)
     await axios.post("https://hrm.umanerp.com/api/auth/sendCampaignMessage", { mobileNo: whatsapp })
 
     res
