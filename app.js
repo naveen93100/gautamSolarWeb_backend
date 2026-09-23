@@ -151,6 +151,7 @@ const sunCoreTransporter = nodemailer.createTransport({
 
 app.post("/solar-saving-contact", async (req, res) => {
   try {
+    console.log(req.body);
     let {
       name,
       pin,
@@ -160,17 +161,16 @@ app.post("/solar-saving-contact", async (req, res) => {
       utm,
       salesRepresentative,
       // email,
-      qrCode
+      qrCode = null
     } = req.body;
 
     const qrMapping = {
       DLF001: {
-        // promoter: "Priyam",
         location: "DLF Mall",
       }
     }
 
-    let Utm = JSON.parse(utm);
+    let Utm = utm ? JSON.parse(utm) : {};
     let promoter = null;
     let location = null;
 
@@ -184,7 +184,7 @@ app.post("/solar-saving-contact", async (req, res) => {
 
     const referrerUrl = req.headers.referer || "Unknown"; // Get the referrer URL
     const referrerDomain = url.parse(referrerUrl).hostname; // Extract the domain name from the URL
-    const referrerWebsite = extractWebsiteName(referrerDomain);
+    // const referrerWebsite = extractWebsiteName(referrerDomain);
 
     const lookingForLabels = {
       home: "Home",
@@ -265,9 +265,17 @@ app.post("/solar-saving-contact", async (req, res) => {
   `,
     };
 
-    await transporter.sendMail(mailOptions);
-    await transporter.sendMail(mailOptions2)
-    await axios.post("https://hrm.umanerp.com/api/auth/sendCampaignMessage", { mobileNo: whatsapp })
+
+    await Promise.all([
+      transporter.sendMail(mailOptions),
+      transporter.sendMail(mailOptions2),
+
+      axios.post("https://hrm.umanerp.com/api/auth/sendCampaignMessage", { mobileNo: whatsapp }),
+      axios.post('https://newenquiry.umanerp.com/api/enquiry/addEnquiry', { name, pin, whatsapp, salesRepresentative, lookingFor, monthlyBill, source: location }),
+    ])
+
+    // await transporter.sendMail(mailOptions);
+    // await transporter.sendMail(mailOptions2);
 
     res
       .status(200)
