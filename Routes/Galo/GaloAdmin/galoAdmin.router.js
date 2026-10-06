@@ -1,16 +1,15 @@
 const express = require("express");
 const router = express.Router();
 
-
 const adminController = require("../../../Controllers/Galo/Galoadmin/galoAdmin.controller");
 
-const adminAuth = require("../../../Middleware/adminAuth");
+const galoAdminAuth = require("../../../Middleware/galoAdminAuth");
 const allowRole = require("../../../Middleware/allowRole");
 
 router.post("/login", adminController.loginAdmin);
 router.post("/logout", adminController.logoutAdmin);
 
-// router.use(adminController.adminAuth);
+// router.use(adminController.galoAdminAuth);
 // router.use(allowRole(["super_admin", "adminadminController."]));
 
 // ---------- Panel ----------
@@ -54,5 +53,20 @@ router.post("/inverter", adminController.createInverter);
 router.get("/inverter", adminController.getInverter);
 router.put("/inverter", adminController.updateInverter);
 router.patch("/inverter/toggle", adminController.toggleInverter);
+
+// allow the role wise the access the data
+router.get(
+    "/galoSales-client/:galoSalesId",
+    galoAdminAuth,
+    allowRole(["super_admin", "admin"]),
+    adminController.getSalesAllClients,
+);
+
+router.get(
+    "/sales-client-proposals/:salesId/:clientId",
+    galoAdminAuth,
+    allowRole(["admin", "super_admin"]),
+    adminController.getGaloSalesClientProposals,
+);
 
 module.exports = router;
