@@ -99,18 +99,18 @@ const galoSalesPanelProposalSchema = z.object({
                 // inverterId: objectIdSchema("Inverter capacity").optional(),
 
                 quantity: z
-                  .number({
-                    required_error: "Quantity is required",
-                    invalid_type_error: "Quantity must be a number",
-                  })
-                  .min(1, "Quantity must be at least 1"),
+                    .number({
+                        required_error: "Quantity is required",
+                        invalid_type_error: "Quantity must be a number",
+                    })
+                    .min(1, "Quantity must be at least 1"),
 
                 rate: z
-                  .number({
-                    required_error: "Rate is required",
-                    invalid_type_error: "Rate must be a number",
-                  })
-                  .min(1, "Rate must be greater than 0"),
+                    .number({
+                        required_error: "Rate is required",
+                        invalid_type_error: "Rate must be a number",
+                    })
+                    .min(1, "Rate must be greater than 0"),
 
                 totalPrice: z.number({
                     required_error: "Total Price is required",

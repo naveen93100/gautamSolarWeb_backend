@@ -17,26 +17,26 @@ const {
 //proposal creation and management
 const createGaloSalesProposal = async (req, res) => {
     try {
-
         let validType = ["Panel", "Both"];
 
         let { proposalType } = req.body;
-        if (!validType.includes(proposalType)) return res.status(400).json({ success: false, message: "Invalid Proposal Type.." });
-
+        if (!validType.includes(proposalType))
+            return res
+                .status(400)
+                .json({ success: false, message: "Invalid Proposal Type.." });
 
         let result;
-        if (proposalType === 'Both') {
+        if (proposalType === "Both") {
             result = galoSalesProposalSchema.safeParse(req.body);
-        }
-        else {
-            result = galoSalesPanelProposalSchema.safeParse(req.body)
+        } else {
+            result = galoSalesPanelProposalSchema.safeParse(req.body);
         }
 
         if (!result.success) {
             const message = [];
 
             result.error.issues.forEach((err) => {
-                console.log(err)
+                console.log(err);
                 message.push({ message: err.message });
             });
 
@@ -48,7 +48,9 @@ const createGaloSalesProposal = async (req, res) => {
 
         // const { salesId, customerId, gst, termsAndConditions, selectedPanels, setupKw } = result.data;
 
-        const wattIds = result.data?.selectedPanels.map((panel) => panel.wattId);
+        const wattIds = result.data?.selectedPanels.map(
+            (panel) => panel.wattId,
+        );
 
         const uniqueWattIds = new Set(wattIds);
 
@@ -68,20 +70,17 @@ const createGaloSalesProposal = async (req, res) => {
             );
         }, 0);
 
-
         const panelProposal = await GaloSalesProposal.create({
             ...result.data,
             finalPrice,
-            proposalType
+            proposalType,
         });
-
 
         return res.status(201).json({
             success: true,
             message: "Proposal Created Successfully!",
             data: panelProposal,
         });
-
     } catch (er) {
         return res.status(500).json({
             success: false,
@@ -109,12 +108,11 @@ const getGaloClientProposals = async (req, res) => {
                     { path: "panelId" },
                     { path: "constructiveId" },
                     { path: "technologyId" },
-                    { path: "inverterId" }
+                    { path: "inverterId" },
                 ],
             })
             .sort({ createdAt: -1 })
             .lean();
-
 
         return res.status(200).json({ success: true, data: proposal });
     } catch (er) {
@@ -132,7 +130,8 @@ const deleteGaloProposal = async (req, res) => {
                 message: "Invalid or missing Proposal Id",
             });
 
-        const deletedProposal = await GaloSalesProposal.findByIdAndDelete(propId);
+        const deletedProposal =
+            await GaloSalesProposal.findByIdAndDelete(propId);
 
         if (!deletedProposal)
             return res
@@ -149,17 +148,18 @@ const deleteGaloProposal = async (req, res) => {
 
 const updateGaloSalesProposal = async (req, res) => {
     try {
-
         let { proposalType } = req.body;
-        let validType = ['Both', 'Panel'];
-        if (!validType.includes(proposalType)) return res.status(400).json({ success: false, message: "Invalid Type.." });
+        let validType = ["Both", "Panel"];
+        if (!validType.includes(proposalType))
+            return res
+                .status(400)
+                .json({ success: false, message: "Invalid Type.." });
 
         let result;
         // this one is for inverter plus panel
-        if (proposalType === 'Both') {
+        if (proposalType === "Both") {
             result = galoSalesProposalSchema.safeParse(req.body);
-        }
-        else {
+        } else {
             result = galoSalesPanelProposalSchema.safeParse(req.body);
         }
 
@@ -196,7 +196,6 @@ const updateGaloSalesProposal = async (req, res) => {
         }, 0);
 
         const data = { finalPrice, ...result.data };
-
 
         const updatedProposal = await GaloSalesProposal.findByIdAndUpdate(
             propId,
@@ -301,7 +300,7 @@ const galoLogout = async (req, res) => {
     }
 };
 
-//client | customer 
+//client | customer
 const createGaloClient = async (req, res) => {
     try {
         const result = galoCreateClientSchema.safeParse(req.body);

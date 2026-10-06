@@ -1,254 +1,10 @@
-// const mongoose = require("mongoose");
-// const GaloPanel = require("../../../Models/Galo/GaloAdminModels/GaloPannelTypeSchema");
-// const GaloTechnology = require("../../../Models/Galo/GaloAdminModels/GaloPannelTechnologySchema");
-// const GaloConstructive = require("../../../Models/Galo/GaloAdminModels/GaloConstructiveSchema");
-// const bcrypt = require("bcrypt");
-// const jwt = require("jsonwebtoken");
-// const {GaloAdmin} = require("../../../Models/Galo/GaloAdminModels/GaloAdminSchema");
-// const GaloPanelWatt = require("../../../Models/Galo/GaloAdminModels/GaloPannelWattSchema")
-// const path = require("path");
-// const fs = require("fs");
-// const fsp = require("fs").promises;
-// const xlxs = require("xlsx");
-
-// const GaloSales = require("../../../Models/Galo/GaloSalesModal/galosales.schema");
-// const sharp = require("sharp");
-
-// const createGaloSalesPerson = async (req, res) => {
-//     try {
-//         let { name, phone, password } = req.body;
-
-//         if (!name || !phone || !password)
-//             return res.status(400).json({
-//                 success: false,
-//                 message: "Please fill required fields..",
-//             });
-
-//         name = name.trim();
-//         const phoneRegex = /^[6-9]\d{9}$/;
-//         const nameRegex = /^[a-zA-Z]+(?:\s[a-zA-Z]+)*$/;
-
-//         if (!phoneRegex.test(phone))
-//             return res
-//                 .status(400)
-//                 .json({ success: false, message: "Invalid phone number!" });
-
-//         if (!nameRegex.test(name))
-//             return res
-//                 .status(400)
-//                 .json({ success: false, message: "Invalid name" });
-
-//         const newSalesPerson = await GaloSales.create({
-//             name,
-//             phone,
-//             password,
-//         });
-
-//         return res.status(201).json({
-//             success: true,
-//             message: "Account Created",
-//             data: {
-//                 _id: newSalesPerson._id,
-//                 name: newSalesPerson.name,
-//                 phone: newSalesPerson.phone,
-//                 isActive: newSalesPerson.isActive,
-//                 userId: newSalesPerson.userId,
-//             },
-//         });
-//     } catch (er) {
-//         if (er?.code === 11000) {
-//             return res.status(409).json({
-//                 success: false,
-//                 message: "userId Or Phone already exists",
-//             });
-//         }
-//         return res.status(500).json({ success: false, message: er?.message });
-//     }
-// };
-
-// const updateGaloSalesAccount = async (req, res) => {
-//     try {
-//         let { salesId, name, phone } = req.body;
-
-//         if (!mongoose.isValidObjectId(salesId))
-//             return res
-//                 .status(400)
-//                 .json({ success: false, message: "Invalid or missing Id." });
-
-//         const salesAccount = await GaloSales.findOne({ _id: salesId });
-
-//         if (!salesAccount)
-//             return res
-//                 .status(404)
-//                 .json({ success: false, message: "Account not found!" });
-
-//         const newData = {};
-
-//         if (name && name.trim()) {
-//             newData.name = name.trim();
-//         }
-
-//         if (phone) {
-//             phone = phone.replace(/\D/g, "");
-//             if (!/^[6-9]\d{9}$/.test(phone)) {
-//                 return res
-//                     .status(400)
-//                     .json({ success: false, message: "Invalid Phone number!" });
-//             }
-//             if (phone !== salesAccount.phone) {
-//                 newData.phone = phone;
-//             }
-//         }
-
-//         if (Object.keys(newData).length === 0) {
-//             return res
-//                 .status(400)
-//                 .json({ success: false, message: "No Changes provided!" });
-//         }
-
-//         await GaloSales.findByIdAndUpdate(salesId, { $set: newData });
-//         return res
-//             .status(200)
-//             .json({ success: true, message: "Account Updated." });
-//     } catch (er) {
-//         if (er?.code === 11000) {
-//             return res.status(409).json({
-//                 success: false,
-//                 message: "Email or phone already exist",
-//             });
-//         }
-//         return res.status(500).json({ success: false, message: er?.message });
-//     }
-// };
-
-// const getGaloSalesPersonList = async (req, res) => {
-//     try {
-//         let { pageNo } = req.query;
-//         const limit = 6;
-
-//         pageNo = parseInt(pageNo) || 1;
-
-//         const sales = await GaloSales.aggregate([
-//             {
-//                 $facet: {
-//                     totalRecord: [{ $count: "count" }],
-
-//                     data: [
-//                         { $sort: { _id: -1 } },
-//                         { $skip: (pageNo - 1) * limit },
-//                         { $limit: limit },
-
-//                         {
-//                             $lookup: {
-//                                 from: "galosalespanels",
-//                                 localField: "_id",
-//                                 foreignField: "salesId",
-//                                 as: "totalClient",
-//                             },
-//                         },
-
-//                         {
-//                             $addFields: {
-//                                 totalClient: {
-//                                     $size: {
-//                                         $ifNull: ["$totalClient", []],
-//                                     },
-//                                 },
-//                             },
-//                         },
-
-//                         {
-//                             $project: {
-//                                 password: 0,
-//                             },
-//                         },
-//                     ],
-//                 },
-//             },
-
-//             {
-//                 $project: {
-//                     data: 1,
-//                     totalRecord: {
-//                         $ifNull: [
-//                             { $arrayElemAt: ["$totalRecord.count", 0] },
-//                             0,
-//                         ],
-//                     },
-//                 },
-//             },
-
-//             {
-//                 $addFields: {
-//                     currentPage: pageNo,
-//                     limit,
-//                     hasNextPage: {
-//                         $gt: ["$totalRecord", pageNo * limit],
-//                     },
-//                 },
-//             },
-//         ]);
-
-//         return res.status(200).json({ success: true, ...sales[0] });
-//     } catch (er) {
-//         return res.status(500).json({ success: false, message: er?.message });
-//     }
-// };
-
-// const toggleGaloSalesStatus = async (req, res) => {
-//     try {
-//         const { salesId, isActive } = req.body;
-
-//         if (!mongoose.isValidObjectId(salesId))
-//             return res
-//                 .status(400)
-//                 .json({ success: false, message: "Invalid or missing Id" });
-
-//         if (typeof isActive !== "boolean") {
-//             return res.status(400).json({
-//                 success: false,
-//                 message: "isActive must be true or false",
-//             });
-//         }
-
-//         const sales = await GaloSales.findOneAndUpdate(
-//             { _id: salesId },
-//             { $set: { isActive } },
-//             { new: true },
-//         );
-
-//         if (!sales) {
-//             return res.status(404).json({
-//                 success: false,
-//                 message: "Sales person not found",
-//             });
-//         }
-
-//         return res.status(200).json({
-//             success: true,
-//             message: `Account ${isActive === true ? "Activated" : "De-Activated"}`,
-//         });
-//     } catch (er) {
-//         return res.status(500).json({ success: false, message: er?.message });
-//     }
-// };
-
-// module.exports = {
-//     createGaloSalesPerson,
-//     updateGaloSalesAccount,
-//     getGaloSalesPersonList,
-//     toggleGaloSalesStatus,
-// };
-
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const path = require("path");
 const fs = require("fs");
 
-// ------------------------------------------------
 // Galo Models
-// ------------------------------------------------
 const GaloPanel = require("../../../Models/Galo/GaloAdminModels/GaloPannelTypeSchema");
 const GaloTechnology = require("../../../Models/Galo/GaloAdminModels/GaloPannelTechnologySchema");
 const GaloConstructive = require("../../../Models/Galo/GaloAdminModels/GaloConstructiveSchema");
@@ -259,9 +15,10 @@ const GaloInverter = require("../../../Models/Galo/GaloAdminModels/GaloInverterS
 // Sales models (kept – not dealer/inverter)
 const GaloSales = require("../../../Models/Galo/GaloSalesModal/galosales.schema");
 
-// ------------------------------------------------
+const GalosalesCustomer = require("../../../Models/Galo/GaloSalesModal/galosales.customer.schema");
+const GaloSalesProposal = require("../../../Models/Galo/GaloSalesModal/galosales.proposal.schema");
+
 // 1. PANEL CRUD
-// ------------------------------------------------
 const createPanel = async (req, res) => {
     try {
         let { panelType } = req.body;
@@ -455,10 +212,7 @@ const togglePanel = async (req, res) => {
         });
     }
 };
-
-// ------------------------------------------------
 // 2. TECHNOLOGY CRUD
-// ------------------------------------------------
 const createTechnology = async (req, res) => {
     try {
         let { panelId, technologyPanel } = req.body;
@@ -707,10 +461,7 @@ const activeDisableTech = async (req, res) => {
         });
     }
 };
-
-// ------------------------------------------------
 // 3. CONSTRUCTIVE CRUD
-// ------------------------------------------------
 const createConstructive = async (req, res) => {
     try {
         let { panelId, technologyId, constructiveType } = req.body;
@@ -942,10 +693,7 @@ const activeDisableConst = async (req, res) => {
         });
     }
 };
-
-// ------------------------------------------------
 // 4. PANEL WATT CRUD
-// ------------------------------------------------
 const panelWatt = async (req, res) => {
     try {
         const { panelId, technologyId, constructiveId, watt } = req.body;
@@ -1223,9 +971,8 @@ const updatePanelWatt = async (req, res) => {
     }
 };
 
-// ------------------------------------------------
 // 5. ADMIN AUTH & MANAGEMENT
-// ------------------------------------------------
+
 const createAdmin = async (req, res) => {
     try {
         let { email, password, role } = req.body;
@@ -1522,9 +1269,8 @@ const logoutAdmin = async (req, res) => {
     }
 };
 
-// ------------------------------------------------
 // 6. SALES PERSON CRUD (kept)
-// ------------------------------------------------
+
 const createGaloSalesPerson = async (req, res) => {
     try {
         let { name, phone, password } = req.body;
@@ -1643,35 +1389,42 @@ const getGaloSalesPersonList = async (req, res) => {
             {
                 $facet: {
                     totalRecord: [{ $count: "count" }],
+
                     data: [
                         { $sort: { _id: -1 } },
                         { $skip: (pageNo - 1) * limit },
                         { $limit: limit },
+
+                        // Get clients of this sales person
                         {
                             $lookup: {
-                                from: "galosalespanels",
+                                from: "galosalescustomers",
                                 localField: "_id",
-                                foreignField: "salesId",
-                                as: "totalClient",
+                                foreignField: "galoSalesPersonId",
+                                as: "clients",
                             },
                         },
+
                         {
                             $addFields: {
                                 totalClient: {
                                     $size: {
-                                        $ifNull: ["$totalClient", []],
+                                        $ifNull: ["$clients", []],
                                     },
                                 },
                             },
                         },
+
                         {
                             $project: {
                                 password: 0,
+                                clients: 0,
                             },
                         },
                     ],
                 },
             },
+
             {
                 $project: {
                     data: 1,
@@ -1683,6 +1436,7 @@ const getGaloSalesPersonList = async (req, res) => {
                     },
                 },
             },
+
             {
                 $addFields: {
                     currentPage: pageNo,
@@ -1694,9 +1448,15 @@ const getGaloSalesPersonList = async (req, res) => {
             },
         ]);
 
-        return res.status(200).json({ success: true, ...sales[0] });
+        return res.status(200).json({
+            success: true,
+            ...sales[0],
+        });
     } catch (er) {
-        return res.status(500).json({ success: false, message: er?.message });
+        return res.status(500).json({
+            success: false,
+            message: er?.message,
+        });
     }
 };
 
@@ -1738,10 +1498,7 @@ const toggleGaloSalesStatus = async (req, res) => {
     }
 };
 
-// ------------------------------------------------
 // 7. INVERTER  CRUD
-// ------------------------------------------------
-
 const createInverter = async (req, res) => {
     try {
         const { inverterCapacity } = req.body;
@@ -1792,37 +1549,6 @@ const getInverter = async (req, res) => {
         });
     }
 };
-
-// const updateInverter = async (req, res) => {
-//     try {
-//         const { id, inverterCapacity } = req.body;
-//         const normalizedCap = normalizeString(inverterCapacity);
-
-//         const inverter = await GaloInverter.findByIdAndUpdate(
-//             id,
-//             { inverterCapacity: normalizedCap },
-//             { new: true },
-//         );
-
-//         if (!inverter) {
-//             return res.status(404).json({
-//                 success: false,
-//                 message: "Inverter not found",
-//             });
-//         }
-
-//         return res.status(200).json({
-//             success: true,
-//             message: "Inverter updated successfully",
-//             data: inverter,
-//         });
-//     } catch (error) {
-//         return res.status(500).json({
-//             success: false,
-//             message: error.message,
-//         });
-//     }
-// };
 
 const updateInverter = async (req, res) => {
     try {
@@ -1902,14 +1628,232 @@ const toggleInverter = async (req, res) => {
     }
 };
 
-//util
 const normalizeString = (str) => {
     return String(str).trim().toUpperCase();
 };
 
-// ------------------------------------------------
-// EXPORT (only the functions kept)
-// ------------------------------------------------
+const getSalesAllClients = async (req, res) => {
+    try {
+        const { galoSalesId } = req.params;
+
+        if (!mongoose.isValidObjectId(galoSalesId))
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Galosales id",
+            });
+
+        // Pagination params
+        const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+
+        const limit = Math.min(
+            Math.max(parseInt(req.query.limit, 10) || 10, 1),
+            100,
+        );
+
+        const skip = (page - 1) * limit;
+
+        // Search param
+        const search = (req.query.search || "").trim();
+
+        const filter = {
+            galoSalesPersonId: new mongoose.Types.ObjectId(galoSalesId),
+        };
+
+        if (search) {
+            // Escape regex special characters
+            const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            const regex = new RegExp(escaped, "i");
+
+            filter.$or = [
+                { fullName: regex },
+                { phone: regex },
+                { email: regex },
+                { companyName: regex },
+                { gstin: regex },
+                { address: regex },
+            ];
+        }
+
+        const [data, total] = await Promise.all([
+            GalosalesCustomer.aggregate([
+                // 1. Filter clients of this sales person
+                {
+                    $match: filter,
+                },
+
+                // 2. Find proposals created for this client
+                {
+                    $lookup: {
+                        from: "galosalesproposals",
+                        let: {
+                            clientId: "$_id",
+                            salesPersonId: "$galoSalesPersonId",
+                        },
+                        pipeline: [
+                            {
+                                $match: {
+                                    $expr: {
+                                        $and: [
+                                            {
+                                                $eq: [
+                                                    "$customerId",
+                                                    "$$clientId",
+                                                ],
+                                            },
+                                            {
+                                                $eq: [
+                                                    "$salesId",
+                                                    "$$salesPersonId",
+                                                ],
+                                            },
+                                        ],
+                                    },
+                                },
+                            },
+                            {
+                                $count: "count",
+                            },
+                        ],
+                        as: "proposalStats",
+                    },
+                },
+
+                // 3. Add proposalCount
+                {
+                    $addFields: {
+                        proposalCount: {
+                            $ifNull: [
+                                {
+                                    $arrayElemAt: ["$proposalStats.count", 0],
+                                },
+                                0,
+                            ],
+                        },
+                    },
+                },
+
+                // 4. Remove temporary field + __v
+                {
+                    $project: {
+                        proposalStats: 0,
+                        __v: 0,
+                    },
+                },
+
+                // 5. Pagination
+                {
+                    $sort: {
+                        createdAt: -1,
+                    },
+                },
+                {
+                    $skip: skip,
+                },
+                {
+                    $limit: limit,
+                },
+            ]),
+
+            // Total clients
+            GalosalesCustomer.countDocuments(filter),
+        ]);
+
+        const totalPages = Math.ceil(total / limit);
+
+        return res.status(200).json({
+            success: true,
+            data,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1,
+            },
+        });
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: err?.message,
+        });
+    }
+};
+
+const getGaloSalesClientProposals = async (req, res) => {
+    try {
+        const { salesId, clientId } = req.params;
+
+        if (
+            !mongoose.isValidObjectId(salesId) ||
+            !mongoose.isValidObjectId(clientId)
+        )
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Galosales id or GaloClient id",
+            });
+
+        // Optional filter: ?type=Panel or ?type=Both
+        const type = (req.query.type || "").trim();
+        if (type && !["Panel", "Both"].includes(type))
+            return res.status(400).json({
+                success: false,
+                message: "Invalid type. Use Panel or Both",
+            });
+
+        // Make sure the client belongs to this sales person
+        const client = await GalosalesCustomer.findOne({
+            _id: clientId,
+            galoSalesPersonId: salesId,
+        }).lean();
+
+        if (!client)
+            return res.status(404).json({
+                success: false,
+                message: "Client not found for this sales person",
+            });
+
+        const baseFilter = { salesId, customerId: clientId };
+        const filter = type
+            ? { ...baseFilter, proposalType: type }
+            : baseFilter;
+
+        const [data, panelCount, bothCount] = await Promise.all([
+            GaloSalesProposal.find(filter)
+                .populate("selectedPanels.panelId")
+                .populate("selectedPanels.technologyId")
+                .populate("selectedPanels.constructiveId")
+                .populate("selectedPanels.wattId")
+                .populate("selectedPanels.inverterId")
+                .sort({ createdAt: -1 })
+                .lean(),
+            GaloSalesProposal.countDocuments({
+                ...baseFilter,
+                proposalType: "Panel",
+            }),
+            GaloSalesProposal.countDocuments({
+                ...baseFilter,
+                proposalType: "Both",
+            }),
+        ]);
+
+        // get the total panel parposal
+
+        return res.status(200).json({
+            success: true,
+            message: "Galo sales client proposal list",
+            client,
+            counts: {
+                total: panelCount + bothCount,
+                panel: panelCount,
+                both: bothCount,
+            },
+            data,
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err?.message });
+    }
+};
 module.exports = {
     // Panel
     createPanel,
@@ -1954,4 +1898,8 @@ module.exports = {
     getInverter,
     updateInverter,
     toggleInverter,
+
+    // get all sales person  created proposal list
+    getSalesAllClients,
+    getGaloSalesClientProposals,
 };

@@ -36,12 +36,10 @@ const createPanel = async (req, res) => {
         }
 
         if (panelType && typeof panelType !== "string") {
-            return res
-                .status(400)
-                .json({
-                    success: false,
-                    message: "Panel type should be string",
-                });
+            return res.status(400).json({
+                success: false,
+                message: "Panel type should be string",
+            });
         }
 
         panelType = panelType?.trim().toUpperCase();
@@ -208,12 +206,10 @@ const togglePanel = async (req, res) => {
 
         // checking if id's are valid or not
         if (!mongoose.Types.ObjectId.isValid(id))
-            return res
-                .status(400)
-                .json({
-                    success: false,
-                    message: "Technology id is not valid",
-                });
+            return res.status(400).json({
+                success: false,
+                message: "Technology id is not valid",
+            });
 
         const findPanel = await Panel.findById(id);
 
@@ -251,12 +247,10 @@ const createTechnology = async (req, res) => {
         console.log("req.body : ", req.body);
 
         if (typeof technologyPanel !== "string" || typeof panelId !== "string")
-            return res
-                .status(400)
-                .json({
-                    success: false,
-                    message: "Technology should be String!!",
-                });
+            return res.status(400).json({
+                success: false,
+                message: "Technology should be String!!",
+            });
 
         if (!panelId.trim() || !technologyPanel.trim()) {
             return res.status(400).json({
@@ -324,12 +318,10 @@ const getTechnology = async (req, res) => {
 
         panelId = panelId.trim();
         if (!mongoose.Types.ObjectId.isValid(panelId))
-            return res
-                .status(400)
-                .json({
-                    success: false,
-                    message: "Panel id is not valid at all",
-                });
+            return res.status(400).json({
+                success: false,
+                message: "Panel id is not valid at all",
+            });
 
         const isExits = await Panel.findOne({ _id: panelId });
         if (!isExits) {
@@ -380,12 +372,10 @@ const updateTechnology = async (req, res) => {
         technologyPanel = technologyPanel?.trim().toUpperCase();
 
         if (!mongoose.Types.ObjectId.isValid(_id))
-            return res
-                .status(400)
-                .json({
-                    success: false,
-                    message: "Technology id is not valid",
-                });
+            return res.status(400).json({
+                success: false,
+                message: "Technology id is not valid",
+            });
 
         const existingData = await Technology.findOne({ _id });
 
@@ -458,12 +448,10 @@ const activeDisableTech = async (req, res) => {
 
         // checking if id's are valid or not
         if (!mongoose.Types.ObjectId.isValid(id))
-            return res
-                .status(400)
-                .json({
-                    success: false,
-                    message: "Technology id is not valid",
-                });
+            return res.status(400).json({
+                success: false,
+                message: "Technology id is not valid",
+            });
         if (!mongoose.Types.ObjectId.isValid(panelId))
             return res
                 .status(400)
@@ -1185,9 +1173,7 @@ const createSuperAdmin = async (req, res) => {
         return res.status(500).json({ success: false, message: er?.message });
     }
 };
-
 // ----------------
-
 const createDealerAccount = async (req, res) => {
     try {
         let result = createDealerAccountAdminSchema.safeParse(req.body);
@@ -1273,12 +1259,10 @@ const createDealerAccount = async (req, res) => {
             companyLogo,
         });
 
-        return res
-            .status(200)
-            .json({
-                success: true,
-                message: "Dealer Account Created successfully.",
-            });
+        return res.status(200).json({
+            success: true,
+            message: "Dealer Account Created successfully.",
+        });
     } catch (er) {
         return res.status(500).json({ success: false, message: er?.message });
     }
@@ -1409,16 +1393,16 @@ const loginAdmin = async (req, res) => {
                 role: admin.role,
             },
 
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" },
-    );
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" },
+        );
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
 
         res.cookie("role", admin?.role, {
             httpOnly: true,
@@ -1737,12 +1721,10 @@ const inverterStatusChange = async (req, res) => {
             { new: true, runValidators: true },
         );
 
-        return res
-            .status(200)
-            .json({
-                success: true,
-                message: `Inverter ${status === "active" ? "Activated" : "Inactivated"}`,
-            });
+        return res.status(200).json({
+            success: true,
+            message: `Inverter ${status === "active" ? "Activated" : "Inactivated"}`,
+        });
     } catch (er) {
         return res.status(500).json({ success: false, message: er?.message });
     }
@@ -1795,7 +1777,7 @@ const editInverter = async (req, res) => {
     try {
         let { inverterId } = req.params;
         let { phase } = req.body;
-         console.log(inverterId)
+        console.log(inverterId);
 
         if (!phase?.trim())
             return res
@@ -1803,7 +1785,6 @@ const editInverter = async (req, res) => {
                 .json({ success: false, message: "Phase name is required" });
 
         phase = phase.trim().toLowerCase();
-       
 
         let inverter = await Inverter.findByIdAndUpdate(
             inverterId,
@@ -1820,13 +1801,11 @@ const editInverter = async (req, res) => {
             });
         }
 
-        return res
-            .status(200)
-            .json({
-                success: true,
-                message: "Inverter Phase Updated.",
-                inverter,
-            });
+        return res.status(200).json({
+            success: true,
+            message: "Inverter Phase Updated.",
+            inverter,
+        });
     } catch (er) {
         return res.status(500).json({ success: false, message: er?.message });
     }
