@@ -147,7 +147,53 @@ const sunCoreTransporter = nodemailer.createTransport({
   },
 });
 
+app.post('/submit-rei-form', async (req, res) => {
+  try {
+    const formData = req.body;
+    const referrerUrl = req.headers.referer || "Unknown"; // Get the referrer URL
+    const referrerDomain = url.parse(referrerUrl).hostname; // Extract the domain name from the URL
+    const referrerWebsite = extractWebsiteName(referrerDomain); // Extract the website name from the domain name
 
+    let utm = {};
+    try {
+      utm = JSON.parse(formData.utm || "{}");
+    } catch (e) {
+      utm = {};
+    }
+
+    let showUtmData =
+      utm?.utm_source && utm?.utm_medium
+        ? `${utm?.utm_source}-${utm?.utm_medium}`
+        : "Direct";
+
+    const mailOptions = {
+      from: "gautamsolar.vidoes01@gmail.com", // sender email
+      to: "info@gautamsolar.com", // another destination email
+      // to: "marketing7@gautamsolar.com", // another destination email
+      subject: "REI Form Submission",
+      html: `
+          <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+          <h2 style="color: #a20000;">REI Form Submission</h2>
+          <p style="margin-bottom: 10px;"><strong>Name:</strong> ${formData?.name || 'NA'}</p>
+          <p style="margin-bottom: 10px;"><strong>Mobile No:</strong> ${formData?.mobile || 'NA'}</p>
+          <p style="margin-bottom: 10px;"><strong>City:</strong> ${formData?.city || 'NA'}</p>
+          <p style="margin-bottom: 10px;"><strong>Requirement:</strong> ${formData?.requirement || 'NA'}</p>
+          <p style="margin-bottom: 10px;"><strong>Required Capacity:</strong> ${formData?.capacity || 'NA'}</p>
+          <p style="margin-bottom: 10px;"><strong>Remark:</strong> ${formData?.remark || 'NA'}</p>
+          <p style="margin-bottom: 10px;"><strong>Source:</strong> ${referrerWebsite}</p>
+          <p style="margin-bottom: 10px;"><strong>UTM Source:</strong> ${showUtmData}</p>
+        </div>
+  `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    return res.status(200).json({success:true,message:"Form has been filled successfully."});
+
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
+})
 
 app.post("/solar-saving-contact", async (req, res) => {
   try {
