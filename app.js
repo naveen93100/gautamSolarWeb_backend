@@ -162,9 +162,7 @@ app.post('/submit-rei-form', async (req, res) => {
     }
 
     let showUtmData =
-      utm?.utm_source && utm?.utm_medium
-        ? `${utm?.utm_source}-${utm?.utm_medium}`
-        : "Direct";
+      utm?.utm_source ? `${utm?.utm_source}` : "Direct";
 
     const mailOptions = {
       from: "gautamsolar.vidoes01@gmail.com", // sender email
@@ -188,7 +186,7 @@ app.post('/submit-rei-form', async (req, res) => {
 
     await transporter.sendMail(mailOptions);
 
-    return res.status(200).json({success:true,message:"Form has been filled successfully."});
+    return res.status(200).json({ success: true, message: "Form has been filled successfully." });
 
   } catch (er) {
     return res.status(500).json({ success: false, message: er?.message });
