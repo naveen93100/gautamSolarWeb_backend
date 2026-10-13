@@ -204,7 +204,6 @@ app.post("/solar-saving-contact", async (req, res) => {
       monthlyBill,
       utm,
       salesRepresentative,
-      // email,
       qrCode = null
     } = req.body;
 
@@ -315,11 +314,17 @@ app.post("/solar-saving-contact", async (req, res) => {
       transporter.sendMail(mailOptions2),
 
       axios.post("https://hrm.umanerp.com/api/auth/sendCampaignMessage", { mobileNo: whatsapp }),
-      axios.post('https://newenquiry.umanerp.com/api/enquiry/addEnquiry', { name, pin, whatsapp, salesRepresentative, lookingFor, monthlyBill, source: location }),
+      axios.post('https://newenquiry.umanerp.com/api/enquiry/addEnquiry',
+        { name, pin, whatsapp, salesRepresentative, lookingFor, monthlyBill, source: location })
+        .catch((er) => {
+          if (er?.response?.status === 400) {
+            enquiryError = er.response.data.message;
+            return null;
+          }
+          throw er;
+        }),
     ])
 
-    // await transporter.sendMail(mailOptions);
-    // await transporter.sendMail(mailOptions2);
 
     res
       .status(200)
