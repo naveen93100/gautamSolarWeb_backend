@@ -195,7 +195,6 @@ app.post('/submit-rei-form', async (req, res) => {
 
 app.post("/solar-saving-contact", async (req, res) => {
   try {
-    console.log(req.body);
     let {
       name,
       pin,
@@ -210,6 +209,9 @@ app.post("/solar-saving-contact", async (req, res) => {
     const qrMapping = {
       DLF001: {
         location: "DLF Mall",
+      },
+      AIR: {
+        location: "Airport Terminal-2"
       }
     }
 
@@ -309,11 +311,14 @@ app.post("/solar-saving-contact", async (req, res) => {
     };
 
 
+    let enquiryError
+
     await Promise.all([
       transporter.sendMail(mailOptions),
       transporter.sendMail(mailOptions2),
 
       axios.post("https://hrm.umanerp.com/api/auth/sendCampaignMessage", { mobileNo: whatsapp }),
+
       axios.post('https://newenquiry.umanerp.com/api/enquiry/addEnquiry',
         { name, pin, whatsapp, salesRepresentative, lookingFor, monthlyBill, source: location })
         .catch((er) => {
@@ -323,6 +328,7 @@ app.post("/solar-saving-contact", async (req, res) => {
           }
           throw er;
         }),
+        
     ])
 
 
@@ -330,6 +336,7 @@ app.post("/solar-saving-contact", async (req, res) => {
       .status(200)
       .json({ success: true, message: "Form submitted successfully" });
   } catch (er) {
+    console.log(er?.message)
     return res.status(500).json({ success: false, message: er?.message });
   }
 });
