@@ -270,21 +270,9 @@ const GetBlogVideo = (req, res) => {
 
 // get news
 const getNews = async (req, res) => {
-  const { NoOfNews, Page } = req.query;
+  const { NoOfNews, Page, fields } = req.query;
 
   try {
-    // here News is a collection
-    // let total = await News.aggregate([
-    //   { $group: { _id: null, total: { $sum: 1 } } },
-    //   {
-    //     $project: {
-    //       _id: 0,
-    //       total: 1,
-    //       totalPages: { $ceil: { $divide: ["$total", Number(NoOfNews)] } },
-    //     },
-    //   },
-    // ]);
-
     if (
       !NoOfNews ||
       !Page ||
@@ -297,15 +285,26 @@ const getNews = async (req, res) => {
     const correctSize = Number.parseInt(NoOfNews);
     const correctPage = Number.parseInt(Page);
 
-    const totalNewsCount = await News.countDocuments();
+    const projection = fields
+      ? fields.split(",").join(" ")
+      : null;
 
-    const totalPages = Math.ceil(totalNewsCount / correctSize) || 1;
-    const safePage = Math.min(Math.max(correctSize, 1), 1);
 
-    const data = await News.find()
+    const query = News.find()
       .sort({ CreatedOn: -1 })
       .skip((correctPage - 1) * correctSize)
       .limit(correctSize);
+
+    if (projection) {
+      query.select(projection);
+    }
+
+    const data = await query;
+
+    // const data = await News.find()
+    //   .sort({ CreatedOn: -1 })
+    //   .skip((correctPage - 1) * correctSize)
+    //   .limit(correctSize);
 
     if (!data) {
       return res.status(500).json({
@@ -338,23 +337,23 @@ const getNews = async (req, res) => {
   }
 };
 
-const getNewsById=async(req,res)=>{
-    try {
+const getNewsById = async (req, res) => {
+  try {
 
-      let {uuid}=req.params;
+    let { uuid } = req.params;
 
-      if(!uuid) return res.status(400).json({success:false,message:"UUID not provided.."});;
+    if (!uuid) return res.status(400).json({ success: false, message: "UUID not provided.." });;
 
-       const data = await News.findOne({UUID:uuid})
+    const data = await News.findOne({ UUID: uuid })
 
-       if(!data) return res.status(404).json({success:false,message:"Blog not found.."});
+    if (!data) return res.status(404).json({ success: false, message: "Blog not found.." });
 
-       return res.status(200).json({success:true,data});
+    return res.status(200).json({ success: true, data });
 
-      
-    } catch (er) {
-       return res.status(500).json({success:false,message:er?.message});
-    }
+
+  } catch (er) {
+    return res.status(500).json({ success: false, message: er?.message });
+  }
 }
 
 /**************************************delete document by _id******************************************************** */
