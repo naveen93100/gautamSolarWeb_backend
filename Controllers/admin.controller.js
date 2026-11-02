@@ -79,7 +79,7 @@ const createSlug = (header) => {
     .trim();
 };
 
-/** ################################################################### */
+
 const create = async (req, res) => {
   try {
     const UUID = uuidv4();
@@ -267,7 +267,6 @@ const GetBlogVideo = (req, res) => {
   }
 };
 
-/** ################################################################### */
 
 // get news
 const getNews = async (req, res) => {
@@ -338,6 +337,25 @@ const getNews = async (req, res) => {
     });
   }
 };
+
+const getNewsById=async(req,res)=>{
+    try {
+
+      let {uuid}=req.params;
+
+      if(!uuid) return res.status(400).json({success:false,message:"UUID not provided.."});;
+
+       const data = await News.findOne({UUID:uuid})
+
+       if(!data) return res.status(404).json({success:false,message:"Blog not found.."});
+
+       return res.status(200).json({success:true,data});
+
+      
+    } catch (er) {
+       return res.status(500).json({success:false,message:er?.message});
+    }
+}
 
 /**************************************delete document by _id******************************************************** */
 const deleteNews = async (req, res) => {
@@ -504,5 +522,6 @@ module.exports = {
   GetBlogImage,
   getNewsByUUID,
   GetBlogVideo,
-  generateSitemap
+  generateSitemap,
+  getNewsById
 };

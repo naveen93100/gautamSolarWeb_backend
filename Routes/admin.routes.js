@@ -1,5 +1,5 @@
 const express = require('express')
-const { create, getNews,deleteNews, UpdateNews, GetBlogImage,getNewsByUUID, GetBlogVideo,generateSitemap } = require('../Controllers/admin.controller')
+const { create, getNews,deleteNews, UpdateNews, GetBlogImage,getNewsByUUID, GetBlogVideo,generateSitemap,getNewsById } = require('../Controllers/admin.controller')
 const multer = require('multer')
 const {authentication} = require('../Middleware/authentication')
 const UserRouter = express.Router()
@@ -70,6 +70,7 @@ UserRouter.get('/sitemap.xml',generateSitemap)
 
 /** To Get All News */
 UserRouter.get("/news", getNews);
+UserRouter.get('/news/:uuid',getNewsById)
 
 /** To Get Blog Image */
 UserRouter.get("/blogImage/:filename", GetBlogImage);
