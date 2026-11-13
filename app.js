@@ -202,6 +202,7 @@ app.post("/solar-saving-contact", async (req, res) => {
       lookingFor,
       monthlyBill,
       utm,
+      city,
       salesRepresentative,
       qrCode = null
     } = req.body;
@@ -229,7 +230,6 @@ app.post("/solar-saving-contact", async (req, res) => {
 
     const referrerUrl = req.headers.referer || "Unknown"; // Get the referrer URL
     const referrerDomain = url.parse(referrerUrl).hostname; // Extract the domain name from the URL
-    // const referrerWebsite = extractWebsiteName(referrerDomain);
 
     const lookingForLabels = {
       home: "Home",
@@ -251,6 +251,7 @@ app.post("/solar-saving-contact", async (req, res) => {
                 <p style="margin-bottom: 10px;"><strong>Full Name:</strong> ${name || 'N/A'}</p>
                 <p style="margin-bottom: 10px;"><strong>WhatsApp Number:</strong> +91 ${whatsapp || 'N/A'}</p>
                 <p style="margin-bottom: 10px;"><strong>PIN Code:</strong> ${pin || 'N/A'}</p>
+                <p style="margin-bottom: 10px;"><strong>City:</strong> ${city || 'N/A'}</p>
               </div>
 
               <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; margin-top: 15px;">
@@ -287,6 +288,7 @@ app.post("/solar-saving-contact", async (req, res) => {
                 <p style="margin-bottom: 10px;"><strong>Full Name:</strong> ${name || 'N/A'}</p>
                 <p style="margin-bottom: 10px;"><strong>WhatsApp Number:</strong> +91 ${whatsapp || 'N/A'}</p>
                 <p style="margin-bottom: 10px;"><strong>PIN Code:</strong> ${pin || 'N/A'}</p>
+                <p style="margin-bottom: 10px;"><strong>City:</strong> ${city || 'N/A'}</p>
               </div>
 
               <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; margin-top: 15px;">
