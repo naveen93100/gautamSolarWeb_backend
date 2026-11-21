@@ -147,6 +147,97 @@ const sunCoreTransporter = nodemailer.createTransport({
   },
 });
 
+
+app.post('/submit-italy', async (req, res) => {
+    try {
+        const {
+            companyName,
+            location,
+            contactPerson,
+            phone,
+            email,
+            projectType,
+            message
+        } = req.body;
+
+        const payload = {
+            companyName: companyName || "",
+            location: location || "",
+            contactPerson: contactPerson || "",
+            phone: phone || "",
+            email: email || "",
+            projectType: projectType || "",
+            message: message || ""
+        };
+
+        const escapeHtml = (value) => String(value).replace(/[&<>"']/g, char => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[char]);
+
+        const mailOptions = {
+            from: "gautamsolar.vidoes01@gmail.com",
+            to: "sales28@gautamsolar.com",
+            subject: `New Italy Website Enquiry — ${payload.contactPerson || payload.companyName || "Unnamed Lead"}`,
+            html: `
+                <div style="font-family:Arial,sans-serif;background:#f4f4f4;padding:20px;">
+                    <h2 style="color:#a20000;border-bottom:2px solid #a20000;padding-bottom:10px;">
+                        New Website Enquiry - Italy
+                    </h2>
+
+                    <div style="background:#fff;padding:20px;border-radius:8px;margin-top:15px;">
+                        <h3 style="color:#a20000;margin-top:0;">Contact Details</h3>
+
+                        <p><strong>Company Name:</strong> ${escapeHtml(payload.companyName || "N/A")}</p>
+                        <p><strong>Contact Person:</strong> ${escapeHtml(payload.contactPerson || "N/A")}</p>
+                        <p><strong>Phone:</strong> ${escapeHtml(payload.phone || "N/A")}</p>
+                        <p><strong>Email:</strong> ${escapeHtml(payload.email || "N/A")}</p>
+                        <p><strong>Location:</strong> ${escapeHtml(payload.location || "N/A")}</p>
+                    </div>
+
+                    <div style="background:#fff;padding:20px;border-radius:8px;margin-top:15px;">
+                        <h3 style="color:#a20000;margin-top:0;">Project Details</h3>
+
+                        <p><strong>Project Type:</strong> ${escapeHtml(payload.projectType || "N/A")}</p>
+                        <p><strong>Message:</strong></p>
+                        <p style="white-space:pre-wrap;">${escapeHtml(payload.message || "Not Provided")}</p>
+                    </div>
+
+                    <div style="background:#fff;padding:20px;border-radius:8px;margin-top:15px;">
+                        <p style="color:#666;font-size:12px;margin:0;">
+                            <strong>Submitted At:</strong>
+                            ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
+                        </p>
+                    </div>
+
+                    <p style="text-align:center;color:#888;font-size:12px;margin-top:20px;">
+                        Automated enquiry notification from Gautam Solar website.
+                    </p>
+                </div>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        return res.status(200).json({
+            success: true,
+            message: "Enquiry submitted successfully"
+        });
+
+    } catch (er) {
+        console.error("Italy enquiry email error:", er);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to send enquiry email"
+        });
+    }
+});
+
+
 app.post('/submit-rei-form', async (req, res) => {
   try {
     const formData = req.body;
@@ -330,7 +421,7 @@ app.post("/solar-saving-contact", async (req, res) => {
           }
           throw er;
         }),
-        
+
     ])
 
 
