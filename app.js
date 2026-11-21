@@ -148,7 +148,8 @@ const sunCoreTransporter = nodemailer.createTransport({
 });
 
 
-app.post('/submit-italy', async (req, res) => {
+
+app.post('/submit-france', async (req, res) => {
     try {
         const {
             companyName,
@@ -181,11 +182,12 @@ app.post('/submit-italy', async (req, res) => {
         const mailOptions = {
             from: "gautamsolar.vidoes01@gmail.com",
             to: "sales28@gautamsolar.com",
-            subject: `New Italy Website Enquiry — ${payload.contactPerson || payload.companyName || "Unnamed Lead"}`,
+            replyTo: payload.email || undefined,
+            subject: `New France Website Enquiry — ${payload.contactPerson || payload.companyName || "Unnamed Lead"}`,
             html: `
                 <div style="font-family:Arial,sans-serif;background:#f4f4f4;padding:20px;">
                     <h2 style="color:#a20000;border-bottom:2px solid #a20000;padding-bottom:10px;">
-                        New Website Enquiry - Italy
+                        New Website Enquiry - France
                     </h2>
 
                     <div style="background:#fff;padding:20px;border-radius:8px;margin-top:15px;">
@@ -224,11 +226,11 @@ app.post('/submit-italy', async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "Enquiry submitted successfully"
+            message: "France enquiry submitted successfully"
         });
 
     } catch (er) {
-        console.error("Italy enquiry email error:", er);
+        console.error("France enquiry email error:", er);
 
         return res.status(500).json({
             success: false,
@@ -236,6 +238,7 @@ app.post('/submit-italy', async (req, res) => {
         });
     }
 });
+
 
 
 app.post('/submit-rei-form', async (req, res) => {
