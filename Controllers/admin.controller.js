@@ -12,7 +12,8 @@ const generateSitemap = async (req, res) => {
     // Static pages
     const staticPages = [
       { url: "/", lastmod: "2026-08-18", priority: 1.0 },
-
+      { url: "/blog/", lastmod: "2026-08-18", priority: 1.0 },
+      
       { url: "/aboutus/", lastmod: "2026-08-13", priority: 0.8 },
       { url: "/topcon/", lastmod: "2026-08-13", priority: 0.9 },
       { url: "/mono/", lastmod: "2026-08-13", priority: 0.9 },
@@ -21,6 +22,7 @@ const generateSitemap = async (req, res) => {
       { url: "/inverter-hybrid/", lastmod: "2026-08-13", priority: 0.9 },
       { url: "/solarplants/", lastmod: "2026-08-13", priority: 0.8 },
       { url: "/kusum/", lastmod: "2026-08-13", priority: 0.7 },
+      { url: "/solar-saving/", lastmod: "2026-08-18", priority: 0.7 },
 
       { url: "/contactus/", lastmod: "2026-08-13", priority: 0.6 },
       { url: "/quality/", lastmod: "2026-08-13", priority: 0.8 },
