@@ -16,27 +16,28 @@ const generateSitemap = async (req, res) => {
       { url: "/aboutus/", lastmod: "2026-08-13", priority: 0.8 },
       { url: "/topcon/", lastmod: "2026-08-13", priority: 0.9 },
       { url: "/mono/", lastmod: "2026-08-13", priority: 0.9 },
-      { url: "/inverter/", lastmod: "2026-08-13", priority: 0.9 },
       { url: "/bess/", lastmod: "2026-08-13", priority: 0.9 },
+      { url: "/inverter-ongrid/", lastmod: "2026-08-13", priority: 0.9 },
+      { url: "/inverter-hybrid/", lastmod: "2026-08-13", priority: 0.9 },
       { url: "/solarplants/", lastmod: "2026-08-13", priority: 0.8 },
       { url: "/kusum/", lastmod: "2026-08-13", priority: 0.7 },
 
-      { url: "/contactus", lastmod: "2026-08-13", priority: 0.6 },
-      { url: "/quality", lastmod: "2026-08-13", priority: 0.8 },
-      { url: "/media", lastmod: "2026-08-13", priority: 0.6 },
-      { url: "/esg", lastmod: "2026-08-13", priority: 0.7 },
-      { url: "/whitepaper", lastmod: "2026-08-13", priority: 0.6 },
-      { url: "/csr", lastmod: "2026-08-13", priority: 0.6 },
+      { url: "/contactus/", lastmod: "2026-08-13", priority: 0.6 },
+      { url: "/quality/", lastmod: "2026-08-13", priority: 0.8 },
+      { url: "/media/", lastmod: "2026-08-13", priority: 0.6 },
+      { url: "/esg/", lastmod: "2026-08-13", priority: 0.7 },
+      { url: "/whitepaper/", lastmod: "2026-08-13", priority: 0.6 },
+      { url: "/csr/", lastmod: "2026-08-13", priority: 0.6 },
 
-      { url: "/terms", lastmod: "2026-08-13", priority: 0.3 },
-      { url: "/policy", lastmod: "2026-08-13", priority: 0.3 },
+      { url: "/terms/", lastmod: "2026-08-13", priority: 0.3 },
+      { url: "/policy/", lastmod: "2026-08-13", priority: 0.3 },
     ];
 
     // Dynamic blogs
     const blogs = await News.find();
 
     const blogLinks = blogs.map((blog) => ({
-      url: `/${createSlug(blog.Header)}`,
+      url: `/${createSlug(blog.Header)}/`,
       lastmod: new Date(blog.CreatedOn)
         .toISOString()
         .split("T")[0],
